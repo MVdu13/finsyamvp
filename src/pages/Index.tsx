@@ -7,30 +7,42 @@ import BudgetPage from './BudgetPage';
 import RealEstatePage from './RealEstatePage';
 import StocksPage from './StocksPage';
 import CryptoPage from './CryptoPage';
+import { Asset } from '@/types/assets';
+import { mockAssets } from '@/lib/mockData';
 
 const Index = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeItem, setActiveItem] = useState('dashboard');
+  const [assets, setAssets] = useState<Asset[]>(mockAssets);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+  };
+
+  const addAsset = (newAsset: Omit<Asset, 'id'>) => {
+    const asset = {
+      ...newAsset,
+      id: Date.now().toString(),
+    };
+    
+    setAssets(prevAssets => [...prevAssets, asset]);
   };
 
   // Render the right content based on active item
   const renderContent = () => {
     switch (activeItem) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard assets={assets} onAddAsset={addAsset} navigateTo={setActiveItem} />;
       case 'assets':
-        return <AssetsPage />;
+        return <AssetsPage assets={assets} onAddAsset={addAsset} />;
       case 'budget':
         return <BudgetPage />;
       case 'real-estate':
-        return <RealEstatePage />;
+        return <RealEstatePage assets={assets.filter(asset => asset.type === 'real-estate')} onAddAsset={addAsset} />;
       case 'stocks':
-        return <StocksPage />;
+        return <StocksPage assets={assets.filter(asset => asset.type === 'stock')} onAddAsset={addAsset} />;
       case 'crypto':
-        return <CryptoPage />;
+        return <CryptoPage assets={assets.filter(asset => asset.type === 'crypto')} onAddAsset={addAsset} />;
       default:
         return (
           <div className="p-6">

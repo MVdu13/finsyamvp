@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,39 +10,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import AssetForm from '@/components/assets/AssetForm';
 import { cn } from '@/lib/utils';
 
-const RealEstatePage = () => {
-  const [properties, setProperties] = useState<Asset[]>([
-    {
-      id: 'property-1',
-      name: 'Appartement Paris',
-      description: '2 pièces, 45m²',
-      type: 'real-estate',
-      value: 350000,
-      performance: 3.2,
-      createdAt: '2022-01-15T10:30:00Z',
-      updatedAt: '2023-06-20T14:45:00Z'
-    },
-    {
-      id: 'property-2',
-      name: 'Studio Lyon',
-      description: '1 pièce, 30m²',
-      type: 'real-estate',
-      value: 180000,
-      performance: 2.8,
-      createdAt: '2021-05-10T09:15:00Z',
-      updatedAt: '2023-07-05T11:20:00Z'
-    },
-    {
-      id: 'property-3',
-      name: 'Maison Bordeaux',
-      description: '4 pièces, 120m²',
-      type: 'real-estate',
-      value: 450000,
-      performance: -0.5,
-      createdAt: '2020-11-22T16:40:00Z',
-      updatedAt: '2023-06-30T10:10:00Z'
-    }
-  ]);
+interface RealEstatePageProps {
+  assets: Asset[];
+  onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+}
+
+const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) => {
+  // Properties are passed from parent
+  const properties = assets;
 
   const totalValue = properties.reduce((sum, property) => sum + property.value, 0);
   const avgPerformance = properties.length > 0 
@@ -61,11 +37,14 @@ const RealEstatePage = () => {
   };
 
   const handleAddProperty = (newProperty: Omit<Asset, 'id'>) => {
-    const property: Asset = {
+    // Make sure we're adding a real-estate asset
+    const realEstateAsset = {
       ...newProperty,
-      id: `property-${Date.now()}`,
+      type: 'real-estate'
     };
-    setProperties([...properties, property]);
+    
+    // Call the parent's onAddAsset function
+    onAddAsset(realEstateAsset);
   };
 
   return (
@@ -86,7 +65,7 @@ const RealEstatePage = () => {
             <DialogHeader>
               <DialogTitle>Ajouter un bien immobilier</DialogTitle>
             </DialogHeader>
-            <AssetForm onSubmit={handleAddProperty} onCancel={() => {}} />
+            <AssetForm onSubmit={handleAddProperty} onCancel={() => {}} defaultType="real-estate" />
           </DialogContent>
         </Dialog>
       </div>

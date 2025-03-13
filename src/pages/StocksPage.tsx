@@ -3,17 +3,21 @@ import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, Plus, Filter } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
-import { mockAssets } from '@/lib/mockData';
 import AssetForm from '@/components/assets/AssetForm';
 import { Asset } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 
-const StocksPage = () => {
+interface StocksPageProps {
+  assets: Asset[];
+  onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+}
+
+const StocksPage: React.FC<StocksPageProps> = ({ assets, onAddAsset }) => {
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   
-  // Filter stocks from all assets
-  const stockAssets = mockAssets.filter(asset => asset.type === 'stock');
+  // Stock assets are passed from parent
+  const stockAssets = assets;
   
   // Calculate total value
   const totalValue = stockAssets.reduce((sum, asset) => sum + asset.value, 0);
@@ -24,8 +28,14 @@ const StocksPage = () => {
     : 0;
   
   const handleAddAsset = (newAsset: Omit<Asset, 'id'>) => {
-    // Here you would typically add the asset to your state or database
-    console.log('Adding stock asset:', newAsset);
+    // Make sure we're adding a stock asset
+    const stockAsset = {
+      ...newAsset,
+      type: 'stock'
+    };
+    
+    // Call the parent's onAddAsset function
+    onAddAsset(stockAsset);
     
     toast({
       title: "Actif ajouté",
@@ -110,6 +120,7 @@ const StocksPage = () => {
           <AssetForm 
             onSubmit={handleAddAsset}
             onCancel={() => setShowForm(false)}
+            defaultType="stock"
           />
         </div>
       )}

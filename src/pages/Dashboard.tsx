@@ -1,16 +1,32 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import NetWorthChart from '@/components/dashboard/NetWorthChart';
 import AssetAllocation from '@/components/dashboard/AssetAllocation';
 import FinancialGoals from '@/components/dashboard/FinancialGoals';
 import AssetsList from '@/components/assets/AssetsList';
-import { mockAssets, mockAssetAllocation, mockNetWorthHistory, mockGoals } from '@/lib/mockData';
+import { Asset } from '@/types/assets';
+import { mockAssetAllocation, mockNetWorthHistory, mockGoals } from '@/lib/mockData';
 
-const Dashboard = () => {
-  const navigate = useNavigate();
-  // Calculate total value
-  const totalValue = Object.values(mockAssetAllocation).reduce((sum, value) => sum + value, 0);
+interface DashboardProps {
+  assets: Asset[];
+  onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+  navigateTo: (item: string) => void;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo }) => {
+  // Calculate total value from all assets
+  const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
+  
+  // Calculate asset allocation from assets
+  const currentAllocation = {
+    stocks: assets.filter(asset => asset.type === 'stock').reduce((sum, asset) => sum + asset.value, 0),
+    realEstate: assets.filter(asset => asset.type === 'real-estate').reduce((sum, asset) => sum + asset.value, 0),
+    crypto: assets.filter(asset => asset.type === 'crypto').reduce((sum, asset) => sum + asset.value, 0),
+    cash: assets.filter(asset => asset.type === 'cash').reduce((sum, asset) => sum + asset.value, 0),
+    bonds: assets.filter(asset => asset.type === 'bonds').reduce((sum, asset) => sum + asset.value, 0) || 0,
+    commodities: assets.filter(asset => asset.type === 'commodities').reduce((sum, asset) => sum + asset.value, 0) || 0,
+    other: assets.filter(asset => asset.type === 'other').reduce((sum, asset) => sum + asset.value, 0),
+  };
   
   // Calculate period growth (from first to last value in the history)
   const firstValue = mockNetWorthHistory.values[0];
@@ -20,10 +36,10 @@ const Dashboard = () => {
     : 0;
   
   // Get only the 3 most valuable assets for the quick view
-  const topAssets = [...mockAssets].sort((a, b) => b.value - a.value).slice(0, 3);
+  const topAssets = [...assets].sort((a, b) => b.value - a.value).slice(0, 3);
 
   const handleAddAsset = () => {
-    navigate('/assets');
+    navigateTo('assets');
   };
 
   return (
@@ -52,7 +68,7 @@ const Dashboard = () => {
         
         <div>
           <AssetAllocation 
-            allocation={mockAssetAllocation}
+            allocation={currentAllocation}
             totalValue={totalValue}
           />
         </div>

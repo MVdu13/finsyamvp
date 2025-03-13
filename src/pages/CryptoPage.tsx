@@ -3,17 +3,21 @@ import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Bitcoin, TrendingUp, TrendingDown, Wallet, Plus, Filter } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
-import { mockAssets } from '@/lib/mockData';
 import AssetForm from '@/components/assets/AssetForm';
 import { Asset } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 
-const CryptoPage = () => {
+interface CryptoPageProps {
+  assets: Asset[];
+  onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+}
+
+const CryptoPage: React.FC<CryptoPageProps> = ({ assets, onAddAsset }) => {
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   
-  // Filter crypto assets from all assets
-  const cryptoAssets = mockAssets.filter(asset => asset.type === 'crypto');
+  // Crypto assets are passed from parent
+  const cryptoAssets = assets;
   
   // Calculate total value
   const totalValue = cryptoAssets.reduce((sum, asset) => sum + asset.value, 0);
@@ -24,8 +28,14 @@ const CryptoPage = () => {
     : 0;
   
   const handleAddAsset = (newAsset: Omit<Asset, 'id'>) => {
-    // Here you would typically add the asset to your state or database
-    console.log('Adding crypto asset:', newAsset);
+    // Make sure we're adding a crypto asset
+    const cryptoAsset = {
+      ...newAsset,
+      type: 'crypto'
+    };
+    
+    // Call the parent's onAddAsset function
+    onAddAsset(cryptoAsset);
     
     toast({
       title: "Cryptomonnaie ajoutée",
@@ -110,6 +120,7 @@ const CryptoPage = () => {
           <AssetForm 
             onSubmit={handleAddAsset}
             onCancel={() => setShowForm(false)}
+            defaultType="crypto"
           />
         </div>
       )}

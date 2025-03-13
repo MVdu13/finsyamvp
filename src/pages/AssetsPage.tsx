@@ -1,24 +1,22 @@
 
 import React, { useState } from 'react';
 import { Plus, Filter, BarChart3, Search } from 'lucide-react';
-import { mockAssets } from '@/lib/mockData';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
 import { Asset, AssetType } from '@/types/assets';
 
-const AssetsPage = () => {
-  const [assets, setAssets] = useState<Asset[]>(mockAssets);
+interface AssetsPageProps {
+  assets: Asset[];
+  onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+}
+
+const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
   const [showAddAssetForm, setShowAddAssetForm] = useState(false);
   const [filterType, setFilterType] = useState<AssetType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleAddAsset = (newAsset: Omit<Asset, 'id'>) => {
-    const asset = {
-      ...newAsset,
-      id: Date.now().toString(),
-    };
-    
-    setAssets((prevAssets) => [...prevAssets, asset]);
+    onAddAsset(newAsset);
     setShowAddAssetForm(false);
   };
 
@@ -93,11 +91,6 @@ const AssetsPage = () => {
           <button className="wealth-btn wealth-btn-secondary flex items-center gap-2">
             <Filter size={18} />
             <span className="hidden sm:inline">Filtres</span>
-          </button>
-          
-          <button className="wealth-btn wealth-btn-secondary flex items-center gap-2">
-            <BarChart3 size={18} />
-            <span className="hidden sm:inline">Statistiques</span>
           </button>
         </div>
       </div>

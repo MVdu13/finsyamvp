@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 interface AssetFormProps {
   onSubmit: (asset: Omit<Asset, 'id'>) => void;
   onCancel: () => void;
+  defaultType?: AssetType;
 }
 
 const assetTypes: { value: AssetType; label: string }[] = [
@@ -16,10 +17,10 @@ const assetTypes: { value: AssetType; label: string }[] = [
   { value: 'other', label: 'Autre' },
 ];
 
-const AssetForm: React.FC<AssetFormProps> = ({ onSubmit, onCancel }) => {
+const AssetForm: React.FC<AssetFormProps> = ({ onSubmit, onCancel, defaultType = 'stock' }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType] = useState<AssetType>('stock');
+  const [type, setType] = useState<AssetType>(defaultType);
   const [value, setValue] = useState('');
   const [performance, setPerformance] = useState('');
 
@@ -39,7 +40,7 @@ const AssetForm: React.FC<AssetFormProps> = ({ onSubmit, onCancel }) => {
     // Reset form
     setName('');
     setDescription('');
-    setType('stock');
+    setType(defaultType);
     setValue('');
     setPerformance('');
   };
