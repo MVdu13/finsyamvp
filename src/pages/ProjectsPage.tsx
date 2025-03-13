@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FinancialGoal, ProjectPlan } from '@/types/goals';
 import { mockBudget, mockGoals } from '@/lib/mockData';
 import { formatCurrency } from '@/lib/formatters';
@@ -10,9 +10,14 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import ProjectForm from '@/components/projects/ProjectForm';
 import FundingPlan from '@/components/projects/FundingPlan';
 import { toast } from '@/hooks/use-toast';
+import { Asset } from '@/types/assets';
 
-const ProjectsPage = () => {
-  const [projects, setProjects] = useState<FinancialGoal[]>([...mockGoals]);
+interface ProjectsPageProps {
+  onAddAsset?: (newAsset: Omit<Asset, 'id'>) => void;
+}
+
+const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
+  const [projects, setProjects] = useState<FinancialGoal[]>([]);
   const [selectedProject, setSelectedProject] = useState<FinancialGoal | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -22,6 +27,21 @@ const ProjectsPage = () => {
   
   // Dialog states
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Load projects from localStorage on initial render
+  useEffect(() => {
+    const savedProjects = localStorage.getItem('financial-projects');
+    if (savedProjects) {
+      setProjects(JSON.parse(savedProjects));
+    } else {
+      setProjects([...mockGoals]);
+    }
+  }, []);
+
+  // Save projects to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('financial-projects', JSON.stringify(projects));
+  }, [projects]);
   
   const handleSelectProject = (project: FinancialGoal) => {
     setSelectedProject(project);
@@ -54,6 +74,21 @@ const ProjectsPage = () => {
         id: Math.random().toString(36).substr(2, 9), // Simple ID generation
       };
       setProjects(prevProjects => [...prevProjects, newProject]);
+
+      // Si c'est un projet immobilier ou d'investissement, l'ajouter également aux actifs
+      if ((newProject.type === 'investment' || newProject.type === 'project') && onAddAsset) {
+        const assetType = newProject.type === 'investment' ? 'stock' : 'other';
+        onAddAsset({
+          name: newProject.name,
+          type: assetType,
+          value: newProject.currentAmount,
+          purchaseDate: new Date(newProject.startDate).toISOString(),
+          description: newProject.description || '',
+          growth: 0,
+          category: 'Project',
+        });
+      }
+      
       toast({
         title: "Projet ajouté",
         description: "Votre nouveau projet a été ajouté avec succès.",
@@ -297,7 +332,9 @@ const ProjectsPage = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">Contribution mensuelle</span>
-                      <span className="font-medium">{formatCurrency(selectedProject.monthlyContribution)}</span>
+                      <span className={`font-medium ${selectedProject.monthlyContribution > monthlySavings ? 'text-red-600' : ''}`}>
+                        {formatCurrency(selectedProject.monthlyContribution)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">Priorité</span>
@@ -350,7 +387,9 @@ const ProjectsPage = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Allocation actuelle</span>
-                  <span className="font-medium">{formatCurrency(totalAllocation)}</span>
+                  <span className={`font-medium ${totalAllocation > monthlySavings ? 'text-red-600' : ''}`}>
+                    {formatCurrency(totalAllocation)}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Disponible</span>
@@ -368,6 +407,7 @@ const ProjectsPage = () => {
         onClose={() => setIsFormOpen(false)}
         onSave={handleSaveProject}
         editProject={selectedProject || undefined}
+        monthlySavings={monthlySavings}
       />
       
       {/* Delete Confirmation Dialog */}

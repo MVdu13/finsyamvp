@@ -29,11 +29,16 @@ const Index = () => {
     setAssets(prevAssets => [...prevAssets, asset]);
   };
 
+  // Fonction pour naviguer directement vers la page des projets
+  const openProjectsPage = () => {
+    setActiveItem('projects');
+  };
+
   // Render the right content based on active item
   const renderContent = () => {
     switch (activeItem) {
       case 'dashboard':
-        return <Dashboard assets={assets} onAddAsset={addAsset} navigateTo={setActiveItem} />;
+        return <Dashboard assets={assets} onAddAsset={addAsset} navigateTo={setActiveItem} openProjectsPage={openProjectsPage} />;
       case 'assets':
         return <AssetsPage assets={assets} onAddAsset={addAsset} />;
       case 'budget':
@@ -45,7 +50,7 @@ const Index = () => {
       case 'crypto':
         return <CryptoPage assets={assets.filter(asset => asset.type === 'crypto')} onAddAsset={addAsset} />;
       case 'projects':
-        return <ProjectsPage />;
+        return <ProjectsPage onAddAsset={addAsset} />;
       default:
         return (
           <div className="p-6">

@@ -1,17 +1,17 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FinancialGoal } from '@/types/goals';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, differenceInMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -22,6 +22,7 @@ interface ProjectFormProps {
   onClose: () => void;
   onSave: (project: Omit<FinancialGoal, 'id'> & { id?: string }) => void;
   editProject?: FinancialGoal;
+  monthlySavings: number;
 }
 
 const formSchema = z.object({
@@ -34,9 +35,15 @@ const formSchema = z.object({
   priority: z.enum(['low', 'medium', 'high']),
   startDate: z.date(),
   targetDate: z.date(),
+}).refine((data) => {
+  // Vérifier que la date cible est postérieure à la date de début
+  return data.targetDate > data.startDate;
+}, {
+  message: "La date cible doit être postérieure à la date de début",
+  path: ["targetDate"]
 });
 
-const ProjectForm: React.FC<ProjectFormProps> = ({ isOpen, onClose, onSave, editProject }) => {
+const ProjectForm: React.FC<ProjectFormProps> = ({ isOpen, onClose, onSave, editProject, monthlySavings }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -52,12 +59,38 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ isOpen, onClose, onSave, edit
     }
   });
 
+  // Calculer la contribution mensuelle suggérée lorsque les montants ou dates changent
+  useEffect(() => {
+    const targetAmount = form.watch('targetAmount');
+    const currentAmount = form.watch('currentAmount');
+    const startDate = form.watch('startDate');
+    const targetDate = form.watch('targetDate');
+
+    if (startDate && targetDate && targetAmount > 0 && targetDate > startDate) {
+      // Calculer le nombre de mois entre les deux dates
+      const months = Math.max(1, differenceInMonths(targetDate, startDate));
+      
+      // Calculer la contribution mensuelle suggérée
+      const remainingAmount = targetAmount - currentAmount;
+      if (remainingAmount > 0) {
+        const suggestedContribution = Math.ceil(remainingAmount / months);
+        
+        // Mettre à jour le champ (sans déclencher de validation)
+        form.setValue('monthlyContribution', suggestedContribution, { shouldValidate: false });
+      }
+    }
+  }, [
+    form.watch('targetAmount'), 
+    form.watch('currentAmount'), 
+    form.watch('startDate'), 
+    form.watch('targetDate')
+  ]);
+
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    // Calculate timeframe
+    // Calculer le nombre de mois entre les deux dates
     const startDate = values.startDate;
     const targetDate = values.targetDate;
-    const diffTime = Math.abs(targetDate.getTime() - startDate.getTime());
-    const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30));
+    const diffMonths = Math.max(1, differenceInMonths(targetDate, startDate));
     const diffYears = Math.floor(diffMonths / 12);
     
     let timeframe = '';
@@ -88,6 +121,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ isOpen, onClose, onSave, edit
     onSave(project);
     onClose();
   };
+
+  const isBudgetExceeded = form.watch('monthlyContribution') > monthlySavings;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -219,6 +254,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ isOpen, onClose, onSave, edit
                   <FormControl>
                     <Input type="number" {...field} />
                   </FormControl>
+                  {isBudgetExceeded && (
+                    <FormDescription className="text-red-500">
+                      Attention: Cette contribution dépasse votre capacité d'épargne mensuelle de {monthlySavings}€
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -256,6 +296,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ isOpen, onClose, onSave, edit
                           selected={field.value}
                           onSelect={field.onChange}
                           initialFocus
+                          captionLayout="dropdown-buttons"
+                          fromYear={2020}
+                          toYear={2030}
                         />
                       </PopoverContent>
                     </Popover>
@@ -295,7 +338,10 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ isOpen, onClose, onSave, edit
                           selected={field.value}
                           onSelect={field.onChange}
                           initialFocus
-                          disabled={(date) => date < new Date()}
+                          captionLayout="dropdown-buttons"
+                          fromYear={2020}
+                          toYear={2030}
+                          disabled={(date) => date < form.watch('startDate')}
                         />
                       </PopoverContent>
                     </Popover>

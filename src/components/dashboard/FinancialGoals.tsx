@@ -7,27 +7,36 @@ import { cn } from '@/lib/utils';
 
 interface FinancialGoalsProps {
   goals: FinancialGoal[];
+  onAddGoal: () => void;
 }
 
-const FinancialGoals: React.FC<FinancialGoalsProps> = ({ goals }) => {
+const FinancialGoals: React.FC<FinancialGoalsProps> = ({ goals, onAddGoal }) => {
+  // Charge les projets depuis localStorage
+  const getStoredProjects = (): FinancialGoal[] => {
+    const savedProjects = localStorage.getItem('financial-projects');
+    return savedProjects ? JSON.parse(savedProjects) : goals;
+  };
+
+  const storedProjects = getStoredProjects();
+  
   return (
     <div className="wealth-card h-full flex flex-col">
       <div className="flex justify-between items-center mb-5">
         <h3 className="text-lg font-medium">Objectifs financiers</h3>
         
-        <button className="wealth-btn wealth-btn-outline text-xs">
+        <button className="wealth-btn wealth-btn-outline text-xs" onClick={onAddGoal}>
           + Ajouter
         </button>
       </div>
       
       <div className="overflow-y-auto flex-grow">
         <div className="space-y-4">
-          {goals.length === 0 ? (
+          {storedProjects.length === 0 ? (
             <div className="text-center py-4 text-muted-foreground">
               Aucun objectif défini
             </div>
           ) : (
-            goals.map((goal) => {
+            storedProjects.map((goal) => {
               const progress = Math.min(Math.round((goal.currentAmount / goal.targetAmount) * 100), 100);
               return (
                 <div 
@@ -93,12 +102,12 @@ const FinancialGoals: React.FC<FinancialGoalsProps> = ({ goals }) => {
         </div>
       </div>
       
-      {goals.length > 0 && (
+      {storedProjects.length > 0 && (
         <div className="mt-4 pt-4 border-t border-border">
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Total contribution mensuelle</span>
             <span className="font-medium">
-              {formatCurrency(goals.reduce((sum, goal) => sum + goal.monthlyContribution, 0))}
+              {formatCurrency(storedProjects.reduce((sum, goal) => sum + goal.monthlyContribution, 0))}
             </span>
           </div>
         </div>
