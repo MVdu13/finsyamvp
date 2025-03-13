@@ -10,7 +10,7 @@ import {
   CommandList
 } from "@/components/ui/command";
 import { searchCryptos, CryptoInfo } from '@/services/cryptoService';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronsUpDown, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 interface CryptoSearchProps {
@@ -26,7 +26,7 @@ const CryptoSearch: React.FC<CryptoSearchProps> = ({ onSelect }) => {
 
   useEffect(() => {
     const handleSearch = async () => {
-      if (query.length < 2) {
+      if (query.length < 1) {
         setResults([]);
         setError(null);
         return;
@@ -36,7 +36,10 @@ const CryptoSearch: React.FC<CryptoSearchProps> = ({ onSelect }) => {
       setError(null);
       
       try {
+        console.log("Recherche de cryptos avec la requête:", query);
         const cryptos = await searchCryptos(query);
+        
+        console.log("Résultats de recherche:", cryptos);
         setResults(cryptos);
         
         if (cryptos.length === 0) {
@@ -61,18 +64,20 @@ const CryptoSearch: React.FC<CryptoSearchProps> = ({ onSelect }) => {
         className="flex items-center border rounded-md px-3 py-2 cursor-pointer"
         onClick={() => setOpen(true)}
       >
+        <Search className="h-4 w-4 mr-2 text-muted-foreground" />
         <Input
           type="text" 
           placeholder="Rechercher une crypto..."
           className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
           readOnly
         />
+        <ChevronsUpDown className="h-4 w-4 text-muted-foreground ml-auto" />
       </div>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <Command className="rounded-lg border shadow-md">
           <CommandInput 
-            placeholder="Rechercher une crypto..." 
+            placeholder="Rechercher une crypto (ex: BTC, Bitcoin)..." 
             value={query}
             onValueChange={setQuery}
           />
@@ -88,7 +93,9 @@ const CryptoSearch: React.FC<CryptoSearchProps> = ({ onSelect }) => {
                   {error}
                 </div>
               ) : (
-                "Aucune crypto trouvée"
+                <div className="text-center py-6 text-muted-foreground">
+                  Commencez à taper pour rechercher une cryptomonnaie
+                </div>
               )}
             </CommandEmpty>
 

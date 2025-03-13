@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import CryptoSearch from '../CryptoSearch';
 import { CryptoInfo } from '@/services/cryptoService';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
 
 interface CryptoFormFieldsProps {
   cryptoQty: string;
@@ -18,7 +20,7 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
   setCryptoPrice,
   onCryptoSelect
 }) => {
-  const [showCryptoSearch, setShowCryptoSearch] = useState(false);
+  const [showCryptoSearch, setShowCryptoSearch] = useState(true);
 
   return (
     <>
@@ -27,20 +29,23 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
           <label className="block text-sm font-medium">
             Rechercher une cryptomonnaie
           </label>
-          <button 
+          <Button 
             type="button" 
             onClick={() => setShowCryptoSearch(!showCryptoSearch)}
-            className="text-xs text-blue-600 hover:text-blue-800"
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 text-xs"
           >
-            {showCryptoSearch ? 'Fermer' : 'Rechercher'}
-          </button>
+            {showCryptoSearch ? 'Masquer' : <Search className="h-4 w-4 mr-1" />}
+            {!showCryptoSearch && 'Rechercher'}
+          </Button>
         </div>
         
         {showCryptoSearch && (
           <div className="mb-2">
             <CryptoSearch onSelect={(crypto) => {
               onCryptoSelect(crypto);
-              setShowCryptoSearch(false);
+              // Laissons la recherche visible pour que l'utilisateur puisse chercher une autre crypto s'il le souhaite
             }} />
           </div>
         )}
@@ -57,7 +62,7 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
             const newQty = e.target.value;
             setCryptoQty(newQty);
             if (cryptoPrice && newQty) {
-              // This logic is handled by the parent
+              // La logique est gérée par le parent
             }
           }}
           className="wealth-input w-full"
@@ -78,7 +83,7 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
             const newPrice = e.target.value;
             setCryptoPrice(newPrice);
             if (cryptoQty && newPrice) {
-              // This logic is handled by the parent
+              // La logique est gérée par le parent
             }
           }}
           className="wealth-input w-full"
