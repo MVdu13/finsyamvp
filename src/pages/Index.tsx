@@ -4,6 +4,7 @@ import AppSidebar from '@/components/AppSidebar';
 import Dashboard from './Dashboard';
 import AssetsPage from './AssetsPage';
 import BudgetPage from './BudgetPage';
+import RealEstatePage from './RealEstatePage';
 
 const Index = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -22,6 +23,8 @@ const Index = () => {
         return <AssetsPage />;
       case 'budget':
         return <BudgetPage />;
+      case 'real-estate':
+        return <RealEstatePage />;
       default:
         return (
           <div className="p-6">
