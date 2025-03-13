@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,9 +54,7 @@ const RealEstatePage = () => {
       {
         label: 'Valeur immobilière',
         data: [980000, 985000, 990000, 975000, 980000, 990000, 998000, 985000, 992000, 980000, 975000, 980000],
-        borderColor: '#FA5003',
-        backgroundColor: 'rgba(250, 80, 3, 0.1)',
-        tension: 0.4,
+        color: '#FA5003',
         fill: true,
       }
     ]
