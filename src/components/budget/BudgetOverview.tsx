@@ -1,14 +1,17 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CircleDollarSign, ArrowUpCircle, ArrowDownCircle, PiggyBank, TrendingUp } from 'lucide-react';
 import { Budget } from '@/types/budget';
 import { formatCurrency } from '@/lib/formatters';
+import TimeFrameSelector, { TimeFrame } from '../charts/TimeFrameSelector';
 
 interface BudgetOverviewProps {
   budget: Budget;
 }
 
 const BudgetOverview: React.FC<BudgetOverviewProps> = ({ budget }) => {
+  const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
+
   // Calculate total for essential and non-essential expenses
   const essentialExpenses = budget.expenses
     .filter(expense => expense.essential)
@@ -33,7 +36,13 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({ budget }) => {
 
   return (
     <div className="wealth-card h-full flex flex-col">
-      <h3 className="text-lg font-medium mb-5">Aperçu du budget</h3>
+      <div className="flex justify-between items-center mb-5">
+        <h3 className="text-lg font-medium">Aperçu du budget</h3>
+        <TimeFrameSelector 
+          selectedTimeFrame={timeFrame} 
+          onTimeFrameChange={setTimeFrame} 
+        />
+      </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div className="bg-muted p-4 rounded-lg">

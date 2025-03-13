@@ -9,6 +9,7 @@ import { mockGoals } from '@/lib/mockData';
 import AssetForm from '@/components/assets/AssetForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TimeFrame } from '@/components/charts/TimeFrameSelector';
 
 interface DashboardProps {
   assets: Asset[];
@@ -38,13 +39,17 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo, o
     other: assets.filter(asset => asset.type === 'other').reduce((sum, asset) => sum + asset.value, 0),
   };
   
-  // Générer des données d'historique basées sur le patrimoine actuel
-  // pour garantir la cohérence avec les actifs réels
+  // Générer des données d'historique basées sur la date actuelle
   const generateHistoryData = () => {
-    const dates = [
-      'Jan 2023', 'Fév 2023', 'Mar 2023', 'Avr 2023', 'Mai 2023', 'Juin 2023',
-      'Juil 2023', 'Août 2023', 'Sep 2023', 'Oct 2023', 'Nov 2023', 'Déc 2023'
-    ];
+    const currentDate = new Date();
+    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+    
+    // Créer un tableau de labels pour les 12 derniers mois jusqu'à aujourd'hui
+    const dates = Array.from({ length: 12 }, (_, i) => {
+      const date = new Date();
+      date.setMonth(currentDate.getMonth() - (11 - i));
+      return `${months[date.getMonth()]} ${date.getFullYear()}`;
+    });
     
     // Utiliser la valeur totale actuelle pour générer un historique cohérent
     // Le patrimoine actuel correspond au dernier mois
@@ -52,20 +57,9 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo, o
     const factor = baseValue / 1000;
     
     // Générer des valeurs progressives mais cohérentes avec la valeur finale
-    const values = [
-      Math.round(baseValue * 0.5), 
-      Math.round(baseValue * 0.6), 
-      Math.round(baseValue * 0.7), 
-      Math.round(baseValue * 0.8),
-      Math.round(baseValue * 0.85), 
-      Math.round(baseValue * 0.9),
-      Math.round(baseValue * 0.95), 
-      Math.round(baseValue * 0.98),
-      Math.round(baseValue * 0.99), 
-      Math.round(baseValue * 0.995),
-      Math.round(baseValue * 0.998), 
-      baseValue
-    ];
+    // Simuler une croissance plus réaliste
+    const growthFactors = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.98, 1.0];
+    const values = growthFactors.map(factor => Math.round(baseValue * factor));
     
     return { dates, values };
   };
