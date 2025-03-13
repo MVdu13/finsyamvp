@@ -24,7 +24,7 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
   // Filter data based on selected time frame
   const getFilteredData = () => {
     const currentDate = new Date();
-    let filteredLabels = [...data.labels];
+    let filteredDates = [...data.dates];
     let filteredValues = [...data.values];
     
     // Filter based on time frame
@@ -47,15 +47,15 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
       }
       
       // Take only the last X months of data
-      const dataLength = filteredLabels.length;
+      const dataLength = filteredDates.length;
       if (dataLength > monthsToShow) {
-        filteredLabels = filteredLabels.slice(dataLength - monthsToShow);
+        filteredDates = filteredDates.slice(dataLength - monthsToShow);
         filteredValues = filteredValues.slice(dataLength - monthsToShow);
       }
     }
     
     return {
-      labels: filteredLabels,
+      labels: filteredDates, // Changed from data.labels to filteredDates
       datasets: [
         {
           label: 'Valeur nette',
