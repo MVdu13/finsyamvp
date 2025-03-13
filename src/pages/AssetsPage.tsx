@@ -1,9 +1,11 @@
 
 import React, { useState } from 'react';
-import { Plus, Filter, BarChart3, Search } from 'lucide-react';
+import { Plus, Filter, Search } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
 import { Asset, AssetType } from '@/types/assets';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface AssetsPageProps {
   assets: Asset[];
@@ -11,13 +13,14 @@ interface AssetsPageProps {
 }
 
 const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
-  const [showAddAssetForm, setShowAddAssetForm] = useState(false);
   const [filterType, setFilterType] = useState<AssetType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [assetTypeTab, setAssetTypeTab] = useState<AssetType>('stock');
 
   const handleAddAsset = (newAsset: Omit<Asset, 'id'>) => {
     onAddAsset(newAsset);
-    setShowAddAssetForm(false);
+    setDialogOpen(false);
   };
 
   const filteredAssets = assets.filter((asset) => {
@@ -34,6 +37,8 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
     'crypto': filteredAssets.filter(asset => asset.type === 'crypto'),
     'real-estate': filteredAssets.filter(asset => asset.type === 'real-estate'),
     'cash': filteredAssets.filter(asset => asset.type === 'cash'),
+    'bonds': filteredAssets.filter(asset => asset.type === 'bonds'),
+    'commodities': filteredAssets.filter(asset => asset.type === 'commodities'),
     'other': filteredAssets.filter(asset => asset.type === 'other'),
   };
 
@@ -42,6 +47,8 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
     'crypto': 'Cryptomonnaies',
     'real-estate': 'Immobilier',
     'cash': 'Liquidités',
+    'bonds': 'Obligations',
+    'commodities': 'Matières premières',
     'other': 'Autres',
   };
 
@@ -53,13 +60,59 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
           <p className="text-muted-foreground">Gérez tous vos actifs en un seul endroit</p>
         </div>
         
-        <button 
-          className="wealth-btn wealth-btn-primary flex items-center gap-2"
-          onClick={() => setShowAddAssetForm(true)}
-        >
-          <Plus size={18} />
-          <span>Nouvel actif</span>
-        </button>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <button className="wealth-btn wealth-btn-primary flex items-center gap-2">
+              <Plus size={18} />
+              <span>Nouvel actif</span>
+            </button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Ajouter un nouvel actif</DialogTitle>
+            </DialogHeader>
+            <Tabs defaultValue="stock" value={assetTypeTab} onValueChange={(value) => setAssetTypeTab(value as AssetType)}>
+              <TabsList className="grid grid-cols-4">
+                <TabsTrigger value="stock">Actions</TabsTrigger>
+                <TabsTrigger value="crypto">Crypto</TabsTrigger>
+                <TabsTrigger value="real-estate">Immobilier</TabsTrigger>
+                <TabsTrigger value="other">Autre</TabsTrigger>
+              </TabsList>
+              <TabsContent value="stock">
+                <AssetForm 
+                  onSubmit={handleAddAsset}
+                  onCancel={() => setDialogOpen(false)}
+                  defaultType="stock"
+                  showTypeSelector={false}
+                />
+              </TabsContent>
+              <TabsContent value="crypto">
+                <AssetForm 
+                  onSubmit={handleAddAsset}
+                  onCancel={() => setDialogOpen(false)}
+                  defaultType="crypto"
+                  showTypeSelector={false}
+                />
+              </TabsContent>
+              <TabsContent value="real-estate">
+                <AssetForm 
+                  onSubmit={handleAddAsset}
+                  onCancel={() => setDialogOpen(false)}
+                  defaultType="real-estate"
+                  showTypeSelector={false}
+                />
+              </TabsContent>
+              <TabsContent value="other">
+                <AssetForm 
+                  onSubmit={handleAddAsset}
+                  onCancel={() => setDialogOpen(false)}
+                  defaultType="cash"
+                  showTypeSelector={true}
+                />
+              </TabsContent>
+            </Tabs>
+          </DialogContent>
+        </Dialog>
       </div>
       
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mb-6">
@@ -85,6 +138,8 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
             <option value="crypto">Cryptomonnaies</option>
             <option value="real-estate">Immobilier</option>
             <option value="cash">Liquidités</option>
+            <option value="bonds">Obligations</option>
+            <option value="commodities">Matières premières</option>
             <option value="other">Autres</option>
           </select>
           
@@ -150,15 +205,6 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
               </div>
             )
           )}
-        </div>
-      )}
-      
-      {showAddAssetForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <AssetForm 
-            onSubmit={handleAddAsset}
-            onCancel={() => setShowAddAssetForm(false)}
-          />
         </div>
       )}
     </div>

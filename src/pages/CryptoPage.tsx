@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Bitcoin, TrendingUp, TrendingDown, Wallet, Plus, Filter } from 'lucide-react';
@@ -17,6 +18,7 @@ interface CryptoPageProps {
 
 const CryptoPage: React.FC<CryptoPageProps> = ({ assets, onAddAsset }) => {
   const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   // Calculate metrics
   const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
@@ -83,6 +85,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ assets, onAddAsset }) => {
     
     // Call the parent's onAddAsset function
     onAddAsset(cryptoAsset);
+    setDialogOpen(false);
     
     // Show success toast
     toast({
@@ -98,7 +101,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ assets, onAddAsset }) => {
           <h1 className="text-2xl font-bold tracking-tight">Portefeuille Crypto</h1>
           <p className="text-muted-foreground">Gérez vos cryptomonnaies et suivez leur performance</p>
         </div>
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <button className="wealth-btn wealth-btn-primary flex items-center gap-2">
               <Plus size={16} />
@@ -109,7 +112,12 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ assets, onAddAsset }) => {
             <DialogHeader>
               <DialogTitle>Ajouter une cryptomonnaie</DialogTitle>
             </DialogHeader>
-            <AssetForm onSubmit={handleAddCrypto} onCancel={() => {}} defaultType="crypto" />
+            <AssetForm 
+              onSubmit={handleAddCrypto} 
+              onCancel={() => setDialogOpen(false)} 
+              defaultType="crypto" 
+              showTypeSelector={false}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -177,10 +185,21 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ assets, onAddAsset }) => {
 
       <div>
         <h2 className="text-xl font-semibold mb-4">Vos Cryptomonnaies</h2>
-        <AssetsList 
-          assets={assets}
-          emptyMessage="Aucune cryptomonnaie dans votre portefeuille"
-        />
+        {assets.length > 0 ? (
+          <AssetsList assets={assets} title="Cryptomonnaies" />
+        ) : (
+          <div className="text-center py-12 bg-muted rounded-lg">
+            <p className="text-lg text-muted-foreground mb-4">
+              Aucune cryptomonnaie dans votre portefeuille
+            </p>
+            <button 
+              className="wealth-btn wealth-btn-primary"
+              onClick={() => setDialogOpen(true)}
+            >
+              Ajouter votre première cryptomonnaie
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

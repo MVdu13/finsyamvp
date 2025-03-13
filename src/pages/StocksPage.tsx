@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, Plus, Filter } from 'lucide-react';
@@ -17,6 +18,7 @@ interface StocksPageProps {
 
 const StocksPage: React.FC<StocksPageProps> = ({ assets, onAddAsset }) => {
   const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   // Calculate metrics
   const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
@@ -83,6 +85,7 @@ const StocksPage: React.FC<StocksPageProps> = ({ assets, onAddAsset }) => {
     
     // Call the parent's onAddAsset function
     onAddAsset(stockAsset);
+    setDialogOpen(false);
     
     // Show success toast
     toast({
@@ -98,7 +101,7 @@ const StocksPage: React.FC<StocksPageProps> = ({ assets, onAddAsset }) => {
           <h1 className="text-2xl font-bold tracking-tight">Portefeuille d'Actions</h1>
           <p className="text-muted-foreground">Gérez vos actions et suivez leur performance</p>
         </div>
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <button className="wealth-btn wealth-btn-primary flex items-center gap-2">
               <Plus size={16} />
@@ -109,7 +112,12 @@ const StocksPage: React.FC<StocksPageProps> = ({ assets, onAddAsset }) => {
             <DialogHeader>
               <DialogTitle>Ajouter une action</DialogTitle>
             </DialogHeader>
-            <AssetForm onSubmit={handleAddStock} onCancel={() => {}} defaultType="stock" />
+            <AssetForm 
+              onSubmit={handleAddStock} 
+              onCancel={() => setDialogOpen(false)} 
+              defaultType="stock" 
+              showTypeSelector={false}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -177,10 +185,21 @@ const StocksPage: React.FC<StocksPageProps> = ({ assets, onAddAsset }) => {
 
       <div>
         <h2 className="text-xl font-semibold mb-4">Vos Actions</h2>
-        <AssetsList 
-          assets={assets}
-          emptyMessage="Aucune action dans votre portefeuille"
-        />
+        {assets.length > 0 ? (
+          <AssetsList assets={assets} title="Actions" />
+        ) : (
+          <div className="text-center py-12 bg-muted rounded-lg">
+            <p className="text-lg text-muted-foreground mb-4">
+              Aucune action dans votre portefeuille
+            </p>
+            <button 
+              className="wealth-btn wealth-btn-primary"
+              onClick={() => setDialogOpen(true)}
+            >
+              Ajouter votre première action
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

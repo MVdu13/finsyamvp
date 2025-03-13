@@ -1,11 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import NetWorthChart from '@/components/dashboard/NetWorthChart';
 import AssetAllocation from '@/components/dashboard/AssetAllocation';
 import FinancialGoals from '@/components/dashboard/FinancialGoals';
 import AssetsList from '@/components/assets/AssetsList';
 import { Asset, AssetType } from '@/types/assets';
 import { mockGoals } from '@/lib/mockData';
+import AssetForm from '@/components/assets/AssetForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface DashboardProps {
   assets: Asset[];
@@ -14,6 +17,12 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo }) => {
+  // State for the dialog
+  const [dialogOpen, setDialogOpen] = useState(false);
+  
+  // State for asset type tabs
+  const [assetTypeTab, setAssetTypeTab] = useState<AssetType>('stock');
+  
   // Calculate total value from all assets
   const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
   
@@ -23,8 +32,8 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo })
     realEstate: assets.filter(asset => asset.type === 'real-estate').reduce((sum, asset) => sum + asset.value, 0),
     crypto: assets.filter(asset => asset.type === 'crypto').reduce((sum, asset) => sum + asset.value, 0),
     cash: assets.filter(asset => asset.type === 'cash').reduce((sum, asset) => sum + asset.value, 0),
-    bonds: assets.filter(asset => asset.type === ('bonds' as AssetType)).reduce((sum, asset) => sum + asset.value, 0) || 0,
-    commodities: assets.filter(asset => asset.type === ('commodities' as AssetType)).reduce((sum, asset) => sum + asset.value, 0) || 0,
+    bonds: assets.filter(asset => asset.type === 'bonds').reduce((sum, asset) => sum + asset.value, 0),
+    commodities: assets.filter(asset => asset.type === 'commodities').reduce((sum, asset) => sum + asset.value, 0),
     other: assets.filter(asset => asset.type === 'other').reduce((sum, asset) => sum + asset.value, 0),
   };
   
@@ -72,7 +81,12 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo })
   // Get only the 3 most valuable assets for the quick view
   const topAssets = [...assets].sort((a, b) => b.value - a.value).slice(0, 3);
 
-  const handleAddAsset = () => {
+  const handleAddAsset = (asset: Omit<Asset, 'id'>) => {
+    onAddAsset(asset);
+    setDialogOpen(false);
+  };
+  
+  const handleNavigateToAssets = () => {
     navigateTo('assets');
   };
 
@@ -85,9 +99,58 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo })
         </div>
         
         <div>
-          <button className="wealth-btn wealth-btn-primary" onClick={handleAddAsset}>
-            + Nouvel actif
-          </button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <button className="wealth-btn wealth-btn-primary">
+                + Nouvel actif
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>Ajouter un nouvel actif</DialogTitle>
+              </DialogHeader>
+              <Tabs defaultValue="stock" value={assetTypeTab} onValueChange={(value) => setAssetTypeTab(value as AssetType)}>
+                <TabsList className="grid grid-cols-4">
+                  <TabsTrigger value="stock">Actions</TabsTrigger>
+                  <TabsTrigger value="crypto">Crypto</TabsTrigger>
+                  <TabsTrigger value="real-estate">Immobilier</TabsTrigger>
+                  <TabsTrigger value="other">Autre</TabsTrigger>
+                </TabsList>
+                <TabsContent value="stock">
+                  <AssetForm 
+                    onSubmit={handleAddAsset}
+                    onCancel={() => setDialogOpen(false)}
+                    defaultType="stock"
+                    showTypeSelector={false}
+                  />
+                </TabsContent>
+                <TabsContent value="crypto">
+                  <AssetForm 
+                    onSubmit={handleAddAsset}
+                    onCancel={() => setDialogOpen(false)}
+                    defaultType="crypto"
+                    showTypeSelector={false}
+                  />
+                </TabsContent>
+                <TabsContent value="real-estate">
+                  <AssetForm 
+                    onSubmit={handleAddAsset}
+                    onCancel={() => setDialogOpen(false)}
+                    defaultType="real-estate"
+                    showTypeSelector={false}
+                  />
+                </TabsContent>
+                <TabsContent value="other">
+                  <AssetForm 
+                    onSubmit={handleAddAsset}
+                    onCancel={() => setDialogOpen(false)}
+                    defaultType="cash"
+                    showTypeSelector={true}
+                  />
+                </TabsContent>
+              </Tabs>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       

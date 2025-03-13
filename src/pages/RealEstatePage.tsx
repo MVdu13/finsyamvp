@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import LineChartComponent from '@/components/charts/LineChart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import AssetForm from '@/components/assets/AssetForm';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface RealEstatePageProps {
   assets: Asset[];
@@ -15,6 +17,9 @@ interface RealEstatePageProps {
 }
 
 const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) => {
+  const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  
   // Properties are passed from parent
   const properties = assets;
 
@@ -82,6 +87,13 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
     
     // Call the parent's onAddAsset function
     onAddAsset(realEstateAsset);
+    setDialogOpen(false);
+    
+    // Show success toast
+    toast({
+      title: "Bien immobilier ajouté",
+      description: `${newProperty.name} a été ajouté à votre portefeuille`,
+    });
   };
 
   return (
@@ -91,7 +103,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
           <h1 className="text-2xl font-bold tracking-tight">Patrimoine Immobilier</h1>
           <p className="text-muted-foreground">Gérez vos biens immobiliers et suivez leur performance</p>
         </div>
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <button className="wealth-btn wealth-btn-primary flex items-center gap-2">
               <Plus size={16} />
@@ -102,7 +114,12 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
             <DialogHeader>
               <DialogTitle>Ajouter un bien immobilier</DialogTitle>
             </DialogHeader>
-            <AssetForm onSubmit={handleAddProperty} onCancel={() => {}} defaultType="real-estate" />
+            <AssetForm 
+              onSubmit={handleAddProperty} 
+              onCancel={() => setDialogOpen(false)} 
+              defaultType="real-estate" 
+              showTypeSelector={false}
+            />
           </DialogContent>
         </Dialog>
       </div>
