@@ -14,9 +14,10 @@ interface DashboardProps {
   assets: Asset[];
   onAddAsset: (asset: Omit<Asset, 'id'>) => void;
   navigateTo: (item: string) => void;
+  openProjectsPage?: () => void; // Make this optional to fix the TS error
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo }) => {
+const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo, openProjectsPage }) => {
   // State for the dialog
   const [dialogOpen, setDialogOpen] = useState(false);
   
@@ -88,6 +89,15 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo })
   
   const handleNavigateToAssets = () => {
     navigateTo('assets');
+  };
+
+  // Add handler for navigating to projects page
+  const handleNavigateToProjects = () => {
+    if (openProjectsPage) {
+      openProjectsPage();
+    } else {
+      navigateTo('projects');
+    }
   };
 
   return (
@@ -173,7 +183,10 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo })
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <FinancialGoals goals={mockGoals} />
+          <FinancialGoals 
+            goals={mockGoals} 
+            onAddGoal={handleNavigateToProjects} 
+          />
         </div>
         
         <div>

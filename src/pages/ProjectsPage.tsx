@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FinancialGoal, ProjectPlan } from '@/types/goals';
 import { mockBudget, mockGoals } from '@/lib/mockData';
@@ -74,20 +73,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
         id: Math.random().toString(36).substr(2, 9), // Simple ID generation
       };
       setProjects(prevProjects => [...prevProjects, newProject]);
-
-      // Si c'est un projet immobilier ou d'investissement, l'ajouter également aux actifs
-      if ((newProject.type === 'investment' || newProject.type === 'project') && onAddAsset) {
-        const assetType = newProject.type === 'investment' ? 'stock' : 'other';
-        onAddAsset({
-          name: newProject.name,
-          type: assetType,
-          value: newProject.currentAmount,
-          purchaseDate: new Date(newProject.startDate).toISOString(),
-          description: newProject.description || '',
-          growth: 0,
-          category: 'Project',
-        });
-      }
       
       toast({
         title: "Projet ajouté",
