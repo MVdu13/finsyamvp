@@ -22,18 +22,33 @@ const CryptoSearch: React.FC<CryptoSearchProps> = ({ onSelect }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CryptoInfo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleSearch = async () => {
       if (query.length < 2) {
         setResults([]);
+        setError(null);
         return;
       }
 
       setLoading(true);
-      const cryptos = await searchCryptos(query);
-      setResults(cryptos);
-      setLoading(false);
+      setError(null);
+      
+      try {
+        const cryptos = await searchCryptos(query);
+        setResults(cryptos);
+        
+        if (cryptos.length === 0) {
+          setError("Aucune cryptomonnaie trouvée. Essayez un autre terme de recherche.");
+        }
+      } catch (err) {
+        console.error("Erreur de recherche:", err);
+        setError("Une erreur est survenue lors de la recherche. Veuillez réessayer.");
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     const debounce = setTimeout(handleSearch, 300);
@@ -67,6 +82,10 @@ const CryptoSearch: React.FC<CryptoSearchProps> = ({ onSelect }) => {
               {loading ? (
                 <div className="flex items-center justify-center py-6">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              ) : error ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  {error}
                 </div>
               ) : (
                 "Aucune crypto trouvée"
