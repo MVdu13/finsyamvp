@@ -1,49 +1,53 @@
+
 import React from 'react';
-import { LayoutDashboard, CircleDollarSign, GalleryHorizontalEnd, Building2, Briefcase, Bitcoin, CreditCard, BarChart3, PiggyBank, Settings, ChevronLeft, LogOut } from 'lucide-react';
+import { LayoutDashboard, CircleDollarSign, Building2, Briefcase, Bitcoin, CreditCard, PiggyBank, Settings, ChevronLeft, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
 type SidebarProps = {
   isCollapsed: boolean;
   activeItem: string;
   setActiveItem: (item: string) => void;
   toggleSidebar: () => void;
 };
-const sidebarItems = [{
-  id: 'dashboard',
-  label: 'Tableau de bord',
-  icon: LayoutDashboard
-}, {
-  id: 'assets',
-  label: 'Actifs financiers',
-  icon: CircleDollarSign
-}, {
-  id: 'portfolios',
-  label: 'Portefeuilles',
-  icon: GalleryHorizontalEnd
-}, {
-  id: 'real-estate',
-  label: 'Immobilier',
-  icon: Building2
-}, {
-  id: 'stocks',
-  label: 'Actions',
-  icon: Briefcase
-}, {
-  id: 'crypto',
-  label: 'Cryptomonnaies',
-  icon: Bitcoin
-}, {
-  id: 'budget',
-  label: 'Budget',
-  icon: CreditCard
-}, {
-  id: 'analytics',
-  label: 'Analyse',
-  icon: BarChart3
-}, {
-  id: 'savings',
-  label: 'Épargne',
-  icon: PiggyBank
-}];
+
+const sidebarItems = [
+  {
+    id: 'dashboard',
+    label: 'Tableau de bord',
+    icon: LayoutDashboard
+  },
+  {
+    id: 'assets',
+    label: 'Actifs financiers',
+    icon: CircleDollarSign
+  },
+  {
+    id: 'real-estate',
+    label: 'Immobilier',
+    icon: Building2
+  },
+  {
+    id: 'stocks',
+    label: 'Actions',
+    icon: Briefcase
+  },
+  {
+    id: 'crypto',
+    label: 'Cryptomonnaies',
+    icon: Bitcoin
+  },
+  {
+    id: 'budget',
+    label: 'Budget',
+    icon: CreditCard
+  },
+  {
+    id: 'savings',
+    label: 'Épargne',
+    icon: PiggyBank
+  }
+];
+
 const AppSidebar = ({
   isCollapsed,
   activeItem,
@@ -88,4 +92,5 @@ const AppSidebar = ({
       </div>
     </div>;
 };
+
 export default AppSidebar;

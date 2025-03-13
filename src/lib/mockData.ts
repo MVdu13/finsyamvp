@@ -7,75 +7,25 @@ import { FinancialGoal } from '@/types/goals';
 export const mockAssets: Asset[] = [
   {
     id: '1',
-    name: 'Actions Apple',
-    description: '10 actions à 150€',
-    type: 'stock',
-    value: 1500,
-    performance: 12.5,
+    name: 'Compte Bancaire',
+    description: 'Compte courant',
+    type: 'cash',
+    value: 1000,
+    performance: 0,
     createdAt: '2023-04-12T10:00:00.000Z',
     updatedAt: '2023-08-24T14:30:00.000Z',
-  },
-  {
-    id: '2',
-    name: 'Bitcoin',
-    description: '0.05 BTC',
-    type: 'crypto',
-    value: 2000,
-    performance: -5.2,
-    createdAt: '2023-01-15T11:20:00.000Z',
-    updatedAt: '2023-08-24T14:30:00.000Z',
-  },
-  {
-    id: '3',
-    name: 'Appartement Paris',
-    description: 'T2 - Locatif',
-    type: 'real-estate',
-    value: 250000,
-    performance: 3.7,
-    createdAt: '2022-06-01T09:15:00.000Z',
-    updatedAt: '2023-08-24T14:30:00.000Z',
-  },
-  {
-    id: '4',
-    name: 'Livret A',
-    description: 'Épargne sécurisée',
-    type: 'cash',
-    value: 15000,
-    performance: 3,
-    createdAt: '2021-12-05T16:45:00.000Z',
-    updatedAt: '2023-08-24T14:30:00.000Z',
-  },
-  {
-    id: '5',
-    name: 'ETF World',
-    description: 'MSCI World',
-    type: 'stock',
-    value: 8000,
-    performance: 6.8,
-    createdAt: '2022-09-20T13:10:00.000Z',
-    updatedAt: '2023-08-24T14:30:00.000Z',
-  },
-  {
-    id: '6',
-    name: 'Ethereum',
-    description: '1.2 ETH',
-    type: 'crypto',
-    value: 2500,
-    performance: 15.3,
-    createdAt: '2023-02-18T10:30:00.000Z',
-    updatedAt: '2023-08-24T14:30:00.000Z',
-  },
+  }
 ];
 
 // Asset allocation
 export const mockAssetAllocation: AssetAllocation = {
-  stocks: 9500,
-  realEstate: 250000,
-  crypto: 4500,
-  cash: 15000,
+  stocks: 0,
+  realEstate: 0,
+  crypto: 0,
+  cash: 1000,
   bonds: 0,
   commodities: 0,
-  other: 1000,
+  other: 0,
 };
 
 // Budget
@@ -208,7 +158,7 @@ export const mockNetWorthHistory: NetWorthHistory = {
     'Juil 2023', 'Août 2023', 'Sep 2023', 'Oct 2023', 'Nov 2023', 'Déc 2023'
   ],
   values: [
-    250000, 255000, 260000, 258000, 262000, 268000,
-    272000, 275000, 273000, 278000, 280000, 283000
+    500, 600, 700, 800, 850, 900,
+    950, 980, 990, 995, 998, 1000
   ],
 };

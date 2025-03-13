@@ -1,5 +1,6 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import NetWorthChart from '@/components/dashboard/NetWorthChart';
 import AssetAllocation from '@/components/dashboard/AssetAllocation';
 import FinancialGoals from '@/components/dashboard/FinancialGoals';
@@ -7,6 +8,7 @@ import AssetsList from '@/components/assets/AssetsList';
 import { mockAssets, mockAssetAllocation, mockNetWorthHistory, mockGoals } from '@/lib/mockData';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   // Calculate total value
   const totalValue = Object.values(mockAssetAllocation).reduce((sum, value) => sum + value, 0);
   
@@ -20,6 +22,10 @@ const Dashboard = () => {
   // Get only the 3 most valuable assets for the quick view
   const topAssets = [...mockAssets].sort((a, b) => b.value - a.value).slice(0, 3);
 
+  const handleAddAsset = () => {
+    navigate('/assets');
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -29,7 +35,7 @@ const Dashboard = () => {
         </div>
         
         <div>
-          <button className="wealth-btn wealth-btn-primary">
+          <button className="wealth-btn wealth-btn-primary" onClick={handleAddAsset}>
             + Nouvel actif
           </button>
         </div>
