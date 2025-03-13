@@ -103,10 +103,6 @@ const SecurityCushion: React.FC<SecurityCushionProps> = ({
       <div className="mt-4 pt-4 border-t border-border">
         <div className="flex justify-between items-center">
           <div className="text-sm">{statusMessage}</div>
-          
-          <button className="wealth-btn wealth-btn-outline text-xs">
-            Optimiser
-          </button>
         </div>
       </div>
     </div>
