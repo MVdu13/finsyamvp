@@ -59,9 +59,9 @@ const SecurityCushion: React.FC<SecurityCushionProps> = ({
             <span className="text-sm text-muted-foreground">Progression</span>
             <span className="text-sm font-medium">{percentage}%</span>
           </div>
-          <div className="progress-bar">
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div 
-              className={cn("progress-bar-fill", statusColor)}
+              className={cn("h-full rounded-full", statusColor)}
               style={{ width: `${percentage}%` }}
             />
           </div>

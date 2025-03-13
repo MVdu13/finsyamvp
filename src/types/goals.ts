@@ -15,3 +15,12 @@ export interface FinancialGoal {
   priority: PriorityLevel;
   timeframe: string;
 }
+
+export interface ProjectPlan {
+  id: string;
+  monthlyContribution: number;
+  totalContribution: number;
+  timeToTarget: number; // in months
+  fromSavings: number;
+  fromBudget: number;
+}

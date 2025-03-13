@@ -7,6 +7,7 @@ import BudgetPage from './BudgetPage';
 import RealEstatePage from './RealEstatePage';
 import StocksPage from './StocksPage';
 import CryptoPage from './CryptoPage';
+import ProjectsPage from './ProjectsPage';
 import { Asset } from '@/types/assets';
 import { mockAssets } from '@/lib/mockData';
 
@@ -43,6 +44,8 @@ const Index = () => {
         return <StocksPage assets={assets.filter(asset => asset.type === 'stock')} onAddAsset={addAsset} />;
       case 'crypto':
         return <CryptoPage assets={assets.filter(asset => asset.type === 'crypto')} onAddAsset={addAsset} />;
+      case 'projects':
+        return <ProjectsPage />;
       default:
         return (
           <div className="p-6">

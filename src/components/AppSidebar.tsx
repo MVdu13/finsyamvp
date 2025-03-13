@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, CircleDollarSign, Building2, Briefcase, Bitcoin, CreditCard, PiggyBank, Settings, ChevronLeft, LogOut } from 'lucide-react';
+import { LayoutDashboard, CircleDollarSign, Building2, Briefcase, Bitcoin, CreditCard, BarChart4, Settings, ChevronLeft, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type SidebarProps = {
@@ -42,9 +42,9 @@ const sidebarItems = [
     icon: CreditCard
   },
   {
-    id: 'savings',
-    label: 'Épargne',
-    icon: PiggyBank
+    id: 'projects',
+    label: 'Projets financiers',
+    icon: BarChart4
   }
 ];
 
