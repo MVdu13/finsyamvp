@@ -23,17 +23,55 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
     ? properties.reduce((sum, property) => sum + property.performance, 0) / properties.length
     : 0;
 
-  const chartData = {
-    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
-    datasets: [
-      {
-        label: 'Valeur immobilière',
-        data: [980000, 985000, 990000, 975000, 980000, 990000, 998000, 985000, 992000, 980000, 975000, 980000],
-        color: '#FA5003',
-        fill: true,
-      }
-    ]
+  // Générer un historique cohérent basé sur la valeur totale actuelle
+  const generateChartData = () => {
+    const baseValue = totalValue > 0 ? totalValue : 0;
+    
+    // Si aucun bien immobilier, retourner des valeurs à zéro
+    if (baseValue === 0) {
+      return {
+        labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+        datasets: [
+          {
+            label: 'Valeur immobilière',
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            color: '#FA5003',
+            fill: true,
+          }
+        ]
+      };
+    }
+    
+    // Sinon, générer un historique basé sur la valeur actuelle
+    const values = [
+      Math.round(baseValue * 0.98),
+      Math.round(baseValue * 0.985),
+      Math.round(baseValue * 0.99),
+      Math.round(baseValue * 0.975),
+      Math.round(baseValue * 0.98),
+      Math.round(baseValue * 0.99),
+      Math.round(baseValue * 0.998),
+      Math.round(baseValue * 0.985),
+      Math.round(baseValue * 0.992),
+      Math.round(baseValue * 0.98),
+      Math.round(baseValue * 0.975),
+      baseValue
+    ];
+    
+    return {
+      labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+      datasets: [
+        {
+          label: 'Valeur immobilière',
+          data: values,
+          color: '#FA5003',
+          fill: true,
+        }
+      ]
+    };
   };
+
+  const chartData = generateChartData();
 
   const handleAddProperty = (newProperty: Omit<Asset, 'id'>) => {
     // Make sure we're adding a real-estate asset
