@@ -64,7 +64,11 @@ const LineChart: React.FC<LineChartProps> = ({ data, title, height = 300 }) => {
               x: {
                 grid: {
                   display: false,
-                  drawBorder: false,
+                  // Remove drawBorder property as it's not supported
+                  // in Chart.js v4 GridLineOptions type
+                },
+                border: {
+                  display: false, // This replaces drawBorder: false
                 },
                 ticks: {
                   font: {
@@ -76,9 +80,12 @@ const LineChart: React.FC<LineChartProps> = ({ data, title, height = 300 }) => {
               },
               y: {
                 grid: {
-                  borderDash: [3, 3],
+                  // borderDash is moved to a different property
                   color: '#E5E5E5',
-                  drawBorder: false,
+                },
+                border: {
+                  display: false, // This replaces drawBorder: false
+                  dash: [3, 3],   // This replaces borderDash: [3, 3]
                 },
                 ticks: {
                   font: {
