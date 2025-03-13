@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import AssetForm from '@/components/assets/AssetForm';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
 
 interface RealEstatePageProps {
   assets: Asset[];
@@ -19,6 +20,7 @@ interface RealEstatePageProps {
 const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) => {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   
   // Properties are passed from parent
   const properties = assets;
@@ -28,18 +30,84 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
     ? properties.reduce((sum, property) => sum + property.performance, 0) / properties.length
     : 0;
 
-  // Générer un historique cohérent basé sur la valeur totale actuelle
+  // Générer un historique cohérent basé sur la valeur totale actuelle et la timeframe
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
+    
+    // Déterminer le nombre de points de données selon la timeframe
+    let numDataPoints;
+    let labels;
+    
+    // Créer des dates basées sur la timeframe sélectionnée
+    const currentDate = new Date();
+    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+    
+    switch (timeFrame) {
+      case '1M':
+        // Jours du mois
+        numDataPoints = 30;
+        labels = Array.from({ length: numDataPoints }, (_, i) => {
+          const date = new Date();
+          date.setDate(currentDate.getDate() - (numDataPoints - i - 1));
+          return `${date.getDate()} ${months[date.getMonth()]}`;
+        });
+        break;
+      case '3M':
+        // Points hebdomadaires sur 3 mois
+        numDataPoints = 12;
+        labels = Array.from({ length: numDataPoints }, (_, i) => {
+          const date = new Date();
+          date.setDate(currentDate.getDate() - (numDataPoints - i - 1) * 7);
+          return `${date.getDate()} ${months[date.getMonth()]}`;
+        });
+        break;
+      case '6M':
+        // Bi-hebdomadaire sur 6 mois
+        numDataPoints = 12;
+        labels = Array.from({ length: numDataPoints }, (_, i) => {
+          const date = new Date();
+          date.setDate(currentDate.getDate() - (numDataPoints - i - 1) * 14);
+          return `${date.getDate()} ${months[date.getMonth()]}`;
+        });
+        break;
+      case '5Y':
+        // Mensuel sur 5 ans
+        numDataPoints = 60;
+        labels = Array.from({ length: Math.min(numDataPoints, 24) }, (_, i) => {
+          const date = new Date();
+          date.setMonth(currentDate.getMonth() - (Math.min(numDataPoints, 24) - i - 1));
+          return `${months[date.getMonth()]} ${date.getFullYear()}`;
+        });
+        break;
+      case 'ALL':
+        // Annuel
+        numDataPoints = 5;
+        labels = Array.from({ length: numDataPoints }, (_, i) => {
+          const date = new Date();
+          date.setFullYear(currentDate.getFullYear() - (numDataPoints - i - 1));
+          return date.getFullYear().toString();
+        });
+        break;
+      case '1Y':
+      default:
+        // Mensuel sur 1 an
+        numDataPoints = 12;
+        labels = Array.from({ length: numDataPoints }, (_, i) => {
+          const date = new Date();
+          date.setMonth(currentDate.getMonth() - (numDataPoints - i - 1));
+          return months[date.getMonth()];
+        });
+        break;
+    }
     
     // Si aucun bien immobilier, retourner des valeurs à zéro
     if (baseValue === 0) {
       return {
-        labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+        labels,
         datasets: [
           {
             label: 'Valeur immobilière',
-            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            data: Array(labels.length).fill(0),
             color: '#FA5003',
             fill: true,
           }
@@ -47,24 +115,38 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
       };
     }
     
-    // Sinon, générer un historique basé sur la valeur actuelle
-    const values = [
-      Math.round(baseValue * 0.98),
-      Math.round(baseValue * 0.985),
-      Math.round(baseValue * 0.99),
-      Math.round(baseValue * 0.975),
-      Math.round(baseValue * 0.98),
-      Math.round(baseValue * 0.99),
-      Math.round(baseValue * 0.998),
-      Math.round(baseValue * 0.985),
-      Math.round(baseValue * 0.992),
-      Math.round(baseValue * 0.98),
-      Math.round(baseValue * 0.975),
-      baseValue
-    ];
+    // L'immobilier est généralement moins volatile que les actions ou les cryptos
+    const volatilityFactor = timeFrame === '1M' ? 0.01 : 
+                             timeFrame === '3M' ? 0.02 : 
+                             timeFrame === '6M' ? 0.03 : 
+                             timeFrame === '5Y' ? 0.10 : 
+                             timeFrame === 'ALL' ? 0.15 : 0.05; // 1Y
+    
+    const generateRandomWalk = (steps: number, finalValue: number, volatility: number) => {
+      // Commencer avec une valeur initiale inférieure à la valeur finale pour simuler une croissance
+      let initialValue = finalValue * (1 - Math.random() * volatility);
+      const result = [initialValue];
+      
+      for (let i = 1; i < steps - 1; i++) {
+        // Calculer la prochaine valeur avec une tendance vers la valeur finale
+        const progress = i / (steps - 1);
+        const trend = initialValue + progress * (finalValue - initialValue);
+        
+        // Ajouter une variation aléatoire autour de la tendance
+        const randomFactor = 1 + (Math.random() * 2 - 1) * volatility * (1 - progress);
+        result.push(trend * randomFactor);
+      }
+      
+      // Ajouter la valeur finale
+      result.push(finalValue);
+      
+      return result.map(val => Math.round(val));
+    };
+    
+    const values = generateRandomWalk(labels.length, baseValue, volatilityFactor);
     
     return {
-      labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+      labels,
       datasets: [
         {
           label: 'Valeur immobilière',
@@ -172,11 +254,22 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
       </div>
 
       <Card className="col-span-3">
-        <CardHeader>
-          <CardTitle>Évolution de la valeur</CardTitle>
-          <CardDescription>
-            Suivi de la valeur totale de votre patrimoine immobilier sur 12 mois
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div>
+            <CardTitle>Évolution de la valeur</CardTitle>
+            <CardDescription>
+              {timeFrame === '1Y' ? 'Sur les 12 derniers mois' : 
+               timeFrame === '1M' ? 'Sur le dernier mois' : 
+               timeFrame === '3M' ? 'Sur les 3 derniers mois' : 
+               timeFrame === '6M' ? 'Sur les 6 derniers mois' : 
+               timeFrame === '5Y' ? 'Sur les 5 dernières années' : 
+               'Historique complet'}
+            </CardDescription>
+          </div>
+          <TimeFrameSelector 
+            selectedTimeFrame={timeFrame} 
+            onTimeFrameChange={setTimeFrame} 
+          />
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
