@@ -1,7 +1,8 @@
-
 import React, { useState } from 'react';
 import { Asset, AssetType } from '@/types/assets';
-import { X } from 'lucide-react';
+import { X, Search } from 'lucide-react';
+import CryptoSearch from './CryptoSearch';
+import { CryptoInfo } from '@/services/cryptoService';
 
 interface AssetFormProps {
   onSubmit: (asset: Omit<Asset, 'id'>) => void;
@@ -39,6 +40,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [surface, setSurface] = useState('');
   const [cryptoQty, setCryptoQty] = useState('');
   const [cryptoPrice, setCryptoPrice] = useState('');
+  const [showCryptoSearch, setShowCryptoSearch] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,6 +94,16 @@ const AssetForm: React.FC<AssetFormProps> = ({
     }
   };
 
+  const handleCryptoSelect = (crypto: CryptoInfo) => {
+    setName(crypto.name);
+    setTicker(crypto.symbol.toUpperCase());
+    setCryptoPrice(crypto.current_price.toString());
+    setPerformance(crypto.price_change_percentage_24h.toString());
+    setCryptoQty('1'); // Valeur par défaut
+    setValue((crypto.current_price * 1).toString()); // Valeur par défaut pour 1 unité
+    setShowCryptoSearch(false);
+  };
+
   // Render type-specific fields
   const renderTypeSpecificFields = () => {
     switch (type) {
@@ -128,6 +140,73 @@ const AssetForm: React.FC<AssetFormProps> = ({
             </div>
           </>
         );
+      case 'crypto':
+        return (
+          <>
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium">
+                  Rechercher une cryptomonnaie
+                </label>
+                <button 
+                  type="button" 
+                  onClick={() => setShowCryptoSearch(!showCryptoSearch)}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  {showCryptoSearch ? 'Fermer' : 'Rechercher'}
+                </button>
+              </div>
+              
+              {showCryptoSearch && (
+                <div className="mb-2">
+                  <CryptoSearch onSelect={handleCryptoSelect} />
+                </div>
+              )}
+            </div>
+            <div>
+              <label htmlFor="cryptoQty" className="block text-sm font-medium mb-1">
+                Quantité
+              </label>
+              <input
+                id="cryptoQty"
+                type="number"
+                value={cryptoQty}
+                onChange={(e) => {
+                  const newQty = e.target.value;
+                  setCryptoQty(newQty);
+                  if (cryptoPrice && newQty) {
+                    setValue((parseFloat(cryptoPrice) * parseFloat(newQty)).toString());
+                  }
+                }}
+                className="wealth-input w-full"
+                placeholder="Ex: 0.5"
+                min="0"
+                step="0.000001"
+              />
+            </div>
+            <div>
+              <label htmlFor="cryptoPrice" className="block text-sm font-medium mb-1">
+                Prix unitaire (€)
+              </label>
+              <input
+                id="cryptoPrice"
+                type="number"
+                value={cryptoPrice}
+                onChange={(e) => {
+                  const newPrice = e.target.value;
+                  setCryptoPrice(newPrice);
+                  if (cryptoQty && newPrice) {
+                    setValue((parseFloat(newPrice) * parseFloat(cryptoQty)).toString());
+                  }
+                }}
+                className="wealth-input w-full"
+                placeholder="Ex: 30000"
+                min="0"
+                step="0.01"
+              />
+            </div>
+          </>
+        );
       case 'real-estate':
         return (
           <>
@@ -155,41 +234,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
                 onChange={(e) => setSurface(e.target.value)}
                 className="wealth-input w-full"
                 placeholder="Ex: 80"
-                min="0"
-                step="0.01"
-              />
-            </div>
-          </>
-        );
-      case 'crypto':
-        return (
-          <>
-            <div>
-              <label htmlFor="cryptoQty" className="block text-sm font-medium mb-1">
-                Quantité
-              </label>
-              <input
-                id="cryptoQty"
-                type="number"
-                value={cryptoQty}
-                onChange={(e) => setCryptoQty(e.target.value)}
-                className="wealth-input w-full"
-                placeholder="Ex: 0.5"
-                min="0"
-                step="0.000001"
-              />
-            </div>
-            <div>
-              <label htmlFor="cryptoPrice" className="block text-sm font-medium mb-1">
-                Prix unitaire (€)
-              </label>
-              <input
-                id="cryptoPrice"
-                type="number"
-                value={cryptoPrice}
-                onChange={(e) => setCryptoPrice(e.target.value)}
-                className="wealth-input w-full"
-                placeholder="Ex: 30000"
                 min="0"
                 step="0.01"
               />
