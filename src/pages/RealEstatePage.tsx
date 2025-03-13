@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from '@/lib/formatters';
-import { Asset } from '@/types/assets';
+import { Asset, AssetType } from '@/types/assets';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import LineChartComponent from '@/components/charts/LineChart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -40,7 +39,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
     // Make sure we're adding a real-estate asset
     const realEstateAsset = {
       ...newProperty,
-      type: 'real-estate'
+      type: 'real-estate' as AssetType
     };
     
     // Call the parent's onAddAsset function

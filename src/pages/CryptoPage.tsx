@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Bitcoin, TrendingUp, TrendingDown, Wallet, Plus, Filter } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
-import { Asset } from '@/types/assets';
+import { Asset, AssetType } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 
 interface CryptoPageProps {
@@ -31,7 +30,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ assets, onAddAsset }) => {
     // Make sure we're adding a crypto asset
     const cryptoAsset = {
       ...newAsset,
-      type: 'crypto'
+      type: 'crypto' as AssetType
     };
     
     // Call the parent's onAddAsset function

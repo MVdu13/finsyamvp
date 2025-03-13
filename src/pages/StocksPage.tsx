@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, Plus, Filter } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
-import { Asset } from '@/types/assets';
+import { Asset, AssetType } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 
 interface StocksPageProps {
@@ -31,7 +30,7 @@ const StocksPage: React.FC<StocksPageProps> = ({ assets, onAddAsset }) => {
     // Make sure we're adding a stock asset
     const stockAsset = {
       ...newAsset,
-      type: 'stock'
+      type: 'stock' as AssetType
     };
     
     // Call the parent's onAddAsset function

@@ -1,10 +1,9 @@
-
 import React from 'react';
 import NetWorthChart from '@/components/dashboard/NetWorthChart';
 import AssetAllocation from '@/components/dashboard/AssetAllocation';
 import FinancialGoals from '@/components/dashboard/FinancialGoals';
 import AssetsList from '@/components/assets/AssetsList';
-import { Asset } from '@/types/assets';
+import { Asset, AssetType } from '@/types/assets';
 import { mockAssetAllocation, mockNetWorthHistory, mockGoals } from '@/lib/mockData';
 
 interface DashboardProps {
@@ -23,8 +22,8 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo })
     realEstate: assets.filter(asset => asset.type === 'real-estate').reduce((sum, asset) => sum + asset.value, 0),
     crypto: assets.filter(asset => asset.type === 'crypto').reduce((sum, asset) => sum + asset.value, 0),
     cash: assets.filter(asset => asset.type === 'cash').reduce((sum, asset) => sum + asset.value, 0),
-    bonds: assets.filter(asset => asset.type === 'bonds').reduce((sum, asset) => sum + asset.value, 0) || 0,
-    commodities: assets.filter(asset => asset.type === 'commodities').reduce((sum, asset) => sum + asset.value, 0) || 0,
+    bonds: assets.filter(asset => asset.type === ('bonds' as AssetType)).reduce((sum, asset) => sum + asset.value, 0) || 0,
+    commodities: assets.filter(asset => asset.type === ('commodities' as AssetType)).reduce((sum, asset) => sum + asset.value, 0) || 0,
     other: assets.filter(asset => asset.type === 'other').reduce((sum, asset) => sum + asset.value, 0),
   };
   
