@@ -5,6 +5,8 @@ import Dashboard from './Dashboard';
 import AssetsPage from './AssetsPage';
 import BudgetPage from './BudgetPage';
 import RealEstatePage from './RealEstatePage';
+import StocksPage from './StocksPage';
+import CryptoPage from './CryptoPage';
 
 const Index = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -25,6 +27,10 @@ const Index = () => {
         return <BudgetPage />;
       case 'real-estate':
         return <RealEstatePage />;
+      case 'stocks':
+        return <StocksPage />;
+      case 'crypto':
+        return <CryptoPage />;
       default:
         return (
           <div className="p-6">
