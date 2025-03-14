@@ -26,7 +26,7 @@ const SavingsAccountFormFields: React.FC<SavingsAccountFormFieldsProps> = ({
           value={interestRate}
           onChange={(e) => setInterestRate(e.target.value)}
           className="wealth-input w-full"
-          placeholder="Ex: 3.0"
+          placeholder="Ex: 2.0"
           step="0.01"
           min="0"
           required

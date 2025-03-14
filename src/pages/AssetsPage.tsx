@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Filter, Search } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -18,12 +17,11 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [assetTypeTab, setAssetTypeTab] = useState<AssetType>('stock');
 
-  const handleAddAsset = (newAsset: Omit<Asset, 'id'>) => {
-    onAddAsset(newAsset);
-    setDialogOpen(false);
-  };
+  const filteredAssetsWithoutAccounts = assets.filter(asset => 
+    asset.type !== 'bank-account' && asset.type !== 'savings-account'
+  );
 
-  const filteredAssets = assets.filter((asset) => {
+  const filteredAssets = filteredAssetsWithoutAccounts.filter((asset) => {
     const matchesType = filterType === 'all' || asset.type === filterType;
     const matchesSearch = asset.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                         (asset.description && asset.description.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -31,7 +29,6 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
     return matchesType && matchesSearch;
   });
 
-  // Group assets by type
   const assetsByType: Record<string, Asset[]> = {
     'stock': filteredAssets.filter(asset => asset.type === 'stock'),
     'crypto': filteredAssets.filter(asset => asset.type === 'crypto'),
@@ -39,8 +36,6 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
     'cash': filteredAssets.filter(asset => asset.type === 'cash'),
     'bonds': filteredAssets.filter(asset => asset.type === 'bonds'),
     'commodities': filteredAssets.filter(asset => asset.type === 'commodities'),
-    'bank-account': filteredAssets.filter(asset => asset.type === 'bank-account'),
-    'savings-account': filteredAssets.filter(asset => asset.type === 'savings-account'),
     'other': filteredAssets.filter(asset => asset.type === 'other'),
   };
 
@@ -51,9 +46,12 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
     'cash': 'Liquidités',
     'bonds': 'Obligations',
     'commodities': 'Matières premières',
-    'bank-account': 'Comptes bancaires',
-    'savings-account': 'Livrets d\'épargne',
     'other': 'Autres',
+  };
+
+  const handleAddAsset = (newAsset: Omit<Asset, 'id'>) => {
+    onAddAsset(newAsset);
+    setDialogOpen(false);
   };
 
   return (

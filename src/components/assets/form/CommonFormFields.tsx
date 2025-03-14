@@ -12,6 +12,7 @@ interface CommonFormFieldsProps {
   setPerformance: (value: string) => void;
   setDescription: (value: string) => void;
   assetType: string;
+  showPerformance?: boolean;
 }
 
 const CommonFormFields: React.FC<CommonFormFieldsProps> = ({
@@ -24,6 +25,7 @@ const CommonFormFields: React.FC<CommonFormFieldsProps> = ({
   setPerformance,
   setDescription,
   assetType,
+  showPerformance = true,
 }) => {
   return (
     <>
@@ -42,7 +44,13 @@ const CommonFormFields: React.FC<CommonFormFieldsProps> = ({
               ? "Ex: Actions Apple"
               : assetType === 'crypto'
               ? "Ex: Bitcoin"
-              : "Ex: Appartement Paris"
+              : assetType === 'real-estate'
+              ? "Ex: Appartement Paris"
+              : assetType === 'bank-account'
+              ? "Ex: Compte courant Société Générale"
+              : assetType === 'savings-account'
+              ? "Ex: Livret A"
+              : "Ex: Nom de l'actif"
           }
           required
         />
@@ -65,21 +73,23 @@ const CommonFormFields: React.FC<CommonFormFieldsProps> = ({
         />
       </div>
       
-      <div>
-        <label htmlFor="performance" className="block text-sm font-medium mb-1">
-          Performance (%)
-        </label>
-        <input
-          id="performance"
-          type="number"
-          value={performance}
-          onChange={(e) => setPerformance(e.target.value)}
-          className="wealth-input w-full"
-          placeholder="Ex: 5.2"
-          step="0.1"
-          required
-        />
-      </div>
+      {showPerformance && (
+        <div>
+          <label htmlFor="performance" className="block text-sm font-medium mb-1">
+            Performance (%)
+          </label>
+          <input
+            id="performance"
+            type="number"
+            value={performance}
+            onChange={(e) => setPerformance(e.target.value)}
+            className="wealth-input w-full"
+            placeholder="Ex: 5.2"
+            step="0.1"
+            required
+          />
+        </div>
+      )}
       
       <div>
         <label htmlFor="description" className="block text-sm font-medium mb-1">

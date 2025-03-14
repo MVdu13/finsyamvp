@@ -26,14 +26,14 @@ const BankAccountFormFields: React.FC<BankAccountFormFieldsProps> = ({
           value={bankName}
           onChange={(e) => setBankName(e.target.value)}
           className="wealth-input w-full"
-          placeholder="Ex: BNP Paribas, Société Générale..."
+          placeholder="Ex: BNP Paribas, Crédit Agricole..."
           required
         />
       </div>
       
       <div>
         <label htmlFor="accountNumber" className="block text-sm font-medium mb-1">
-          Numéro de compte (IBAN)
+          Numéro de compte (optionnel)
         </label>
         <input
           id="accountNumber"
@@ -41,7 +41,7 @@ const BankAccountFormFields: React.FC<BankAccountFormFieldsProps> = ({
           value={accountNumber}
           onChange={(e) => setAccountNumber(e.target.value)}
           className="wealth-input w-full"
-          placeholder="Ex: FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+          placeholder="Ex: xxxx xxxx xxxx xxxx"
         />
       </div>
     </>

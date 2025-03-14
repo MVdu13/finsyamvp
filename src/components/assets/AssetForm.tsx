@@ -59,10 +59,16 @@ const AssetForm: React.FC<AssetFormProps> = ({
       } else if (type === 'real-estate') {
         finalDescription = `${surface} m² - ${address}`;
       } else if (type === 'bank-account') {
-        finalDescription = `${bankName} - ${accountNumber.substring(0, 4)}...${accountNumber.substring(accountNumber.length - 4)}`;
+        finalDescription = bankName + (accountNumber ? ` - ${accountNumber.substring(0, 4)}...` : '');
       } else if (type === 'savings-account') {
         finalDescription = `Taux: ${interestRate}%${maturityDate ? ` - Échéance: ${maturityDate}` : ''}`;
       }
+    }
+    
+    // Pour les comptes bancaires et livrets, attribuer une performance par défaut de 0
+    let finalPerformance = performance;
+    if ((type === 'bank-account' || type === 'savings-account') && !performance) {
+      finalPerformance = "0";
     }
     
     onSubmit({
@@ -70,7 +76,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
       description: finalDescription,
       type,
       value: parseFloat(value),
-      performance: parseFloat(performance)
+      performance: parseFloat(finalPerformance)
     });
 
     // Reset form
@@ -129,6 +135,11 @@ const AssetForm: React.FC<AssetFormProps> = ({
     if (qty && price) {
       setValue((parseFloat(price) * parseFloat(qty)).toString());
     }
+  };
+
+  // Déterminer si on affiche le champ performance selon le type d'actif
+  const shouldShowPerformanceField = () => {
+    return type !== 'bank-account' && type !== 'savings-account';
   };
 
   // Render type-specific fields
@@ -221,6 +232,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
           setPerformance={setPerformance}
           setDescription={setDescription}
           assetType={type}
+          showPerformance={shouldShowPerformanceField()}
         />
         
         {renderTypeSpecificFields()}
