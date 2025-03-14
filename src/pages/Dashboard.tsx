@@ -15,10 +15,19 @@ interface DashboardProps {
   assets: Asset[];
   onAddAsset: (asset: Omit<Asset, 'id'>) => void;
   navigateTo: (item: string) => void;
-  openProjectsPage?: () => void; // Make this optional to fix the TS error
+  openProjectsPage?: () => void;
+  onDeleteAsset?: (id: string) => void;
+  onUpdateAsset?: (id: string, asset: Partial<Asset>) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo, openProjectsPage }) => {
+const Dashboard: React.FC<DashboardProps> = ({ 
+  assets, 
+  onAddAsset, 
+  navigateTo, 
+  openProjectsPage,
+  onDeleteAsset,
+  onUpdateAsset 
+}) => {
   // State for the dialog
   const [dialogOpen, setDialogOpen] = useState(false);
   
@@ -28,12 +37,16 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo, o
   // Calculate total value from all assets
   const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
   
-  // Calculate asset allocation from assets
+  // Calculate asset allocation from assets, combining bank and savings accounts as "liquidity"
   const currentAllocation = {
     stocks: assets.filter(asset => asset.type === 'stock').reduce((sum, asset) => sum + asset.value, 0),
     realEstate: assets.filter(asset => asset.type === 'real-estate').reduce((sum, asset) => sum + asset.value, 0),
     crypto: assets.filter(asset => asset.type === 'crypto').reduce((sum, asset) => sum + asset.value, 0),
-    cash: assets.filter(asset => asset.type === 'cash').reduce((sum, asset) => sum + asset.value, 0),
+    cash: assets.filter(asset => 
+      asset.type === 'cash' || 
+      asset.type === 'bank-account' || 
+      asset.type === 'savings-account'
+    ).reduce((sum, asset) => sum + asset.value, 0),
     bonds: assets.filter(asset => asset.type === 'bonds').reduce((sum, asset) => sum + asset.value, 0),
     commodities: assets.filter(asset => asset.type === 'commodities').reduce((sum, asset) => sum + asset.value, 0),
     other: assets.filter(asset => asset.type === 'other').reduce((sum, asset) => sum + asset.value, 0),
@@ -85,7 +98,6 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, onAddAsset, navigateTo, o
     navigateTo('assets');
   };
 
-  // Add handler for navigating to projects page
   const handleNavigateToProjects = () => {
     if (openProjectsPage) {
       openProjectsPage();

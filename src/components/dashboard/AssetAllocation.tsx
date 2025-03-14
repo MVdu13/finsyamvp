@@ -29,7 +29,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ allocation, totalValu
       '#4ade80', // stocks - green
       '#60a5fa', // real estate - blue
       '#c084fc', // crypto - purple
-      '#94a3b8', // cash - gray
+      '#94a3b8', // cash/liquidity - gray (keep this color for liquidity)
       '#facc15', // bonds - yellow
       '#f97316', // commodities - orange
       '#f43f5e'  // other - pink
@@ -67,7 +67,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ allocation, totalValu
               case 'stocks': label = 'Actions'; break;
               case 'realEstate': label = 'Immobilier'; break;
               case 'crypto': label = 'Crypto'; break;
-              case 'cash': label = 'Liquidités'; break;
+              case 'cash': label = 'Liquidités'; break; // Note: cash now represents bank accounts + savings accounts
               case 'bonds': label = 'Obligations'; break;
               case 'commodities': label = 'Mat. prem.'; break;
               default: label = 'Autres';

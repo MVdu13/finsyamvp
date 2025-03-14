@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Asset, AssetType } from '@/types/assets';
 import { X, Banknote, Wallet, BookText } from 'lucide-react';
 import { CryptoInfo } from '@/services/cryptoService';
@@ -16,19 +15,23 @@ interface AssetFormProps {
   onCancel: () => void;
   defaultType?: AssetType;
   showTypeSelector?: boolean;
+  initialValues?: Asset;
+  isEditing?: boolean;
 }
 
 const AssetForm: React.FC<AssetFormProps> = ({ 
   onSubmit, 
   onCancel, 
   defaultType = 'stock',
-  showTypeSelector = true 
+  showTypeSelector = true,
+  initialValues,
+  isEditing = false
 }) => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [type, setType] = useState<AssetType>(defaultType);
-  const [value, setValue] = useState('');
-  const [performance, setPerformance] = useState('');
+  const [name, setName] = useState(initialValues?.name || '');
+  const [description, setDescription] = useState(initialValues?.description || '');
+  const [type, setType] = useState<AssetType>(initialValues?.type || defaultType);
+  const [value, setValue] = useState(initialValues?.value ? initialValues.value.toString() : '');
+  const [performance, setPerformance] = useState(initialValues?.performance ? initialValues.performance.toString() : '');
   
   // Type specific fields
   const [ticker, setTicker] = useState('');
@@ -45,6 +48,20 @@ const AssetForm: React.FC<AssetFormProps> = ({
   // Savings account fields
   const [interestRate, setInterestRate] = useState('');
   const [maturityDate, setMaturityDate] = useState('');
+
+  // Initialize form fields based on initialValues when editing
+  useEffect(() => {
+    if (initialValues) {
+      setName(initialValues.name || '');
+      setDescription(initialValues.description || '');
+      setType(initialValues.type || defaultType);
+      setValue(initialValues.value ? initialValues.value.toString() : '');
+      setPerformance(initialValues.performance ? initialValues.performance.toString() : '');
+      
+      // You would need to parse description or other fields to fill specific fields
+      // This is a simplified implementation
+    }
+  }, [initialValues, defaultType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,36 +96,39 @@ const AssetForm: React.FC<AssetFormProps> = ({
       performance: parseFloat(finalPerformance)
     });
 
-    // Reset form
-    setName('');
-    setDescription('');
-    setType(defaultType);
-    setValue('');
-    setPerformance('');
-    setTicker('');
-    setShares('');
-    setAddress('');
-    setSurface('');
-    setCryptoQty('');
-    setCryptoPrice('');
-    setBankName('');
-    setAccountNumber('');
-    setInterestRate('');
-    setMaturityDate('');
+    // Reset form if not editing
+    if (!isEditing) {
+      setName('');
+      setDescription('');
+      setType(defaultType);
+      setValue('');
+      setPerformance('');
+      setTicker('');
+      setShares('');
+      setAddress('');
+      setSurface('');
+      setCryptoQty('');
+      setCryptoPrice('');
+      setBankName('');
+      setAccountNumber('');
+      setInterestRate('');
+      setMaturityDate('');
+    }
   };
 
-  // Get form title based on asset type
+  // Get form title based on asset type and editing mode
   const getFormTitle = () => {
+    const action = isEditing ? 'Modifier' : 'Ajouter';
     switch (type) {
-      case 'stock': return 'Ajouter une action/ETF';
-      case 'crypto': return 'Ajouter une cryptomonnaie';
-      case 'real-estate': return 'Ajouter un bien immobilier';
-      case 'cash': return 'Ajouter des liquidités';
-      case 'bonds': return 'Ajouter des obligations';
-      case 'commodities': return 'Ajouter des matières premières';
-      case 'bank-account': return 'Ajouter un compte bancaire';
-      case 'savings-account': return 'Ajouter un livret d\'épargne';
-      default: return 'Ajouter un nouvel actif';
+      case 'stock': return `${action} une action/ETF`;
+      case 'crypto': return `${action} une cryptomonnaie`;
+      case 'real-estate': return `${action} un bien immobilier`;
+      case 'cash': return `${action} des liquidités`;
+      case 'bonds': return `${action} des obligations`;
+      case 'commodities': return `${action} des matières premières`;
+      case 'bank-account': return `${action} un compte bancaire`;
+      case 'savings-account': return `${action} un livret d\'épargne`;
+      default: return `${action} un nouvel actif`;
     }
   };
 
@@ -249,7 +269,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
             type="submit"
             className="wealth-btn wealth-btn-primary flex-1"
           >
-            Ajouter
+            {isEditing ? 'Modifier' : 'Ajouter'}
           </button>
         </div>
       </form>

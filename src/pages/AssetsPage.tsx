@@ -1,21 +1,32 @@
+
 import React, { useState } from 'react';
-import { Plus, Filter, Search } from 'lucide-react';
+import { Plus, Filter, Search, Trash2, Pencil } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
 import { Asset, AssetType } from '@/types/assets';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from "sonner";
 
 interface AssetsPageProps {
   assets: Asset[];
   onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+  onDeleteAsset?: (id: string) => void;
+  onUpdateAsset?: (id: string, asset: Partial<Asset>) => void;
 }
 
-const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
+const AssetsPage: React.FC<AssetsPageProps> = ({ 
+  assets, 
+  onAddAsset, 
+  onDeleteAsset, 
+  onUpdateAsset 
+}) => {
   const [filterType, setFilterType] = useState<AssetType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [assetTypeTab, setAssetTypeTab] = useState<AssetType>('stock');
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
 
   const financialAssetsOnly = assets.filter(asset => 
     asset.type !== 'bank-account' && asset.type !== 'savings-account'
@@ -52,6 +63,28 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
   const handleAddAsset = (newAsset: Omit<Asset, 'id'>) => {
     onAddAsset(newAsset);
     setDialogOpen(false);
+  };
+
+  const handleEditAsset = (asset: Asset) => {
+    setEditingAsset(asset);
+    setAssetTypeTab(asset.type);
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateAsset = (updatedAsset: Omit<Asset, 'id'>) => {
+    if (editingAsset && onUpdateAsset) {
+      onUpdateAsset(editingAsset.id, updatedAsset);
+      toast.success("Actif mis à jour avec succès");
+      setEditDialogOpen(false);
+      setEditingAsset(null);
+    }
+  };
+
+  const handleDeleteAsset = (id: string) => {
+    if (onDeleteAsset) {
+      onDeleteAsset(id);
+      toast.success("Actif supprimé avec succès");
+    }
   };
 
   return (
@@ -113,6 +146,28 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
                 />
               </TabsContent>
             </Tabs>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Modifier un actif</DialogTitle>
+            </DialogHeader>
+            {editingAsset && (
+              <AssetForm 
+                onSubmit={handleUpdateAsset}
+                onCancel={() => {
+                  setEditDialogOpen(false);
+                  setEditingAsset(null);
+                }}
+                defaultType={editingAsset.type}
+                initialValues={editingAsset}
+                isEditing={true}
+                showTypeSelector={false}
+              />
+            )}
           </DialogContent>
         </Dialog>
       </div>
@@ -197,9 +252,22 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
                           minimumFractionDigits: 0,
                           maximumFractionDigits: 0,
                         }).format(asset.value)}</span>
-                        <button className="text-xs text-wealth-primary font-medium hover:underline">
-                          Détails
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => handleEditAsset(asset)}
+                            className="p-1.5 rounded-full hover:bg-muted transition-colors text-wealth-primary"
+                            title="Modifier"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteAsset(asset.id)}
+                            className="p-1.5 rounded-full hover:bg-muted transition-colors text-red-500"
+                            title="Supprimer"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
