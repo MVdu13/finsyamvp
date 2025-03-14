@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { LayoutDashboard, CircleDollarSign, PiggyBank, Building2, Briefcase, Bitcoin, CreditCard, BarChart4, Settings, ChevronLeft, LogOut, ChevronDown, ChevronRight, Wallet, ScrollText } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -33,11 +32,10 @@ const AppSidebar = ({
     <div className={cn("h-screen fixed left-0 top-0 z-20 flex flex-col bg-white border-r border-border transition-all duration-300 ease-in-out shadow-sm", isCollapsed ? "w-[80px]" : "w-[280px]")}>
       <div className="flex items-center p-4 border-b border-border">
         <div className={cn("flex items-center", isCollapsed ? "justify-center w-full" : "justify-between w-full")}>
-          {!isCollapsed && <div className="flex items-center gap-2">
-              <img src="/lovable-uploads/e06c645b-581b-493b-b7fa-a7b9d6fdcd5c.png" alt="Logo" className="h-8 w-8" />
-              <span className="font-semibold text-lg">Finsya</span>
+          {!isCollapsed && <div className="flex items-center">
+              <img src="/lovable-uploads/2c91a9cb-b596-4e15-bc10-1c8160645288.png" alt="Finsya Logo" className="h-8" />
             </div>}
-          {isCollapsed && <img src="/lovable-uploads/e06c645b-581b-493b-b7fa-a7b9d6fdcd5c.png" alt="Logo" className="h-10 w-10" />}
+          {isCollapsed && <img src="/lovable-uploads/2c91a9cb-b596-4e15-bc10-1c8160645288.png" alt="Finsya Logo" className="h-7 w-auto" />}
           <button onClick={toggleSidebar} className={cn("p-1 rounded-full hover:bg-muted transition-colors", isCollapsed ? "hidden" : "flex")}>
             <ChevronLeft size={20} />
           </button>
