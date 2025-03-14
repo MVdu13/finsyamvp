@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { BarChart3, ArrowUpRight, ArrowDownRight, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Asset } from '@/types/assets';
 import { formatCurrency } from '@/lib/formatters';
+import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 
 interface AssetsListProps {
   assets: Asset[];
@@ -20,6 +21,23 @@ const AssetsList: React.FC<AssetsListProps> = ({
   onEdit,
   onDelete
 }) => {
+  const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
+
+  const handleDeleteClick = (asset: Asset) => {
+    setAssetToDelete(asset);
+  };
+
+  const handleConfirmDelete = () => {
+    if (assetToDelete && onDelete) {
+      onDelete(assetToDelete.id);
+      setAssetToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setAssetToDelete(null);
+  };
+
   return (
     <div className="wealth-card h-full flex flex-col">
       <div className="flex justify-between items-center mb-5">
@@ -95,7 +113,7 @@ const AssetsList: React.FC<AssetsListProps> = ({
                     )}
                     {onDelete && (
                       <button 
-                        onClick={() => onDelete(asset.id)} 
+                        onClick={() => handleDeleteClick(asset)} 
                         className="p-1.5 rounded-full hover:bg-muted transition-colors text-red-500"
                         title="Supprimer"
                       >
@@ -118,6 +136,13 @@ const AssetsList: React.FC<AssetsListProps> = ({
           </button>
         </div>
       )}
+
+      <DeleteConfirmationDialog 
+        isOpen={!!assetToDelete}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        assetName={assetToDelete?.name}
+      />
     </div>
   );
 };

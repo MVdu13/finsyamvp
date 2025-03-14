@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Filter, Search, Trash2, Pencil } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -7,6 +6,7 @@ import { Asset, AssetType } from '@/types/assets';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from "sonner";
+import DeleteConfirmationDialog from '@/components/assets/DeleteConfirmationDialog';
 
 interface AssetsPageProps {
   assets: Asset[];
@@ -27,6 +27,7 @@ const AssetsPage: React.FC<AssetsPageProps> = ({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [assetTypeTab, setAssetTypeTab] = useState<AssetType>('stock');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
 
   const financialAssetsOnly = assets.filter(asset => 
     asset.type !== 'bank-account' && asset.type !== 'savings-account'
@@ -80,10 +81,15 @@ const AssetsPage: React.FC<AssetsPageProps> = ({
     }
   };
 
-  const handleDeleteAsset = (id: string) => {
-    if (onDeleteAsset) {
-      onDeleteAsset(id);
+  const handleDeleteClick = (asset: Asset) => {
+    setAssetToDelete(asset);
+  };
+
+  const handleConfirmDelete = () => {
+    if (assetToDelete && onDeleteAsset) {
+      onDeleteAsset(assetToDelete.id);
       toast.success("Actif supprimé avec succès");
+      setAssetToDelete(null);
     }
   };
 
@@ -149,7 +155,6 @@ const AssetsPage: React.FC<AssetsPageProps> = ({
           </DialogContent>
         </Dialog>
 
-        {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
@@ -261,7 +266,7 @@ const AssetsPage: React.FC<AssetsPageProps> = ({
                             <Pencil size={16} />
                           </button>
                           <button 
-                            onClick={() => handleDeleteAsset(asset.id)}
+                            onClick={() => handleDeleteClick(asset)}
                             className="p-1.5 rounded-full hover:bg-muted transition-colors text-red-500"
                             title="Supprimer"
                           >
@@ -277,6 +282,13 @@ const AssetsPage: React.FC<AssetsPageProps> = ({
           )}
         </div>
       )}
+
+      <DeleteConfirmationDialog 
+        isOpen={!!assetToDelete}
+        onClose={() => setAssetToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        assetName={assetToDelete?.name}
+      />
     </div>
   );
 };
