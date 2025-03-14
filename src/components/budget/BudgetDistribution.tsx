@@ -32,47 +32,21 @@ const BudgetDistribution: React.FC<BudgetDistributionProps> = ({
   // Calculate total expenses (fixed + variable)
   const totalExpenses = fixedExpenses + variableExpenses;
   
-  // Calculate available after expenses
-  const availableAfterExpenses = Math.max(0, budget.totalIncome - totalExpenses);
+  // Calculate investment amount (remaining after fixed, variable expenses and projects)
+  const investmentAmount = Math.max(0, budget.totalIncome - totalExpenses - monthlyProjectsContribution);
   
-  // Calculate security cushion gap
-  // Target is 6 months of total expenses by default
-  const securityCushionTarget = totalExpenses * 6;
-  const securityCushionGap = Math.max(0, securityCushionTarget - savingsAccountsTotal);
-  
-  // Calculate allocations based on priorities:
-  // 1. If security cushion is not met, allocate to security cushion
-  // 2. If security cushion is met, allocate to projects
-  // 3. Remaining goes to investments
-  
-  let securityCushionAllocation = 0;
-  let projectsAllocation = 0;
-  let investmentAllocation = 0;
-  
-  // If security cushion is not met, prioritize it
-  if (securityCushionGap > 0) {
-    securityCushionAllocation = Math.min(availableAfterExpenses, securityCushionGap);
-    investmentAllocation = Math.max(0, availableAfterExpenses - securityCushionAllocation);
-  } else {
-    // Security cushion is met, allocate to projects
-    projectsAllocation = Math.min(availableAfterExpenses, monthlyProjectsContribution);
-    investmentAllocation = Math.max(0, availableAfterExpenses - projectsAllocation);
-  }
-  
-  // Prepare data for the donut chart
+  // Prepare data for the donut chart - simplified to just 4 categories
   const chartData = {
-    labels: ['Dépenses fixes', 'Dépenses variables', 'Épargne de sécurité', 'Projets', 'Investissement'],
+    labels: ['Dépenses fixes', 'Dépenses variables', 'Projets financiers', 'Investissement'],
     values: [
       fixedExpenses,
       variableExpenses,
-      securityCushionAllocation,
-      projectsAllocation,
-      investmentAllocation
+      monthlyProjectsContribution,
+      investmentAmount
     ],
     colors: [
       '#F97316', // Orange for fixed expenses
       '#FB923C', // Lighter orange for variable expenses
-      '#22C55E', // Green for security cushion
       '#A855F7', // Purple for projects
       '#0EA5E9', // Blue for investments
     ],
