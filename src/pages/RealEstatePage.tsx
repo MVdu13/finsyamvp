@@ -1,28 +1,34 @@
 
 import React, { useState } from 'react';
-import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight, Pencil, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from '@/lib/formatters';
 import { Asset, AssetType } from '@/types/assets';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import LineChartComponent from '@/components/charts/LineChart';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import AssetForm from '@/components/assets/AssetForm';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
 
 interface RealEstatePageProps {
   assets: Asset[];
   onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+  onUpdateAsset: (asset: Asset) => void;
+  onDeleteAsset: (assetId: string) => void;
 }
 
-const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) => {
+const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onUpdateAsset, onDeleteAsset }) => {
   const { toast } = useToast();
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   
-  // Properties are passed from parent
+  // Properties are real estate assets
   const properties = assets;
 
   const totalValue = properties.reduce((sum, property) => sum + property.value, 0);
@@ -169,13 +175,55 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
     
     // Call the parent's onAddAsset function
     onAddAsset(realEstateAsset);
-    setDialogOpen(false);
+    setAddDialogOpen(false);
     
     // Show success toast
     toast({
       title: "Bien immobilier ajouté",
       description: `${newProperty.name} a été ajouté à votre portefeuille`,
     });
+  };
+
+  const handleEditProperty = (editedProperty: Omit<Asset, 'id'>) => {
+    if (selectedAsset) {
+      const updatedProperty = {
+        ...editedProperty,
+        id: selectedAsset.id,
+        type: 'real-estate' as AssetType
+      };
+      
+      onUpdateAsset(updatedProperty);
+      setEditDialogOpen(false);
+      setSelectedAsset(null);
+      
+      toast({
+        title: "Bien immobilier modifié",
+        description: `${editedProperty.name} a été mis à jour avec succès`,
+      });
+    }
+  };
+
+  const handleDeleteProperty = () => {
+    if (selectedAsset) {
+      onDeleteAsset(selectedAsset.id);
+      setDeleteDialogOpen(false);
+      setSelectedAsset(null);
+      
+      toast({
+        title: "Bien immobilier supprimé",
+        description: "Le bien immobilier a été supprimé avec succès",
+      });
+    }
+  };
+
+  const openEditDialog = (property: Asset) => {
+    setSelectedAsset(property);
+    setEditDialogOpen(true);
+  };
+
+  const openDeleteDialog = (property: Asset) => {
+    setSelectedAsset(property);
+    setDeleteDialogOpen(true);
   };
 
   return (
@@ -185,7 +233,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
           <h1 className="text-2xl font-bold tracking-tight">Patrimoine Immobilier</h1>
           <p className="text-muted-foreground">Gérez vos biens immobiliers et suivez leur performance</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
           <DialogTrigger asChild>
             <button className="wealth-btn wealth-btn-primary flex items-center gap-2">
               <Plus size={16} />
@@ -195,10 +243,13 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Ajouter un bien immobilier</DialogTitle>
+              <DialogDescription>
+                Renseignez les informations de votre bien immobilier
+              </DialogDescription>
             </DialogHeader>
             <AssetForm 
               onSubmit={handleAddProperty} 
-              onCancel={() => setDialogOpen(false)} 
+              onCancel={() => setAddDialogOpen(false)} 
               defaultType="real-estate" 
               showTypeSelector={false}
             />
@@ -290,6 +341,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
                 <TableHead>Valeur</TableHead>
                 <TableHead>Performance</TableHead>
                 <TableHead>Date d'acquisition</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -312,11 +364,29 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
                       ? new Date(property.createdAt).toLocaleDateString() 
                       : 'Non spécifiée'}
                   </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => openEditDialog(property)}
+                        className="p-2 rounded-full hover:bg-muted transition-colors text-blue-600"
+                        title="Modifier"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => openDeleteDialog(property)}
+                        className="p-2 rounded-full hover:bg-muted transition-colors text-red-600"
+                        title="Supprimer"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
               {properties.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-6">
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
                     Aucun bien immobilier enregistré
                   </TableCell>
                 </TableRow>
@@ -325,6 +395,49 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
           </Table>
         </div>
       </div>
+
+      {/* Dialogue de modification */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Modifier un bien immobilier</DialogTitle>
+            <DialogDescription>
+              Modifiez les informations de votre bien immobilier
+            </DialogDescription>
+          </DialogHeader>
+          {selectedAsset && (
+            <AssetForm 
+              onSubmit={handleEditProperty} 
+              onCancel={() => setEditDialogOpen(false)} 
+              defaultType="real-estate" 
+              showTypeSelector={false}
+              initialValues={selectedAsset}
+              isEditing={true}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialogue de confirmation de suppression */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action supprimera définitivement {selectedAsset?.name} de votre portefeuille.
+              Cette action ne peut pas être annulée.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteProperty} className="bg-red-600 hover:bg-red-700">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

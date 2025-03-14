@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Asset, AssetType } from '@/types/assets';
 import { X, Banknote, Wallet, BookText } from 'lucide-react';
@@ -31,7 +32,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [description, setDescription] = useState(initialValues?.description || '');
   const [type, setType] = useState<AssetType>(initialValues?.type || defaultType);
   const [value, setValue] = useState(initialValues?.value ? initialValues.value.toString() : '');
-  const [performance, setPerformance] = useState(initialValues?.performance ? initialValues.performance.toString() : '');
+  const [performance, setPerformance] = useState(initialValues?.performance !== undefined ? initialValues.performance.toString() : '');
   
   // Type specific fields
   const [ticker, setTicker] = useState('');
@@ -49,19 +50,54 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [interestRate, setInterestRate] = useState('');
   const [maturityDate, setMaturityDate] = useState('');
 
-  // Initialize form fields based on initialValues when editing
+  // Extraire les informations spécifiques du champ description pour l'édition
   useEffect(() => {
-    if (initialValues) {
-      setName(initialValues.name || '');
-      setDescription(initialValues.description || '');
-      setType(initialValues.type || defaultType);
-      setValue(initialValues.value ? initialValues.value.toString() : '');
-      setPerformance(initialValues.performance ? initialValues.performance.toString() : '');
+    if (initialValues?.description) {
+      const desc = initialValues.description;
       
-      // You would need to parse description or other fields to fill specific fields
-      // This is a simplified implementation
+      if (initialValues.type === 'stock' && desc.includes('actions à')) {
+        const match = desc.match(/(\d+\.?\d*) actions à (\d+\.?\d*)€/);
+        if (match) {
+          setShares(match[1]);
+          // Le prix est calculé à partir de la valeur et des actions
+          const calculatedPrice = initialValues.value / parseFloat(match[1]);
+          setTicker(initialValues.name.split(' ')[0] || '');
+        }
+      } 
+      else if (initialValues.type === 'crypto' && desc.includes('unités à')) {
+        const match = desc.match(/(\d+\.?\d*) unités à (\d+\.?\d*)€/);
+        if (match) {
+          setCryptoQty(match[1]);
+          setCryptoPrice(match[2]);
+        }
+      } 
+      else if (initialValues.type === 'real-estate' && desc.includes('m²')) {
+        const match = desc.match(/(\d+\.?\d*) m² - (.*)/);
+        if (match) {
+          setSurface(match[1]);
+          setAddress(match[2]);
+        }
+      } 
+      else if (initialValues.type === 'bank-account') {
+        const bankDetails = desc.split(' - ');
+        setBankName(bankDetails[0] || '');
+        if (bankDetails.length > 1) {
+          setAccountNumber(bankDetails[1].replace('...', '') + '...');
+        }
+      } 
+      else if (initialValues.type === 'savings-account' && desc.includes('Taux:')) {
+        const rateMatch = desc.match(/Taux: (\d+\.?\d*)%/);
+        if (rateMatch) {
+          setInterestRate(rateMatch[1]);
+        }
+        
+        const dateMatch = desc.match(/Échéance: (.*)/);
+        if (dateMatch) {
+          setMaturityDate(dateMatch[1]);
+        }
+      }
     }
-  }, [initialValues, defaultType]);
+  }, [initialValues]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,13 +124,19 @@ const AssetForm: React.FC<AssetFormProps> = ({
       finalPerformance = "0";
     }
     
-    onSubmit({
+    const asset = {
       name,
       description: finalDescription,
       type,
       value: parseFloat(value),
-      performance: parseFloat(finalPerformance)
-    });
+      performance: parseFloat(finalPerformance || '0'),
+      // Si on édite, on conserve la date de création
+      ...(initialValues?.createdAt && { createdAt: initialValues.createdAt }),
+      // Mettre à jour la date de modification
+      updatedAt: new Date().toISOString()
+    };
+    
+    onSubmit(asset);
 
     // Reset form if not editing
     if (!isEditing) {

@@ -12,11 +12,13 @@ import BankAccountsPage from './BankAccountsPage';
 import SavingsAccountsPage from './SavingsAccountsPage';
 import { Asset } from '@/types/assets';
 import { mockAssets } from '@/lib/mockData';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeItem, setActiveItem] = useState('dashboard');
   const [assets, setAssets] = useState<Asset[]>(mockAssets);
+  const { toast } = useToast();
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -26,9 +28,37 @@ const Index = () => {
     const asset = {
       ...newAsset,
       id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
     };
     
     setAssets(prevAssets => [...prevAssets, asset]);
+    
+    toast({
+      title: "Actif ajouté",
+      description: `${newAsset.name} a été ajouté avec succès.`
+    });
+  };
+  
+  const updateAsset = (updatedAsset: Asset) => {
+    setAssets(prevAssets => 
+      prevAssets.map(asset => 
+        asset.id === updatedAsset.id ? updatedAsset : asset
+      )
+    );
+    
+    toast({
+      title: "Actif mis à jour",
+      description: `${updatedAsset.name} a été mis à jour avec succès.`
+    });
+  };
+  
+  const deleteAsset = (assetId: string) => {
+    setAssets(prevAssets => prevAssets.filter(asset => asset.id !== assetId));
+    
+    toast({
+      title: "Actif supprimé",
+      description: "L'actif a été supprimé avec succès."
+    });
   };
 
   // Fonction pour naviguer directement vers la page des projets
@@ -42,37 +72,55 @@ const Index = () => {
       case 'dashboard':
         return <Dashboard 
                  assets={assets} 
-                 onAddAsset={addAsset}
+                 onAddAsset={addAsset} 
                  navigateTo={setActiveItem} 
                  openProjectsPage={openProjectsPage} 
                />;
       case 'assets':
-        // Tous les actifs financiers (incluant les comptes bancaires et livrets)
         return <AssetsPage 
                 assets={assets} 
-                onAddAsset={addAsset} 
+                onAddAsset={addAsset}
+                onUpdateAsset={updateAsset}
+                onDeleteAsset={deleteAsset}
                />;
       case 'budget':
         return <BudgetPage />;
       case 'real-estate':
-        return <RealEstatePage assets={assets.filter(asset => asset.type === 'real-estate')} onAddAsset={addAsset} />;
+        return <RealEstatePage 
+                assets={assets.filter(asset => asset.type === 'real-estate')} 
+                onAddAsset={addAsset}
+                onUpdateAsset={updateAsset}
+                onDeleteAsset={deleteAsset}
+               />;
       case 'stocks':
-        return <StocksPage assets={assets.filter(asset => asset.type === 'stock')} onAddAsset={addAsset} />;
+        return <StocksPage 
+                assets={assets.filter(asset => asset.type === 'stock')} 
+                onAddAsset={addAsset}
+                onUpdateAsset={updateAsset}
+                onDeleteAsset={deleteAsset}
+               />;
       case 'crypto':
-        return <CryptoPage assets={assets.filter(asset => asset.type === 'crypto')} onAddAsset={addAsset} />;
+        return <CryptoPage 
+                assets={assets.filter(asset => asset.type === 'crypto')} 
+                onAddAsset={addAsset}
+                onUpdateAsset={updateAsset}
+                onDeleteAsset={deleteAsset}
+               />;
       case 'projects':
         return <ProjectsPage />;
       case 'bank-accounts':
-        // Nouvelle page pour les comptes bancaires
         return <BankAccountsPage 
                 assets={assets.filter(asset => asset.type === 'bank-account')} 
-                onAddAsset={addAsset} 
+                onAddAsset={addAsset}
+                onUpdateAsset={updateAsset}
+                onDeleteAsset={deleteAsset}
                />;
       case 'savings-accounts':
-        // Nouvelle page pour les livrets d'épargne
         return <SavingsAccountsPage 
                 assets={assets.filter(asset => asset.type === 'savings-account')} 
-                onAddAsset={addAsset} 
+                onAddAsset={addAsset}
+                onUpdateAsset={updateAsset}
+                onDeleteAsset={deleteAsset}
                />;
       default:
         return (
