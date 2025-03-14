@@ -23,7 +23,7 @@ const BudgetDistribution: React.FC<BudgetDistributionProps> = ({
     .filter(expense => expense.type === 'variable')
     .reduce((sum, expense) => sum + expense.amount, 0);
   
-  // Calculate total monthly contribution for projects
+  // Calculate total monthly contribution for projects from mockGoals
   const monthlyProjectsContribution = mockGoals.reduce(
     (sum, goal) => sum + goal.monthlyContribution, 
     0
