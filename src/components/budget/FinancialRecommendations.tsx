@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DollarSign } from 'lucide-react';
+import { DollarSign, AlertCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 
 interface FinancialRecommendationsProps {
@@ -35,13 +35,25 @@ const FinancialRecommendations: React.FC<FinancialRecommendationsProps> = ({
             <DollarSign className="h-5 w-5" />
             <span>Analyse financière</span>
           </h4>
-          <p className="text-sm text-green-700">
-            Vous avez un revenu total de {formatCurrency(totalIncome)}, des dépenses de {formatCurrency(totalExpenses)}, 
-            vous pouvez épargner et investir {formatCurrency(availableAfterExpenses)} par mois. 
-            En prenant en compte vos projets, vous devez mettre {formatCurrency(monthlyProjectsContribution)} de côté par mois, 
-            donc vous pouvez investir seulement {formatCurrency(availableForInvestment)} par mois.
-            {needsSecurityCushion && " Attention, vous devez compléter votre matelas de sécurité avant d'investir."}
+          <p className="text-sm text-green-700 mb-2">
+            Avec un revenu mensuel de {formatCurrency(totalIncome)} et des dépenses de {formatCurrency(totalExpenses)}, 
+            vous pouvez épargner {formatCurrency(availableAfterExpenses)} par mois.
           </p>
+          <p className="text-sm text-green-700 mb-2">
+            De cette somme, {formatCurrency(monthlyProjectsContribution)} sont alloués à vos projets financiers, 
+            ce qui vous laisse {formatCurrency(Math.max(0, availableAfterExpenses - monthlyProjectsContribution))} disponibles.
+          </p>
+          {needsSecurityCushion && (
+            <p className="text-sm text-red-600 flex items-center gap-1">
+              <AlertCircle className="h-4 w-4" />
+              <strong>Priorité :</strong> Vous devez compléter votre matelas de sécurité avant d'investir.
+            </p>
+          )}
+          {!needsSecurityCushion && availableForInvestment > 0 && (
+            <p className="text-sm text-green-700">
+              <strong>Recommandation :</strong> Vous pouvez investir jusqu'à {formatCurrency(availableForInvestment)} par mois.
+            </p>
+          )}
         </div>
       </div>
     </div>
