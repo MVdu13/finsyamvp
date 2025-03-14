@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ScrollText, TrendingUp, Plus, Percent } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -10,6 +9,7 @@ import LineChartComponent from '@/components/charts/LineChart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
+import { cn } from '@/lib/utils';
 
 interface SavingsAccountsPageProps {
   assets: Asset[];
@@ -175,6 +175,24 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
   };
 
   const chartData = generateChartData();
+  
+  // Calculate absolute performance change in currency
+  const firstValue = chartData.datasets[0].data[0] || 0;
+  const lastValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1] || 0;
+  const absoluteGrowth = lastValue - firstValue;
+  
+  // Get time period text based on selected timeframe
+  const getTimePeriodText = () => {
+    switch (timeFrame) {
+      case '1M': return 'sur le dernier mois';
+      case '3M': return 'sur les 3 derniers mois';
+      case '6M': return 'sur les 6 derniers mois';
+      case '5Y': return 'sur les 5 dernières années';
+      case 'ALL': return 'sur la période complète';
+      case '1Y': 
+      default: return 'sur les 12 derniers mois';
+    }
+  };
 
   const handleAddSavingsAccount = (newAsset: Omit<Asset, 'id'>) => {
     // Assurer que nous ajoutons un livret d'épargne
@@ -277,9 +295,6 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(totalValue)}</div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Tous livrets confondus
-            </div>
           </CardContent>
         </Card>
         
@@ -297,15 +312,24 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Taux Moyen</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Performance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold flex items-center">
-              {avgPerformance.toFixed(2)}
-              <Percent size={16} className="ml-1" />
+            <div className={cn(
+              "text-xl font-bold",
+              absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
+            )}>
+              {absoluteGrowth >= 0 ? (
+                <>Vous avez gagné {formatCurrency(Math.abs(absoluteGrowth))}</>
+              ) : (
+                <>Vous avez perdu {formatCurrency(Math.abs(absoluteGrowth))}</>
+              )}
             </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Rendement annuel moyen
+            <div className={cn(
+              "text-xs mt-1",
+              absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
+            )}>
+              {getTimePeriodText()} ({avgPerformance.toFixed(2)}%)
             </div>
           </CardContent>
         </Card>

@@ -89,6 +89,22 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
   const filteredPeriodGrowth = filteredFirstValue > 0 
     ? parseFloat(((filteredLastValue - filteredFirstValue) / filteredFirstValue * 100).toFixed(1))
     : 0;
+  
+  // Calculate absolute monetary gain/loss value
+  const absoluteGrowth = filteredLastValue - filteredFirstValue;
+  
+  // Get time period text based on selected timeframe
+  const getTimePeriodText = () => {
+    switch (timeFrame) {
+      case '1M': return 'sur le dernier mois';
+      case '3M': return 'sur les 3 derniers mois';
+      case '6M': return 'sur les 6 derniers mois';
+      case '5Y': return 'sur les 5 dernières années';
+      case 'ALL': return 'sur la période complète';
+      case '1Y': 
+      default: return 'sur les 12 derniers mois';
+    }
+  };
 
   // Handler for category filter change
   const handleCategoryChange = (value: string) => {
@@ -156,8 +172,15 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
         
         <div className="bg-muted p-4 rounded-lg">
           <p className="text-sm text-muted-foreground mb-1">Performance</p>
-          <p className={`text-2xl font-semibold ${filteredPeriodGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {filteredPeriodGrowth > 0 ? '+' : ''}{filteredPeriodGrowth}%
+          <div className={`text-2xl font-semibold ${absoluteGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {absoluteGrowth >= 0 ? (
+              <>Vous avez gagné {formatCurrency(Math.abs(absoluteGrowth))}</>
+            ) : (
+              <>Vous avez perdu {formatCurrency(Math.abs(absoluteGrowth))}</>
+            )}
+          </div>
+          <p className={`text-sm ${absoluteGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {getTimePeriodText()} ({filteredPeriodGrowth > 0 ? '+' : ''}{filteredPeriodGrowth}%)
           </p>
         </div>
       </div>

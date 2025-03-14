@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, Plus, Filter } from 'lucide-react';
@@ -166,6 +165,24 @@ const StocksPage: React.FC<StocksPageProps> = ({
   };
 
   const chartData = generateChartData();
+  
+  // Calculate absolute performance change in currency
+  const firstValue = chartData.datasets[0].data[0] || 0;
+  const lastValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1] || 0;
+  const absoluteGrowth = lastValue - firstValue;
+  
+  // Get time period text based on selected timeframe
+  const getTimePeriodText = () => {
+    switch (timeFrame) {
+      case '1M': return 'sur le dernier mois';
+      case '3M': return 'sur les 3 derniers mois';
+      case '6M': return 'sur les 6 derniers mois';
+      case '5Y': return 'sur les 5 dernières années';
+      case 'ALL': return 'sur la période complète';
+      case '1Y': 
+      default: return 'sur les 12 derniers mois';
+    }
+  };
 
   const handleAddStock = (newStock: Omit<Asset, 'id'>) => {
     // Make sure we're adding a stock asset
@@ -293,17 +310,24 @@ const StocksPage: React.FC<StocksPageProps> = ({
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Performance Moyenne</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Performance</CardTitle>
           </CardHeader>
           <CardContent>
             <div className={cn(
-              "text-2xl font-bold",
-              avgPerformance >= 0 ? "text-green-600" : "text-red-600"
+              "text-xl font-bold",
+              absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
             )}>
-              {avgPerformance > 0 ? "+" : ""}{avgPerformance.toFixed(1)}%
+              {absoluteGrowth >= 0 ? (
+                <>Vous avez gagné {formatCurrency(Math.abs(absoluteGrowth))}</>
+              ) : (
+                <>Vous avez perdu {formatCurrency(Math.abs(absoluteGrowth))}</>
+              )}
             </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Performance globale du portefeuille
+            <div className={cn(
+              "text-xs mt-1",
+              absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
+            )}>
+              {getTimePeriodText()} ({avgPerformance > 0 ? "+" : ""}{avgPerformance.toFixed(1)}%)
             </div>
           </CardContent>
         </Card>

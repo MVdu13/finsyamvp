@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Bitcoin, TrendingUp, TrendingDown, Wallet, Plus, Filter } from 'lucide-react';
@@ -31,30 +30,24 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   
-  // Filter crypto assets
   const cryptoAssets = assets.filter(asset => asset.type === 'crypto');
   
-  // Calculate metrics
   const totalValue = cryptoAssets.reduce((sum, asset) => sum + asset.value, 0);
   const avgPerformance = cryptoAssets.length > 0 
     ? cryptoAssets.reduce((sum, asset) => sum + asset.performance, 0) / cryptoAssets.length
     : 0;
   
-  // Générer un historique cohérent basé sur la valeur totale actuelle et la timeframe
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
     
-    // Déterminer le nombre de points de données selon la timeframe
     let numDataPoints;
     let labels;
     
-    // Créer des dates basées sur la timeframe sélectionnée
     const currentDate = new Date();
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
     
     switch (timeFrame) {
       case '1M':
-        // Jours du mois
         numDataPoints = 30;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -63,7 +56,6 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         });
         break;
       case '3M':
-        // Points hebdomadaires sur 3 mois
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -72,7 +64,6 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         });
         break;
       case '6M':
-        // Bi-hebdomadaire sur 6 mois
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -81,7 +72,6 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         });
         break;
       case '5Y':
-        // Mensuel sur 5 ans
         numDataPoints = 60;
         labels = Array.from({ length: Math.min(numDataPoints, 24) }, (_, i) => {
           const date = new Date();
@@ -90,7 +80,6 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         });
         break;
       case 'ALL':
-        // Annuel
         numDataPoints = 5;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -100,7 +89,6 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         break;
       case '1Y':
       default:
-        // Mensuel sur 1 an
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -110,7 +98,6 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         break;
     }
     
-    // Si aucune crypto, retourner des valeurs à zéro
     if (baseValue === 0) {
       return {
         labels,
@@ -125,30 +112,24 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       };
     }
     
-    // Simulation de la volatilité des cryptomonnaies
-    // Générons des données avec une volatilité adaptée à la timeframe
     const volatilityFactor = timeFrame === '1M' ? 0.15 : 
                              timeFrame === '3M' ? 0.25 : 
                              timeFrame === '6M' ? 0.4 : 
                              timeFrame === '5Y' ? 0.7 : 
-                             timeFrame === 'ALL' ? 0.9 : 0.5; // 1Y
+                             timeFrame === 'ALL' ? 0.9 : 0.5;
     
     const generateRandomWalk = (steps: number, finalValue: number, volatility: number) => {
-      // Commencer avec une valeur initiale inférieure à la valeur finale pour simuler une croissance
       let initialValue = finalValue * (1 - Math.random() * volatility);
       const result = [initialValue];
       
       for (let i = 1; i < steps - 1; i++) {
-        // Calculer la prochaine valeur avec une tendance vers la valeur finale
         const progress = i / (steps - 1);
         const trend = initialValue + progress * (finalValue - initialValue);
         
-        // Ajouter une variation aléatoire autour de la tendance
         const randomFactor = 1 + (Math.random() * 2 - 1) * volatility * (1 - progress);
         result.push(trend * randomFactor);
       }
       
-      // Ajouter la valeur finale
       result.push(finalValue);
       
       return result.map(val => Math.round(val));
@@ -172,17 +153,14 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   const chartData = generateChartData();
 
   const handleAddCrypto = (newCrypto: Omit<Asset, 'id'>) => {
-    // Make sure we're adding a crypto asset
     const cryptoAsset = {
       ...newCrypto,
       type: 'crypto' as AssetType
     };
     
-    // Call the parent's onAddAsset function
     onAddAsset(cryptoAsset);
     setDialogOpen(false);
     
-    // Show success toast
     toast({
       title: "Crypto ajoutée",
       description: `${newCrypto.name} a été ajouté à votre portefeuille`,
@@ -216,6 +194,22 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
     }
   };
 
+  const firstValue = chartData.datasets[0].data[0] || 0;
+  const lastValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1] || 0;
+  const absoluteGrowth = lastValue - firstValue;
+  
+  const getTimePeriodText = () => {
+    switch (timeFrame) {
+      case '1M': return 'sur le dernier mois';
+      case '3M': return 'sur les 3 derniers mois';
+      case '6M': return 'sur les 6 derniers mois';
+      case '5Y': return 'sur les 5 dernières années';
+      case 'ALL': return 'sur la période complète';
+      case '1Y': 
+      default: return 'sur les 12 derniers mois';
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -243,7 +237,6 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
           </DialogContent>
         </Dialog>
         
-        {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
@@ -297,17 +290,24 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Performance Moyenne</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Performance</CardTitle>
           </CardHeader>
           <CardContent>
             <div className={cn(
-              "text-2xl font-bold",
-              avgPerformance >= 0 ? "text-green-600" : "text-red-600"
+              "text-xl font-bold",
+              absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
             )}>
-              {avgPerformance > 0 ? "+" : ""}{avgPerformance.toFixed(1)}%
+              {absoluteGrowth >= 0 ? (
+                <>Vous avez gagné {formatCurrency(Math.abs(absoluteGrowth))}</>
+              ) : (
+                <>Vous avez perdu {formatCurrency(Math.abs(absoluteGrowth))}</>
+              )}
             </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Performance globale du portefeuille
+            <div className={cn(
+              "text-xs mt-1",
+              absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
+            )}>
+              {getTimePeriodText()} ({avgPerformance > 0 ? "+" : ""}{avgPerformance.toFixed(1)}%)
             </div>
           </CardContent>
         </Card>
