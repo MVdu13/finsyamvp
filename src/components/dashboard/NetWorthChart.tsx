@@ -6,6 +6,7 @@ import { NetWorthHistory } from '@/types/assets';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '../charts/TimeFrameSelector';
 import { Button } from '../ui/button';
+import { Card, CardContent } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 // Asset category filter types
@@ -113,6 +114,16 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
     }
   };
 
+  // Get category label text
+  const getCategoryLabel = () => {
+    switch (selectedCategory) {
+      case 'assets': return 'Actifs financiers';
+      case 'liabilities': return 'Passifs';
+      case 'all':
+      default: return 'Patrimoine global';
+    }
+  };
+
   return (
     <div className="wealth-card">
       <div className="flex justify-between items-center mb-6">
@@ -128,10 +139,10 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
-          {/* Asset Category Filter */}
+          {/* Asset Category Filter - Made more prominent */}
           <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Catégorie" />
+            <SelectTrigger className="w-[180px] font-medium border-2 border-primary/20 hover:border-primary/40 transition-colors">
+              <SelectValue placeholder="Catégorie">{getCategoryLabel()}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Patrimoine global</SelectItem>
@@ -165,24 +176,28 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div className="bg-muted p-4 rounded-lg">
-          <p className="text-sm text-muted-foreground mb-1">Valeur actuelle</p>
-          <p className="text-2xl font-semibold">{formatCurrency(currentNetWorth)}</p>
-        </div>
+        <Card className="bg-muted overflow-hidden">
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground mb-1">Votre fortune est estimée à</p>
+            <p className="text-3xl font-bold">{formatCurrency(currentNetWorth)}</p>
+          </CardContent>
+        </Card>
         
-        <div className="bg-muted p-4 rounded-lg">
-          <p className="text-sm text-muted-foreground mb-1">Performance</p>
-          <div className={`text-2xl font-semibold ${absoluteGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {absoluteGrowth >= 0 ? (
-              <>Vous avez gagné {formatCurrency(Math.abs(absoluteGrowth))}</>
-            ) : (
-              <>Vous avez perdu {formatCurrency(Math.abs(absoluteGrowth))}</>
-            )}
-          </div>
-          <p className={`text-sm ${absoluteGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {getTimePeriodText()} ({filteredPeriodGrowth > 0 ? '+' : ''}{filteredPeriodGrowth}%)
-          </p>
-        </div>
+        <Card className="bg-muted overflow-hidden">
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground mb-1">Performance</p>
+            <div className={`text-2xl font-semibold ${absoluteGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {absoluteGrowth >= 0 ? (
+                <>Vous avez gagné {formatCurrency(Math.abs(absoluteGrowth))}</>
+              ) : (
+                <>Vous avez perdu {formatCurrency(Math.abs(absoluteGrowth))}</>
+              )}
+            </div>
+            <p className={`text-sm ${absoluteGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {getTimePeriodText()} ({filteredPeriodGrowth > 0 ? '+' : ''}{filteredPeriodGrowth}%)
+            </p>
+          </CardContent>
+        </Card>
       </div>
       
       <LineChart data={chartData} height={300} />
