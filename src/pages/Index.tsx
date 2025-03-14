@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import Dashboard from './Dashboard';
@@ -39,18 +38,32 @@ const Index = () => {
     });
   };
   
-  // Updated to match the expected signature (id: string, asset: Partial<Asset>)
-  const updateAsset = (id: string, updatedAssetData: Partial<Asset>) => {
-    setAssets(prevAssets => 
-      prevAssets.map(asset => 
-        asset.id === id ? { ...asset, ...updatedAssetData } : asset
-      )
-    );
-    
-    toast({
-      title: "Actif mis à jour",
-      description: `L'actif a été mis à jour avec succès.`
-    });
+  const updateAsset = (idOrAsset: string | Asset, maybeAsset?: Partial<Asset>) => {
+    if (typeof idOrAsset === 'string' && maybeAsset) {
+      setAssets(prevAssets => 
+        prevAssets.map(asset => 
+          asset.id === idOrAsset ? { ...asset, ...maybeAsset } : asset
+        )
+      );
+      
+      toast({
+        title: "Actif mis à jour",
+        description: `L'actif a été mis à jour avec succès.`
+      });
+    } 
+    else if (typeof idOrAsset === 'object' && 'id' in idOrAsset) {
+      const updatedAsset = idOrAsset;
+      setAssets(prevAssets => 
+        prevAssets.map(asset => 
+          asset.id === updatedAsset.id ? updatedAsset : asset
+        )
+      );
+      
+      toast({
+        title: "Actif mis à jour",
+        description: `${updatedAsset.name} a été mis à jour avec succès.`
+      });
+    }
   };
   
   const deleteAsset = (assetId: string) => {
@@ -62,12 +75,10 @@ const Index = () => {
     });
   };
 
-  // Fonction pour naviguer directement vers la page des projets
   const openProjectsPage = () => {
     setActiveItem('projects');
   };
 
-  // Render the right content based on active item
   const renderContent = () => {
     switch (activeItem) {
       case 'dashboard':
