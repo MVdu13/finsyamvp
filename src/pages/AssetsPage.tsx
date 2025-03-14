@@ -17,11 +17,11 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [assetTypeTab, setAssetTypeTab] = useState<AssetType>('stock');
 
-  const filteredAssetsWithoutAccounts = assets.filter(asset => 
+  const financialAssetsOnly = assets.filter(asset => 
     asset.type !== 'bank-account' && asset.type !== 'savings-account'
   );
 
-  const filteredAssets = filteredAssetsWithoutAccounts.filter((asset) => {
+  const filteredAssets = financialAssetsOnly.filter((asset) => {
     const matchesType = filterType === 'all' || asset.type === filterType;
     const matchesSearch = asset.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                         (asset.description && asset.description.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -78,7 +78,6 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
                 <TabsTrigger value="stock">Actions</TabsTrigger>
                 <TabsTrigger value="crypto">Crypto</TabsTrigger>
                 <TabsTrigger value="real-estate">Immobilier</TabsTrigger>
-                <TabsTrigger value="bank-account">Compte</TabsTrigger>
                 <TabsTrigger value="other">Autre</TabsTrigger>
               </TabsList>
               <TabsContent value="stock">
@@ -102,14 +101,6 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
                   onSubmit={handleAddAsset}
                   onCancel={() => setDialogOpen(false)}
                   defaultType="real-estate"
-                  showTypeSelector={false}
-                />
-              </TabsContent>
-              <TabsContent value="bank-account">
-                <AssetForm 
-                  onSubmit={handleAddAsset}
-                  onCancel={() => setDialogOpen(false)}
-                  defaultType="bank-account"
                   showTypeSelector={false}
                 />
               </TabsContent>
@@ -151,8 +142,6 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
             <option value="cash">Liquidités</option>
             <option value="bonds">Obligations</option>
             <option value="commodities">Matières premières</option>
-            <option value="bank-account">Comptes bancaires</option>
-            <option value="savings-account">Livrets d'épargne</option>
             <option value="other">Autres</option>
           </select>
           

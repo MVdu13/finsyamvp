@@ -1,3 +1,4 @@
+
 import { Asset, AssetAllocation, NetWorthHistory } from '@/types/assets';
 import { Budget } from '@/types/budget';
 import { FinancialGoal } from '@/types/goals';
@@ -6,9 +7,9 @@ import { FinancialGoal } from '@/types/goals';
 export const mockAssets: Asset[] = [
   {
     id: '1',
-    name: 'Compte Bancaire',
-    description: 'Compte courant',
-    type: 'cash',
+    name: 'Compte Courant Principal',
+    description: 'Compte pour dépenses quotidiennes',
+    type: 'bank-account',
     value: 1000,
     performance: 0
   }
@@ -19,7 +20,7 @@ export const mockAssetAllocation: AssetAllocation = {
   stocks: 0,
   realEstate: 0,
   crypto: 0,
-  cash: 1000,
+  cash: 0,
   bonds: 0,
   commodities: 0,
   other: 0,
