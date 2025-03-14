@@ -3,6 +3,7 @@ import React from 'react';
 import { Budget } from '@/types/budget';
 import DonutChart from '@/components/charts/DonutChart';
 import { formatCurrency } from '@/lib/formatters';
+import { mockGoals } from '@/lib/mockData';
 
 interface BudgetDistributionProps {
   budget: Budget;
@@ -18,26 +19,49 @@ const BudgetDistribution: React.FC<BudgetDistributionProps> = ({ budget }) => {
     .filter(expense => expense.type === 'variable')
     .reduce((sum, expense) => sum + expense.amount, 0);
   
+  // Calculate total monthly contribution for projects
+  const monthlyProjectsContribution = mockGoals.reduce(
+    (sum, goal) => sum + goal.monthlyContribution, 
+    0
+  );
+  
   // Calculate savings and investment
-  const allocatedFunds = fixedExpenses + variableExpenses + budget.savings + budget.investment;
-  const unallocated = Math.max(0, budget.totalIncome - allocatedFunds);
-
+  const totalExpenses = fixedExpenses + variableExpenses;
+  const availableAfterExpenses = Math.max(0, budget.totalIncome - totalExpenses);
+  
+  // Calculate security cushion gap
+  // For this example, use average monthly expenses of 6 months as target
+  const securityCushionTarget = totalExpenses * 6;
+  const savingsAccountTotal = 15000; // Example value (would be calculated from actual savings accounts)
+  const securityCushionGap = Math.max(0, securityCushionTarget - savingsAccountTotal);
+  
+  // Priority: 1. Security cushion gap, 2. Projects, 3. Investments
+  let securityCushionAllocation = Math.min(availableAfterExpenses, securityCushionGap);
+  let projectsAllocation = securityCushionGap > 0 ? 0 : Math.min(availableAfterExpenses, monthlyProjectsContribution);
+  let investmentAllocation = Math.max(0, availableAfterExpenses - securityCushionAllocation - projectsAllocation);
+  
+  // If security cushion is met, allocate to projects
+  if (securityCushionGap <= 0) {
+    projectsAllocation = Math.min(availableAfterExpenses, monthlyProjectsContribution);
+    investmentAllocation = Math.max(0, availableAfterExpenses - projectsAllocation);
+  }
+  
   // Prepare data for the donut chart
   const chartData = {
-    labels: ['Dépenses fixes', 'Dépenses variables', 'Épargne', 'Investissement', 'Non alloué'],
+    labels: ['Dépenses fixes', 'Dépenses variables', 'Épargne de sécurité', 'Projets', 'Investissement'],
     values: [
       fixedExpenses,
       variableExpenses,
-      budget.savings,
-      budget.investment,
-      unallocated
+      securityCushionAllocation,
+      projectsAllocation,
+      investmentAllocation
     ],
     colors: [
       '#F97316', // Orange for fixed expenses
       '#FB923C', // Lighter orange for variable expenses
-      '#22C55E', // Green for savings
+      '#22C55E', // Green for security cushion
+      '#A855F7', // Purple for projects
       '#0EA5E9', // Blue for investments
-      '#E5E7EB', // Gray for unallocated
     ],
   };
 

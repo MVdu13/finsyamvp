@@ -40,6 +40,9 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({
   const [essential, setEssential] = useState(
     type === 'expense' && editItem ? (editItem as Expense).essential : false
   );
+  const [expenseType, setExpenseType] = useState<'fixed' | 'variable'>(
+    type === 'expense' && editItem ? (editItem as Expense).type : 'fixed'
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +84,8 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({
           amount: numAmount,
           category,
           frequency,
-          essential
+          essential,
+          type: expenseType  // Ajout du type qui manquait
         };
         onSave(expenseItem);
       }
@@ -198,6 +202,22 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({
                   onCheckedChange={setEssential}
                 />
                 <Label htmlFor="essential">Dépense essentielle</Label>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="expenseType">Type de dépense</Label>
+                <Select 
+                  value={expenseType} 
+                  onValueChange={(value) => setExpenseType(value as 'fixed' | 'variable')}
+                >
+                  <SelectTrigger id="expenseType">
+                    <SelectValue placeholder="Sélectionner un type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fixed">Fixe</SelectItem>
+                    <SelectItem value="variable">Variable</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </>
           )}

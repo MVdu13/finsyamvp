@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { mockBudget } from '@/lib/mockData';
+import { mockBudget, mockGoals } from '@/lib/mockData';
 import BudgetOverview from '@/components/budget/BudgetOverview';
 import BudgetDistribution from '@/components/budget/BudgetDistribution';
 import SecurityCushion from '@/components/budget/SecurityCushion';
 import BudgetFormModal from '@/components/budget/BudgetFormModal';
 import SecurityCushionForm from '@/components/budget/SecurityCushionForm';
 import { Budget, Income, Expense } from '@/types/budget';
-import { PiggyBank, Download, Clock, Plus, Edit, Trash2, Lock, Shuffle } from 'lucide-react';
+import { PiggyBank, Download, Clock, Plus, Edit, Trash2, Lock, Shuffle, ArrowUpCircle, DollarSign } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -54,6 +54,23 @@ const BudgetPage = () => {
   // Calculate totals
   const totalFixedExpenses = fixedExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   const totalVariableExpenses = variableExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+  
+  // Calculate monthly project contributions
+  const monthlyProjectsContribution = mockGoals.reduce(
+    (sum, goal) => sum + goal.monthlyContribution, 
+    0
+  );
+
+  // Calculate available for saving/investing
+  const availableAfterExpenses = budget.totalIncome - budget.totalExpenses;
+  
+  // Calculate security cushion gap
+  const securityCushionGap = Math.max(0, targetAmount - currentSavings);
+  const needsSecurityCushion = securityCushionGap > 0;
+  
+  // Calculate available for investment after security cushion and projects
+  const availableForInvestment = needsSecurityCushion ? 0 : 
+    Math.max(0, availableAfterExpenses - monthlyProjectsContribution);
 
   // Handle adding or editing income
   const handleSaveIncome = (income: Income) => {
@@ -80,21 +97,15 @@ const BudgetPage = () => {
 
   // Handle adding or editing expense
   const handleSaveExpense = (expense: Expense) => {
-    // Ensure the expense has the correct type
-    const expenseWithType = {
-      ...expense,
-      type: expenseType
-    };
-    
     const isEditing = budget.expenses.some(item => item.id === expense.id);
     let newExpenses: Expense[];
     
     if (isEditing) {
       newExpenses = budget.expenses.map(item => 
-        item.id === expense.id ? expenseWithType : item
+        item.id === expense.id ? expense : item
       );
     } else {
-      newExpenses = [...budget.expenses, expenseWithType];
+      newExpenses = [...budget.expenses, expense];
     }
     
     // Recalculate total expenses
@@ -209,6 +220,66 @@ const BudgetPage = () => {
             >
               <Plus size={16} className="mr-1" /> Ajouter un revenu
             </Button>
+          </div>
+          
+          {/* Income List */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Liste des revenus</h3>
+            <div className="space-y-4">
+              {budget.incomes.map((income) => (
+                <div key={income.id} className="p-4 rounded-lg border border-border hover:border-wealth-primary/20 transition-all">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <ArrowUpCircle size={18} className="text-green-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium">{income.name}</h4>
+                        <p className="text-xs text-muted-foreground">Revenu {
+                          income.frequency === 'monthly' ? 'mensuel' :
+                          income.frequency === 'yearly' ? 'annuel' :
+                          income.frequency === 'weekly' ? 'hebdomadaire' : 'quotidien'
+                        }</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-green-600">{formatCurrency(income.amount)}</p>
+                      <div className="flex gap-1">
+                        <button 
+                          onClick={() => handleEditIncome(income)}
+                          className="p-1 rounded-full hover:bg-gray-100"
+                        >
+                          <Edit size={16} className="text-gray-500" />
+                        </button>
+                        <button 
+                          onClick={() => confirmDelete(income.id, 'income')}
+                          className="p-1 rounded-full hover:bg-gray-100"
+                        >
+                          <Trash2 size={16} className="text-gray-500" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {budget.incomes.length === 0 && (
+                <div className="text-center py-4 text-muted-foreground">
+                  <p>Aucun revenu enregistré</p>
+                  <Button 
+                    onClick={() => {
+                      setItemToEdit(null);
+                      setIncomeFormOpen(true);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                  >
+                    <Plus size={16} className="mr-1" /> Ajouter un revenu
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Income distribution chart */}
@@ -394,29 +465,16 @@ const BudgetPage = () => {
         
         <div className="space-y-6">
           <div className="p-4 rounded-lg bg-green-50 border border-green-200">
-            <h4 className="font-medium text-green-800 mb-2">Épargne et investissement</h4>
+            <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              <span>Analyse financière</span>
+            </h4>
             <p className="text-sm text-green-700">
-              Avec un revenu mensuel de {formatCurrency(budget.totalIncome)} et des dépenses de {formatCurrency(budget.totalExpenses)}, 
-              vous pouvez épargner {formatCurrency(budget.totalIncome - budget.totalExpenses)} chaque mois.
-              Nous recommandons d'allouer {formatCurrency(budget.savings)} à l'épargne de sécurité et {' '}
-              {formatCurrency(budget.investment)} aux investissements.
-            </p>
-          </div>
-          
-          <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-            <h4 className="font-medium text-blue-800 mb-2">Optimisation des dépenses</h4>
-            <p className="text-sm text-blue-700">
-              Vos dépenses variables représentent {formatCurrency(totalVariableExpenses)} par mois ({Math.round((totalVariableExpenses / budget.totalExpenses) * 100)}% de vos dépenses). 
-              Envisagez de réduire certains postes non essentiels pour économiser davantage.
-            </p>
-          </div>
-          
-          <div className="p-4 rounded-lg bg-purple-50 border border-purple-200">
-            <h4 className="font-medium text-purple-800 mb-2">Objectifs financiers</h4>
-            <p className="text-sm text-purple-700">
-              Pour atteindre vos objectifs financiers plus rapidement, augmentez vos contributions mensuelles. 
-              Avec {formatCurrency(1200)} actuellement dédiés à vos projets,
-              vous pourriez accélérer la réalisation de votre objectif prioritaire en réallouant 200€ supplémentaires.
+              Vous avez un revenu total de {formatCurrency(budget.totalIncome)}, des dépenses de {formatCurrency(budget.totalExpenses)}, 
+              vous pouvez épargner et investir {formatCurrency(availableAfterExpenses)} par mois. 
+              En prenant en compte vos projets, vous devez mettre {formatCurrency(monthlyProjectsContribution)} de côté par mois, 
+              donc vous pouvez investir seulement {formatCurrency(availableForInvestment)} par mois.
+              {needsSecurityCushion && " Attention, vous devez compléter votre matelas de sécurité avant d'investir."}
             </p>
           </div>
         </div>
