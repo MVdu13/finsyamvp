@@ -2,18 +2,30 @@
 import React, { useState } from 'react';
 import { mockBudget } from '@/lib/mockData';
 import BudgetOverview from '@/components/budget/BudgetOverview';
+import BudgetDistribution from '@/components/budget/BudgetDistribution';
 import SecurityCushion from '@/components/budget/SecurityCushion';
 import BudgetFormModal from '@/components/budget/BudgetFormModal';
 import SecurityCushionForm from '@/components/budget/SecurityCushionForm';
 import { Budget, Income, Expense } from '@/types/budget';
-import { PiggyBank, Download, Clock, Plus, Edit, Trash2 } from 'lucide-react';
+import { PiggyBank, Download, Clock, Plus, Edit, Trash2, Lock, Shuffle } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const BudgetPage = () => {
-  const [budget, setBudget] = useState<Budget>({...mockBudget});
+  // Initialize budget with the mockBudget but add the 'type' field to expenses
+  const initialBudget = {
+    ...mockBudget,
+    expenses: mockBudget.expenses.map(expense => ({
+      ...expense,
+      // Assign expenses as fixed or variable based on if they are essential
+      type: expense.essential ? 'fixed' : 'variable' as 'fixed' | 'variable'
+    }))
+  };
+  
+  const [budget, setBudget] = useState<Budget>({...initialBudget});
   
   // Security cushion state
   const [currentSavings, setCurrentSavings] = useState(15000);
@@ -26,6 +38,7 @@ const BudgetPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<Income | Expense | null>(null);
   const [itemToDelete, setItemToDelete] = useState<{id: string, type: 'income' | 'expense'} | null>(null);
+  const [expenseType, setExpenseType] = useState<'fixed' | 'variable'>('fixed');
 
   // Calculate security cushion details
   const monthlyExpenses = budget.totalExpenses;
@@ -33,6 +46,14 @@ const BudgetPage = () => {
     riskProfile === 'high' ? 3 :
     riskProfile === 'medium' ? 6 : 9;
   const targetAmount = monthlyExpenses * recommendedMonths;
+
+  // Get fixed and variable expenses
+  const fixedExpenses = budget.expenses.filter(expense => expense.type === 'fixed');
+  const variableExpenses = budget.expenses.filter(expense => expense.type === 'variable');
+  
+  // Calculate totals
+  const totalFixedExpenses = fixedExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const totalVariableExpenses = variableExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
   // Handle adding or editing income
   const handleSaveIncome = (income: Income) => {
@@ -59,15 +80,21 @@ const BudgetPage = () => {
 
   // Handle adding or editing expense
   const handleSaveExpense = (expense: Expense) => {
+    // Ensure the expense has the correct type
+    const expenseWithType = {
+      ...expense,
+      type: expenseType
+    };
+    
     const isEditing = budget.expenses.some(item => item.id === expense.id);
     let newExpenses: Expense[];
     
     if (isEditing) {
       newExpenses = budget.expenses.map(item => 
-        item.id === expense.id ? expense : item
+        item.id === expense.id ? expenseWithType : item
       );
     } else {
-      newExpenses = [...budget.expenses, expense];
+      newExpenses = [...budget.expenses, expenseWithType];
     }
     
     // Recalculate total expenses
@@ -128,6 +155,7 @@ const BudgetPage = () => {
   // Edit expense
   const handleEditExpense = (expense: Expense) => {
     setItemToEdit(expense);
+    setExpenseType(expense.type);
     setExpenseFormOpen(true);
   };
 
@@ -135,6 +163,13 @@ const BudgetPage = () => {
   const confirmDelete = (id: string, type: 'income' | 'expense') => {
     setItemToDelete({ id, type });
     setDeleteDialogOpen(true);
+  };
+
+  // Add expense with type
+  const handleAddExpense = (type: 'fixed' | 'variable') => {
+    setItemToEdit(null);
+    setExpenseType(type);
+    setExpenseFormOpen(true);
   };
 
   return (
@@ -153,9 +188,180 @@ const BudgetPage = () => {
         </div>
       </div>
       
+      {/* Income Overview and Chart */}
+      <Card className="p-6">
+        <CardHeader className="p-0 pb-6">
+          <CardTitle>Revenu mensuel</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <p className="text-3xl font-bold">{formatCurrency(budget.totalIncome)}</p>
+              <p className="text-sm text-muted-foreground">Total des revenus mensuels</p>
+            </div>
+            <Button 
+              onClick={() => {
+                setItemToEdit(null);
+                setIncomeFormOpen(true);
+              }}
+              variant="outline" 
+              size="sm"
+            >
+              <Plus size={16} className="mr-1" /> Ajouter un revenu
+            </Button>
+          </div>
+          
+          {/* Income distribution chart */}
+          <BudgetDistribution budget={budget} />
+        </CardContent>
+      </Card>
+      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <BudgetOverview budget={budget} />
+          <div className="wealth-card">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-medium">Dépenses mensuelles</h3>
+              <p className="text-lg font-medium text-red-600">{formatCurrency(budget.totalExpenses)}</p>
+            </div>
+            
+            {/* Fixed Expenses */}
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2">
+                  <Lock size={18} className="text-orange-600" />
+                  <h4 className="font-medium">Dépenses fixes</h4>
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-orange-600">{formatCurrency(totalFixedExpenses)}</p>
+                  <Button 
+                    onClick={() => handleAddExpense('fixed')}
+                    variant="outline" 
+                    size="sm"
+                  >
+                    <Plus size={16} />
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {fixedExpenses.map((expense) => (
+                  <div key={expense.id} className="p-4 rounded-lg border border-border hover:border-wealth-primary/20 transition-all">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                          <Lock size={18} className="text-orange-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{expense.name}</h4>
+                          <p className="text-xs text-muted-foreground">{expense.category}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-orange-600">{formatCurrency(expense.amount)}</p>
+                        <div className="flex gap-1">
+                          <button 
+                            onClick={() => handleEditExpense(expense)}
+                            className="p-1 rounded-full hover:bg-gray-100"
+                          >
+                            <Edit size={16} className="text-gray-500" />
+                          </button>
+                          <button 
+                            onClick={() => confirmDelete(expense.id, 'expense')}
+                            className="p-1 rounded-full hover:bg-gray-100"
+                          >
+                            <Trash2 size={16} className="text-gray-500" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {fixedExpenses.length === 0 && (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <p>Aucune dépense fixe enregistrée</p>
+                    <Button 
+                      onClick={() => handleAddExpense('fixed')}
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                    >
+                      <Plus size={16} className="mr-1" /> Ajouter une dépense fixe
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Variable Expenses */}
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2">
+                  <Shuffle size={18} className="text-red-600" />
+                  <h4 className="font-medium">Dépenses variables</h4>
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-red-600">{formatCurrency(totalVariableExpenses)}</p>
+                  <Button 
+                    onClick={() => handleAddExpense('variable')}
+                    variant="outline" 
+                    size="sm"
+                  >
+                    <Plus size={16} />
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {variableExpenses.map((expense) => (
+                  <div key={expense.id} className="p-4 rounded-lg border border-border hover:border-wealth-primary/20 transition-all">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                          <Shuffle size={18} className="text-red-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{expense.name}</h4>
+                          <p className="text-xs text-muted-foreground">{expense.category}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-red-600">{formatCurrency(expense.amount)}</p>
+                        <div className="flex gap-1">
+                          <button 
+                            onClick={() => handleEditExpense(expense)}
+                            className="p-1 rounded-full hover:bg-gray-100"
+                          >
+                            <Edit size={16} className="text-gray-500" />
+                          </button>
+                          <button 
+                            onClick={() => confirmDelete(expense.id, 'expense')}
+                            className="p-1 rounded-full hover:bg-gray-100"
+                          >
+                            <Trash2 size={16} className="text-gray-500" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {variableExpenses.length === 0 && (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <p>Aucune dépense variable enregistrée</p>
+                    <Button 
+                      onClick={() => handleAddExpense('variable')}
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                    >
+                      <Plus size={16} className="mr-1" /> Ajouter une dépense variable
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
         
         <div>
@@ -174,167 +380,6 @@ const BudgetPage = () => {
             >
               <Edit size={16} className="mr-1" /> Modifier mon matelas
             </Button>
-          </div>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="wealth-card">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-medium">Revenus</h3>
-            <Button 
-              onClick={() => {
-                setItemToEdit(null);
-                setIncomeFormOpen(true);
-              }}
-              variant="outline" 
-              size="sm"
-            >
-              <Plus size={16} className="mr-1" /> Ajouter
-            </Button>
-          </div>
-          
-          <div className="space-y-4">
-            {budget.incomes.map((income) => (
-              <div key={income.id} className="p-4 rounded-lg border border-border hover:border-wealth-primary/20 transition-all">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <PiggyBank size={18} className="text-green-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">{income.name}</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {income.frequency === 'monthly' ? 'Mensuel' : 
-                         income.frequency === 'yearly' ? 'Annuel' : 
-                         income.frequency === 'weekly' ? 'Hebdomadaire' : 'Quotidien'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-green-600">{formatCurrency(income.amount)}</p>
-                    <div className="flex gap-1">
-                      <button 
-                        onClick={() => handleEditIncome(income)}
-                        className="p-1 rounded-full hover:bg-gray-100"
-                      >
-                        <Edit size={16} className="text-gray-500" />
-                      </button>
-                      <button 
-                        onClick={() => confirmDelete(income.id, 'income')}
-                        className="p-1 rounded-full hover:bg-gray-100"
-                      >
-                        <Trash2 size={16} className="text-gray-500" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            {budget.incomes.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>Aucun revenu enregistré</p>
-                <Button 
-                  onClick={() => {
-                    setItemToEdit(null);
-                    setIncomeFormOpen(true);
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="mt-2"
-                >
-                  <Plus size={16} className="mr-1" /> Ajouter un revenu
-                </Button>
-              </div>
-            )}
-          </div>
-          
-          <div className="mt-4 pt-4 border-t border-border">
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Total des revenus</span>
-              <span className="font-medium text-green-600">{formatCurrency(budget.totalIncome)}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="wealth-card">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-medium">Dépenses mensuelles</h3>
-            <Button 
-              onClick={() => {
-                setItemToEdit(null);
-                setExpenseFormOpen(true);
-              }}
-              variant="outline"
-              size="sm"
-            >
-              <Plus size={16} className="mr-1" /> Ajouter
-            </Button>
-          </div>
-          
-          <div className="space-y-4">
-            {budget.expenses.map((expense) => (
-              <div key={expense.id} className="p-4 rounded-lg border border-border hover:border-wealth-primary/20 transition-all">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                      <Clock size={18} className="text-red-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">{expense.name}</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {expense.category}{' '}
-                        {expense.essential && (
-                          <span className="badge badge-primary text-[10px] ml-1">Essentiel</span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-red-600">{formatCurrency(expense.amount)}</p>
-                    <div className="flex gap-1">
-                      <button 
-                        onClick={() => handleEditExpense(expense)}
-                        className="p-1 rounded-full hover:bg-gray-100"
-                      >
-                        <Edit size={16} className="text-gray-500" />
-                      </button>
-                      <button 
-                        onClick={() => confirmDelete(expense.id, 'expense')}
-                        className="p-1 rounded-full hover:bg-gray-100"
-                      >
-                        <Trash2 size={16} className="text-gray-500" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            {budget.expenses.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>Aucune dépense enregistrée</p>
-                <Button 
-                  onClick={() => {
-                    setItemToEdit(null);
-                    setExpenseFormOpen(true);
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="mt-2"
-                >
-                  <Plus size={16} className="mr-1" /> Ajouter une dépense
-                </Button>
-              </div>
-            )}
-          </div>
-          
-          <div className="mt-4 pt-4 border-t border-border">
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Total des dépenses</span>
-              <span className="font-medium text-red-600">{formatCurrency(budget.totalExpenses)}</span>
-            </div>
           </div>
         </div>
       </div>
@@ -361,10 +406,8 @@ const BudgetPage = () => {
           <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
             <h4 className="font-medium text-blue-800 mb-2">Optimisation des dépenses</h4>
             <p className="text-sm text-blue-700">
-              Vos dépenses non essentielles représentent {formatCurrency(budget.expenses
-                .filter(e => !e.essential)
-                .reduce((sum, e) => sum + e.amount, 0))} par mois. 
-              Envisagez de réduire les abonnements non utilisés pour économiser davantage.
+              Vos dépenses variables représentent {formatCurrency(totalVariableExpenses)} par mois ({Math.round((totalVariableExpenses / budget.totalExpenses) * 100)}% de vos dépenses). 
+              Envisagez de réduire certains postes non essentiels pour économiser davantage.
             </p>
           </div>
           

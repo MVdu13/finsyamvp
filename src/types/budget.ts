@@ -14,6 +14,7 @@ export interface Expense {
   category: string;
   frequency: 'monthly' | 'yearly' | 'weekly' | 'daily';
   essential: boolean;
+  type: 'fixed' | 'variable'; // New field to distinguish between fixed and variable expenses
 }
 
 export interface Budget {

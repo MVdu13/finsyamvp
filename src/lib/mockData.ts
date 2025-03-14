@@ -54,6 +54,7 @@ export const mockBudget: Budget = {
       category: 'Logement',
       frequency: 'monthly',
       essential: true,
+      type: 'fixed',
     },
     {
       id: '2',
@@ -62,6 +63,7 @@ export const mockBudget: Budget = {
       category: 'Alimentation',
       frequency: 'monthly',
       essential: true,
+      type: 'fixed',
     },
     {
       id: '3',
@@ -70,6 +72,7 @@ export const mockBudget: Budget = {
       category: 'Transport',
       frequency: 'monthly',
       essential: true,
+      type: 'fixed',
     },
     {
       id: '4',
@@ -78,6 +81,7 @@ export const mockBudget: Budget = {
       category: 'Loisirs',
       frequency: 'monthly',
       essential: false,
+      type: 'variable',
     },
     {
       id: '5',
@@ -86,6 +90,7 @@ export const mockBudget: Budget = {
       category: 'Abonnements',
       frequency: 'monthly',
       essential: false,
+      type: 'variable',
     },
     {
       id: '6',
@@ -94,6 +99,7 @@ export const mockBudget: Budget = {
       category: 'Santé',
       frequency: 'monthly',
       essential: true,
+      type: 'fixed',
     },
     {
       id: '7',
@@ -102,6 +108,7 @@ export const mockBudget: Budget = {
       category: 'Divers',
       frequency: 'monthly',
       essential: false,
+      type: 'variable',
     },
   ],
 };
