@@ -1,183 +1,128 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+ 
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 9%;
+    --foreground: 0 0% 3.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
-
+    --card-foreground: 0 0% 3.9%;
+ 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
+    --popover-foreground: 0 0% 3.9%;
+ 
+    --primary: 200 88% 40%;
+    --primary-foreground: 210 40% 98%;
+ 
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+ 
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+ 
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+ 
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
 
-    --primary: 16 100% 50%;
-    --primary-foreground: 0 0% 100%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+ 
+    --radius: 0.5rem;
 
-    --secondary: 16 100% 60%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-
-    --accent: 16 100% 50%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 16 100% 50%;
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 9%;
-    --sidebar-primary: 16 100% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 0 0% 9%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 16 100% 50%;
+    --wealth-primary: #2563EB;
+    --wealth-primary-dark: #1E47AF;
+    --wealth-primary-light: #DBEAFE;
   }
-
+ 
   .dark {
-    --background: 0 0% 9%;
-    --foreground: 0 0% 100%;
-
-    --card: 0 0% 12%;
-    --card-foreground: 0 0% 100%;
-
-    --popover: 0 0% 12%;
-    --popover-foreground: 0 0% 100%;
-
-    --primary: 16 100% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 16 100% 40%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 0 0% 16%;
-    --muted-foreground: 0 0% 70%;
-
-    --accent: 16 100% 50%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 16 100% 50%;
-    
-    --sidebar-background: 0 0% 12%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 16 100% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 16%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 16 100% 50%;
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+ 
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+ 
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+ 
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+ 
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+ 
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+ 
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+ 
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+ 
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
   }
 }
-
+ 
 @layer base {
   * {
-    @apply border-border font-inter;
+    @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground antialiased;
-  }
-
-  /* Custom Scroll Bar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-muted rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-wealth-primary/60 rounded-full hover:bg-wealth-primary transition-colors;
-  }
-}
-
-@layer components {
-  .wealth-card {
-    @apply bg-card rounded-xl shadow-sm border border-border overflow-hidden transition-all duration-300 p-5;
-  }
-
-  .wealth-card-hover {
-    @apply hover:shadow-md hover:border-wealth-primary/20 hover:scale-[1.01] transition-all duration-300;
-  }
-
-  .wealth-input {
-    @apply px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-wealth-primary/20 focus:border-wealth-primary/30 transition-all;
-  }
-
-  .wealth-btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-wealth-primary/30;
-  }
-
-  .wealth-btn-primary {
-    @apply bg-wealth-primary text-white hover:bg-wealth-dark;
-  }
-
-  .wealth-btn-secondary {
-    @apply bg-muted text-foreground hover:bg-wealth-primary/10 hover:text-wealth-primary;
-  }
-
-  .wealth-btn-outline {
-    @apply border border-wealth-primary text-wealth-primary hover:bg-wealth-primary/10;
+    @apply bg-background text-foreground;
   }
 
   .sidebar-item {
-    @apply flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all duration-300;
+    @apply flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground transition-colors hover:bg-muted w-full;
   }
-
+  
   .sidebar-item.active {
-    @apply bg-wealth-primary text-white;
+    @apply bg-wealth-primary text-white hover:bg-wealth-primary-dark;
+  }
+  
+  .sidebar-subitem {
+    @apply flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-foreground transition-colors hover:bg-muted w-full;
+  }
+  
+  .sidebar-subitem.active {
+    @apply bg-wealth-primary-light text-wealth-primary font-medium;
   }
 
-  .sidebar-item:not(.active) {
-    @apply hover:bg-wealth-primary/10 text-wealth-gray-700;
+  /* Wealth button styles */
+  .wealth-btn {
+    @apply px-4 py-2 rounded-md text-sm font-medium transition-colors;
   }
-
-  .fade-enter {
-    @apply animate-fade-in;
+  
+  .wealth-btn-primary {
+    @apply bg-wealth-primary text-white hover:bg-wealth-primary-dark;
   }
-
-  .fade-exit {
-    @apply animate-fade-out;
+  
+  .wealth-btn-outline {
+    @apply border border-wealth-primary text-wealth-primary hover:bg-wealth-primary-light;
   }
-
-  /* Progress bar for security cushion */
+  
+  .wealth-btn-ghost {
+    @apply bg-transparent hover:bg-muted;
+  }
+  
+  /* Card styles */
+  .wealth-card {
+    @apply rounded-lg border border-border p-4 bg-card;
+  }
+  
+  /* Progress bar styles */
   .progress-bar {
-    @apply h-3 rounded-full overflow-hidden bg-wealth-gray-200 relative;
+    @apply h-2 bg-muted rounded-full overflow-hidden;
   }
-
+  
   .progress-bar-fill {
-    @apply h-full transition-all duration-700 ease-out;
-  }
-
-  .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
-  }
-
-  .badge-primary {
-    @apply bg-wealth-primary/10 text-wealth-primary;
-  }
-
-  .badge-secondary {
-    @apply bg-wealth-gray-200 text-wealth-gray-700;
+    @apply h-full transition-all duration-500;
   }
 }

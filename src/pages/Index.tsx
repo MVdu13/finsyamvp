@@ -8,6 +8,8 @@ import RealEstatePage from './RealEstatePage';
 import StocksPage from './StocksPage';
 import CryptoPage from './CryptoPage';
 import ProjectsPage from './ProjectsPage';
+import BankAccountsPage from './BankAccountsPage';
+import SavingsAccountsPage from './SavingsAccountsPage';
 import { Asset } from '@/types/assets';
 import { mockAssets } from '@/lib/mockData';
 
@@ -45,7 +47,12 @@ const Index = () => {
                  openProjectsPage={openProjectsPage} 
                />;
       case 'assets':
-        return <AssetsPage assets={assets} onAddAsset={addAsset} />;
+        // Tous les actifs financiers (sans comptes bancaires et livrets)
+        return <AssetsPage 
+                assets={assets.filter(asset => 
+                  !['bank-account', 'savings-account'].includes(asset.type))} 
+                onAddAsset={addAsset} 
+               />;
       case 'budget':
         return <BudgetPage />;
       case 'real-estate':
@@ -55,8 +62,19 @@ const Index = () => {
       case 'crypto':
         return <CryptoPage assets={assets.filter(asset => asset.type === 'crypto')} onAddAsset={addAsset} />;
       case 'projects':
-        // Pass onAddAsset as an optional prop but don't actually use it to add projects to assets
         return <ProjectsPage />;
+      case 'bank-accounts':
+        // Nouvelle page pour les comptes bancaires
+        return <BankAccountsPage 
+                assets={assets.filter(asset => asset.type === 'bank-account')} 
+                onAddAsset={addAsset} 
+               />;
+      case 'savings-accounts':
+        // Nouvelle page pour les livrets d'épargne
+        return <SavingsAccountsPage 
+                assets={assets.filter(asset => asset.type === 'savings-account')} 
+                onAddAsset={addAsset} 
+               />;
       default:
         return (
           <div className="p-6">
