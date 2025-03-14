@@ -45,7 +45,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       if (asset.type === 'real-estate') {
         return !(asset.usageType === 'main' || asset.usageType === 'secondary');
       }
-      // Include all other financial assets
+      // Include all other financial assets, exclude bank accounts and savings accounts
       return asset.type !== 'bank-account' && asset.type !== 'savings-account';
     }
     
@@ -209,6 +209,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           <AssetAllocation 
             allocation={currentAllocation}
             totalValue={totalValue}
+            selectedCategory={assetCategoryFilter}
           />
         </div>
       </div>

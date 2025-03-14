@@ -62,6 +62,12 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
       }
     }
     
+    // If currentNetWorth is 0, we need to make sure the chart shows zeros
+    // instead of being empty
+    if (currentNetWorth === 0) {
+      filteredValues = filteredValues.map(() => 0);
+    }
+    
     return {
       labels: filteredDates,
       datasets: [
