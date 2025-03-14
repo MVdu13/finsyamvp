@@ -24,7 +24,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ allocation, totalValu
         default: return key;
       }
     }),
-    values: Object.values(allocation),
+    values: Object.values(allocation) as number[],
     colors: [
       '#4ade80', // stocks - green
       '#60a5fa', // real estate - blue
@@ -61,7 +61,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ allocation, totalValu
       <div className="mt-4 pt-4 border-t border-border">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {Object.entries(allocation).map(([key, value]) => {
-            const percent = ((value / totalValue) * 100).toFixed(1);
+            const percent = totalValue > 0 ? ((value / totalValue) * 100).toFixed(1) : '0.0';
             let label;
             switch(key) {
               case 'stocks': label = 'Actions'; break;

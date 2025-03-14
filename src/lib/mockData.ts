@@ -1,4 +1,3 @@
-
 import { Asset, AssetAllocation, NetWorthHistory } from '@/types/assets';
 import { Budget } from '@/types/budget';
 import { FinancialGoal } from '@/types/goals';
@@ -11,9 +10,7 @@ export const mockAssets: Asset[] = [
     description: 'Compte courant',
     type: 'cash',
     value: 1000,
-    performance: 0,
-    createdAt: '2023-04-12T10:00:00.000Z',
-    updatedAt: '2023-08-24T14:30:00.000Z',
+    performance: 0
   }
 ];
 

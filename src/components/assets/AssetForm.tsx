@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Asset, AssetType } from '@/types/assets';
 import { X } from 'lucide-react';
@@ -56,9 +55,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
       description: finalDescription,
       type,
       value: parseFloat(value),
-      performance: parseFloat(performance),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      performance: parseFloat(performance)
     });
 
     // Reset form

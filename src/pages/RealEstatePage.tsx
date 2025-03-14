@@ -307,7 +307,11 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset }) =
                       {property.performance > 0 ? "+" : ""}{property.performance}%
                     </span>
                   </TableCell>
-                  <TableCell>{new Date(property.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    {property.createdAt 
+                      ? new Date(property.createdAt).toLocaleDateString() 
+                      : 'Non spécifiée'}
+                  </TableCell>
                 </TableRow>
               ))}
               {properties.length === 0 && (
