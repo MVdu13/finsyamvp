@@ -64,9 +64,9 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				wealth: {
-					primary: '#FA5003',
-					light: '#FF7A38',
-					dark: '#D33D00',
+					primary: '#2563EB',
+					'primary-dark': '#1E47AF',
+					'primary-light': '#DBEAFE',
 					gray: {
 						100: '#F5F5F5',
 						200: '#E5E5E5',
