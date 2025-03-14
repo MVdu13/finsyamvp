@@ -44,12 +44,10 @@ const AssetForm: React.FC<AssetFormProps> = ({
   
   const [bankName, setBankName] = useState('');
   const [accountName, setAccountName] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
   
   const [savingsBankName, setSavingsBankName] = useState('');
   const [savingsAccountName, setSavingsAccountName] = useState('');
   const [interestRate, setInterestRate] = useState('');
-  const [maturityDate, setMaturityDate] = useState('');
 
   useEffect(() => {
     if (initialValues?.description) {
@@ -92,8 +90,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
             const accountPart = bankDetails[1] || '';
             if (accountPart.includes('Compte: ')) {
               setAccountName(accountPart.replace('Compte: ', ''));
-            } else if (accountPart.includes('...')) {
-              setAccountNumber(accountPart.replace('Numéro: ', ''));
             } else {
               setAccountName(accountPart);
             }
@@ -112,8 +108,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
             if (rateMatch) {
               setInterestRate(rateMatch[1]);
             }
-          } else if (part.startsWith('Échéance: ')) {
-            setMaturityDate(part.replace('Échéance: ', ''));
           }
         });
       }
@@ -155,9 +149,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
       } else if (type === 'real-estate') {
         finalDescription = `${surface} m² - ${address}`;
       } else if (type === 'bank-account') {
-        finalDescription = `Banque: ${bankName} - Compte: ${accountName}${accountNumber ? ` - Numéro: ${accountNumber.substring(0, 4)}...` : ''}`;
+        finalDescription = `Banque: ${bankName} - Compte: ${accountName}`;
       } else if (type === 'savings-account') {
-        finalDescription = `Banque: ${savingsBankName} - Livret: ${savingsAccountName} - Taux: ${interestRate}%${maturityDate ? ` - Échéance: ${maturityDate}` : ''}`;
+        finalDescription = `Banque: ${savingsBankName} - Livret: ${savingsAccountName} - Taux: ${interestRate}%`;
       }
     }
     
@@ -194,11 +188,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
       setCryptoPrice('');
       setBankName('');
       setAccountName('');
-      setAccountNumber('');
       setSavingsBankName('');
       setSavingsAccountName('');
       setInterestRate('');
-      setMaturityDate('');
     }
   };
 
@@ -285,10 +277,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
           <BankAccountFormFields
             bankName={bankName}
             accountName={accountName}
-            accountNumber={accountNumber}
             setBankName={setBankName}
             setAccountName={setAccountName}
-            setAccountNumber={setAccountNumber}
           />
         );
       case 'savings-account':
@@ -297,11 +287,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
             bankName={savingsBankName}
             accountName={savingsAccountName}
             interestRate={interestRate}
-            maturityDate={maturityDate}
             setBankName={setSavingsBankName}
             setAccountName={setSavingsAccountName}
             setInterestRate={setInterestRate}
-            setMaturityDate={setMaturityDate}
           />
         );
       default:

@@ -2,28 +2,23 @@
 import React from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormItem } from "@/components/ui/form";
 
 interface SavingsAccountFormFieldsProps {
   bankName: string;
   accountName: string;
   interestRate: string;
-  maturityDate: string;
   setBankName: (value: string) => void;
   setAccountName: (value: string) => void;
   setInterestRate: (value: string) => void;
-  setMaturityDate: (value: string) => void;
 }
 
 const SavingsAccountFormFields: React.FC<SavingsAccountFormFieldsProps> = ({
   bankName,
   accountName,
   interestRate,
-  maturityDate,
   setBankName,
   setAccountName,
   setInterestRate,
-  setMaturityDate,
 }) => {
   return (
     <>
@@ -71,19 +66,6 @@ const SavingsAccountFormFields: React.FC<SavingsAccountFormFieldsProps> = ({
           step="0.01"
           min="0"
           required
-        />
-      </div>
-      
-      <div>
-        <Label htmlFor="maturityDate" className="block text-sm font-medium mb-1">
-          Date d'échéance (optionnel)
-        </Label>
-        <Input
-          id="maturityDate"
-          type="date"
-          value={maturityDate}
-          onChange={(e) => setMaturityDate(e.target.value)}
-          className="wealth-input w-full"
         />
       </div>
     </>
