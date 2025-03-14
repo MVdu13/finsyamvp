@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { Asset } from '@/types/assets';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface CommonFormFieldsProps {
   name: string;
@@ -30,10 +32,10 @@ const CommonFormFields: React.FC<CommonFormFieldsProps> = ({
   return (
     <>
       <div>
-        <label htmlFor="name" className="block text-sm font-medium mb-1">
+        <Label htmlFor="name" className="block text-sm font-medium mb-1">
           Nom de l'actif
-        </label>
-        <input
+        </Label>
+        <Input
           id="name"
           type="text"
           value={name}
@@ -57,10 +59,10 @@ const CommonFormFields: React.FC<CommonFormFieldsProps> = ({
       </div>
       
       <div>
-        <label htmlFor="value" className="block text-sm font-medium mb-1">
+        <Label htmlFor="value" className="block text-sm font-medium mb-1">
           Valeur totale (€)
-        </label>
-        <input
+        </Label>
+        <Input
           id="value"
           type="number"
           value={value}
@@ -75,10 +77,10 @@ const CommonFormFields: React.FC<CommonFormFieldsProps> = ({
       
       {showPerformance && (
         <div>
-          <label htmlFor="performance" className="block text-sm font-medium mb-1">
+          <Label htmlFor="performance" className="block text-sm font-medium mb-1">
             Performance (%)
-          </label>
-          <input
+          </Label>
+          <Input
             id="performance"
             type="number"
             value={performance}
@@ -92,10 +94,10 @@ const CommonFormFields: React.FC<CommonFormFieldsProps> = ({
       )}
       
       <div>
-        <label htmlFor="description" className="block text-sm font-medium mb-1">
+        <Label htmlFor="description" className="block text-sm font-medium mb-1">
           Description (optionnel)
-        </label>
-        <input
+        </Label>
+        <Input
           id="description"
           type="text"
           value={description}

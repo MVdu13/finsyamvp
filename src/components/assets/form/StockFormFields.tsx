@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface StockFormFieldsProps {
   ticker: string;
@@ -17,10 +19,10 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
   return (
     <>
       <div>
-        <label htmlFor="ticker" className="block text-sm font-medium mb-1">
+        <Label htmlFor="ticker" className="block text-sm font-medium mb-1">
           Ticker/Symbole
-        </label>
-        <input
+        </Label>
+        <Input
           id="ticker"
           type="text"
           value={ticker}
@@ -30,10 +32,10 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
         />
       </div>
       <div>
-        <label htmlFor="shares" className="block text-sm font-medium mb-1">
+        <Label htmlFor="shares" className="block text-sm font-medium mb-1">
           Nombre d'actions
-        </label>
-        <input
+        </Label>
+        <Input
           id="shares"
           type="number"
           value={shares}

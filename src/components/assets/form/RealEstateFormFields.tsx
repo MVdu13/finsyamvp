@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface RealEstateFormFieldsProps {
   address: string;
@@ -17,10 +19,10 @@ const RealEstateFormFields: React.FC<RealEstateFormFieldsProps> = ({
   return (
     <>
       <div>
-        <label htmlFor="address" className="block text-sm font-medium mb-1">
+        <Label htmlFor="address" className="block text-sm font-medium mb-1">
           Adresse
-        </label>
-        <input
+        </Label>
+        <Input
           id="address"
           type="text"
           value={address}
@@ -30,10 +32,10 @@ const RealEstateFormFields: React.FC<RealEstateFormFieldsProps> = ({
         />
       </div>
       <div>
-        <label htmlFor="surface" className="block text-sm font-medium mb-1">
+        <Label htmlFor="surface" className="block text-sm font-medium mb-1">
           Surface (m²)
-        </label>
-        <input
+        </Label>
+        <Input
           id="surface"
           type="number"
           value={surface}

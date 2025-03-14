@@ -9,6 +9,8 @@ import CryptoFormFields from './form/CryptoFormFields';
 import RealEstateFormFields from './form/RealEstateFormFields';
 import BankAccountFormFields from './form/BankAccountFormFields';
 import SavingsAccountFormFields from './form/SavingsAccountFormFields';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface AssetFormProps {
   onSubmit: (asset: Omit<Asset, 'id'>) => void;
@@ -33,7 +35,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [value, setValue] = useState(initialValues?.value ? initialValues.value.toString() : '');
   const [performance, setPerformance] = useState(initialValues?.performance !== undefined ? initialValues.performance.toString() : '');
   
-  // Type specific fields
   const [ticker, setTicker] = useState('');
   const [shares, setShares] = useState('');
   const [address, setAddress] = useState('');
@@ -41,18 +42,15 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [cryptoQty, setCryptoQty] = useState('');
   const [cryptoPrice, setCryptoPrice] = useState('');
   
-  // Bank account fields
   const [bankName, setBankName] = useState('');
   const [accountName, setAccountName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   
-  // Savings account fields
   const [savingsBankName, setSavingsBankName] = useState('');
   const [savingsAccountName, setSavingsAccountName] = useState('');
   const [interestRate, setInterestRate] = useState('');
   const [maturityDate, setMaturityDate] = useState('');
 
-  // Extraire les informations spécifiques du champ description pour l'édition
   useEffect(() => {
     if (initialValues?.description) {
       const desc = initialValues.description;

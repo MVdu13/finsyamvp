@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { AssetType } from '@/types/assets';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface TypeSelectorProps {
   type: AssetType;
@@ -22,9 +24,9 @@ const assetTypes: { value: AssetType; label: string }[] = [
 const TypeSelector: React.FC<TypeSelectorProps> = ({ type, setType }) => {
   return (
     <div>
-      <label htmlFor="type" className="block text-sm font-medium mb-1">
+      <Label htmlFor="type" className="block text-sm font-medium mb-1">
         Type d'actif
-      </label>
+      </Label>
       <select
         id="type"
         value={type}
