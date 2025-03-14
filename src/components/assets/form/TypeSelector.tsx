@@ -14,6 +14,8 @@ const assetTypes: { value: AssetType; label: string }[] = [
   { value: 'cash', label: 'Liquidités' },
   { value: 'bonds', label: 'Obligations' },
   { value: 'commodities', label: 'Matières premières' },
+  { value: 'bank-account', label: 'Compte bancaire' },
+  { value: 'savings-account', label: 'Livret d\'épargne' },
   { value: 'other', label: 'Autre' },
 ];
 

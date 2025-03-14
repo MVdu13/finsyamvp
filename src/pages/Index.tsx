@@ -47,10 +47,9 @@ const Index = () => {
                  openProjectsPage={openProjectsPage} 
                />;
       case 'assets':
-        // Tous les actifs financiers (sans comptes bancaires et livrets)
+        // Tous les actifs financiers (incluant les comptes bancaires et livrets)
         return <AssetsPage 
-                assets={assets.filter(asset => 
-                  !['bank-account', 'savings-account'].includes(asset.type))} 
+                assets={assets} 
                 onAddAsset={addAsset} 
                />;
       case 'budget':

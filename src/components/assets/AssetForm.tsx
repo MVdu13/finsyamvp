@@ -1,12 +1,15 @@
+
 import React, { useState } from 'react';
 import { Asset, AssetType } from '@/types/assets';
-import { X } from 'lucide-react';
+import { X, Banknote, Wallet, BookText } from 'lucide-react';
 import { CryptoInfo } from '@/services/cryptoService';
 import TypeSelector from './form/TypeSelector';
 import CommonFormFields from './form/CommonFormFields';
 import StockFormFields from './form/StockFormFields';
 import CryptoFormFields from './form/CryptoFormFields';
 import RealEstateFormFields from './form/RealEstateFormFields';
+import BankAccountFormFields from './form/BankAccountFormFields';
+import SavingsAccountFormFields from './form/SavingsAccountFormFields';
 
 interface AssetFormProps {
   onSubmit: (asset: Omit<Asset, 'id'>) => void;
@@ -34,6 +37,14 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [surface, setSurface] = useState('');
   const [cryptoQty, setCryptoQty] = useState('');
   const [cryptoPrice, setCryptoPrice] = useState('');
+  
+  // Bank account fields
+  const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  
+  // Savings account fields
+  const [interestRate, setInterestRate] = useState('');
+  const [maturityDate, setMaturityDate] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +58,10 @@ const AssetForm: React.FC<AssetFormProps> = ({
         finalDescription = `${cryptoQty} unités à ${cryptoPrice}€`;
       } else if (type === 'real-estate') {
         finalDescription = `${surface} m² - ${address}`;
+      } else if (type === 'bank-account') {
+        finalDescription = `${bankName} - ${accountNumber.substring(0, 4)}...${accountNumber.substring(accountNumber.length - 4)}`;
+      } else if (type === 'savings-account') {
+        finalDescription = `Taux: ${interestRate}%${maturityDate ? ` - Échéance: ${maturityDate}` : ''}`;
       }
     }
     
@@ -70,6 +85,10 @@ const AssetForm: React.FC<AssetFormProps> = ({
     setSurface('');
     setCryptoQty('');
     setCryptoPrice('');
+    setBankName('');
+    setAccountNumber('');
+    setInterestRate('');
+    setMaturityDate('');
   };
 
   // Get form title based on asset type
@@ -81,7 +100,18 @@ const AssetForm: React.FC<AssetFormProps> = ({
       case 'cash': return 'Ajouter des liquidités';
       case 'bonds': return 'Ajouter des obligations';
       case 'commodities': return 'Ajouter des matières premières';
+      case 'bank-account': return 'Ajouter un compte bancaire';
+      case 'savings-account': return 'Ajouter un livret d\'épargne';
       default: return 'Ajouter un nouvel actif';
+    }
+  };
+
+  // Get form icon based on asset type
+  const getFormIcon = () => {
+    switch (type) {
+      case 'bank-account': return <Wallet size={24} className="text-blue-500" />;
+      case 'savings-account': return <BookText size={24} className="text-purple-500" />;
+      default: return null;
     }
   };
 
@@ -138,6 +168,24 @@ const AssetForm: React.FC<AssetFormProps> = ({
             setSurface={setSurface}
           />
         );
+      case 'bank-account':
+        return (
+          <BankAccountFormFields
+            bankName={bankName}
+            accountNumber={accountNumber}
+            setBankName={setBankName}
+            setAccountNumber={setAccountNumber}
+          />
+        );
+      case 'savings-account':
+        return (
+          <SavingsAccountFormFields
+            interestRate={interestRate}
+            maturityDate={maturityDate}
+            setInterestRate={setInterestRate}
+            setMaturityDate={setMaturityDate}
+          />
+        );
       default:
         return null;
     }
@@ -146,7 +194,10 @@ const AssetForm: React.FC<AssetFormProps> = ({
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg w-full max-w-md border border-border">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-medium">{getFormTitle()}</h2>
+        <div className="flex items-center gap-2">
+          {getFormIcon()}
+          <h2 className="text-lg font-medium">{getFormTitle()}</h2>
+        </div>
         <button
           onClick={onCancel}
           className="p-1 rounded-full hover:bg-muted transition-colors"

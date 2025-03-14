@@ -26,7 +26,7 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
   const filteredAssets = assets.filter((asset) => {
     const matchesType = filterType === 'all' || asset.type === filterType;
     const matchesSearch = asset.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                        asset.description.toLowerCase().includes(searchQuery.toLowerCase());
+                        (asset.description && asset.description.toLowerCase().includes(searchQuery.toLowerCase()));
     
     return matchesType && matchesSearch;
   });
@@ -39,6 +39,8 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
     'cash': filteredAssets.filter(asset => asset.type === 'cash'),
     'bonds': filteredAssets.filter(asset => asset.type === 'bonds'),
     'commodities': filteredAssets.filter(asset => asset.type === 'commodities'),
+    'bank-account': filteredAssets.filter(asset => asset.type === 'bank-account'),
+    'savings-account': filteredAssets.filter(asset => asset.type === 'savings-account'),
     'other': filteredAssets.filter(asset => asset.type === 'other'),
   };
 
@@ -49,6 +51,8 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
     'cash': 'Liquidités',
     'bonds': 'Obligations',
     'commodities': 'Matières premières',
+    'bank-account': 'Comptes bancaires',
+    'savings-account': 'Livrets d\'épargne',
     'other': 'Autres',
   };
 
@@ -72,10 +76,11 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
               <DialogTitle>Ajouter un nouvel actif</DialogTitle>
             </DialogHeader>
             <Tabs defaultValue="stock" value={assetTypeTab} onValueChange={(value) => setAssetTypeTab(value as AssetType)}>
-              <TabsList className="grid grid-cols-4">
+              <TabsList className="grid grid-cols-5">
                 <TabsTrigger value="stock">Actions</TabsTrigger>
                 <TabsTrigger value="crypto">Crypto</TabsTrigger>
                 <TabsTrigger value="real-estate">Immobilier</TabsTrigger>
+                <TabsTrigger value="bank-account">Compte</TabsTrigger>
                 <TabsTrigger value="other">Autre</TabsTrigger>
               </TabsList>
               <TabsContent value="stock">
@@ -99,6 +104,14 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
                   onSubmit={handleAddAsset}
                   onCancel={() => setDialogOpen(false)}
                   defaultType="real-estate"
+                  showTypeSelector={false}
+                />
+              </TabsContent>
+              <TabsContent value="bank-account">
+                <AssetForm 
+                  onSubmit={handleAddAsset}
+                  onCancel={() => setDialogOpen(false)}
+                  defaultType="bank-account"
                   showTypeSelector={false}
                 />
               </TabsContent>
@@ -140,6 +153,8 @@ const AssetsPage: React.FC<AssetsPageProps> = ({ assets, onAddAsset }) => {
             <option value="cash">Liquidités</option>
             <option value="bonds">Obligations</option>
             <option value="commodities">Matières premières</option>
+            <option value="bank-account">Comptes bancaires</option>
+            <option value="savings-account">Livrets d'épargne</option>
             <option value="other">Autres</option>
           </select>
           
