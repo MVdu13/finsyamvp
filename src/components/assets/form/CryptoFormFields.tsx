@@ -4,20 +4,26 @@ import CryptoSearch from '../CryptoSearch';
 import { CryptoInfo } from '@/services/cryptoService';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface CryptoFormFieldsProps {
   cryptoQty: string;
   cryptoPrice: string;
+  purchasePrice: string;
   setCryptoQty: (value: string) => void;
   setCryptoPrice: (value: string) => void;
+  setPurchasePrice: (value: string) => void;
   onCryptoSelect: (crypto: CryptoInfo) => void;
 }
 
 const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
   cryptoQty,
   cryptoPrice,
+  purchasePrice,
   setCryptoQty,
   setCryptoPrice,
+  setPurchasePrice,
   onCryptoSelect
 }) => {
   const [showCryptoSearch, setShowCryptoSearch] = useState(true);
@@ -26,9 +32,9 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
     <>
       <div className="mb-4">
         <div className="flex items-center justify-between mb-1">
-          <label className="block text-sm font-medium">
+          <Label className="block text-sm font-medium">
             Rechercher une cryptomonnaie
-          </label>
+          </Label>
           <Button 
             type="button" 
             onClick={() => setShowCryptoSearch(!showCryptoSearch)}
@@ -51,10 +57,10 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
         )}
       </div>
       <div>
-        <label htmlFor="cryptoQty" className="block text-sm font-medium mb-1">
+        <Label htmlFor="cryptoQty" className="block text-sm font-medium mb-1">
           Quantité
-        </label>
-        <input
+        </Label>
+        <Input
           id="cryptoQty"
           type="number"
           value={cryptoQty}
@@ -72,10 +78,10 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
         />
       </div>
       <div>
-        <label htmlFor="cryptoPrice" className="block text-sm font-medium mb-1">
-          Prix unitaire (€)
-        </label>
-        <input
+        <Label htmlFor="cryptoPrice" className="block text-sm font-medium mb-1">
+          Prix unitaire actuel (€)
+        </Label>
+        <Input
           id="cryptoPrice"
           type="number"
           value={cryptoPrice}
@@ -88,6 +94,21 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
           }}
           className="wealth-input w-full"
           placeholder="Ex: 30000"
+          min="0"
+          step="0.01"
+        />
+      </div>
+      <div>
+        <Label htmlFor="purchasePrice" className="block text-sm font-medium mb-1">
+          Prix d'achat unitaire (€)
+        </Label>
+        <Input
+          id="purchasePrice"
+          type="number"
+          value={purchasePrice}
+          onChange={(e) => setPurchasePrice(e.target.value)}
+          className="wealth-input w-full"
+          placeholder="Ex: 25000"
           min="0"
           step="0.01"
         />

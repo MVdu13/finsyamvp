@@ -52,7 +52,7 @@ const AssetsPage: React.FC<AssetsPageProps> = ({
   };
 
   const typeLabels: Record<string, string> = {
-    'stock': 'Actions',
+    'stock': 'Actions et ETF',
     'crypto': 'Cryptomonnaies',
     'real-estate': 'Immobilier',
     'cash': 'Liquidités',
@@ -114,7 +114,7 @@ const AssetsPage: React.FC<AssetsPageProps> = ({
             </DialogHeader>
             <Tabs defaultValue="stock" value={assetTypeTab} onValueChange={(value) => setAssetTypeTab(value as AssetType)}>
               <TabsList className="grid grid-cols-5">
-                <TabsTrigger value="stock">Actions</TabsTrigger>
+                <TabsTrigger value="stock">Actions/ETF</TabsTrigger>
                 <TabsTrigger value="crypto">Crypto</TabsTrigger>
                 <TabsTrigger value="real-estate">Immobilier</TabsTrigger>
                 <TabsTrigger value="other">Autre</TabsTrigger>

@@ -216,19 +216,19 @@ const StocksPage: React.FC<StocksPageProps> = ({
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Portefeuille d'Actions</h1>
-          <p className="text-muted-foreground">Gérez vos actions et suivez leur performance</p>
+          <h1 className="text-2xl font-bold tracking-tight">Portefeuille d'Actions et ETF</h1>
+          <p className="text-muted-foreground">Gérez vos actions et ETF et suivez leur performance</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <button className="wealth-btn wealth-btn-primary flex items-center gap-2">
               <Plus size={16} />
-              <span>Ajouter une action</span>
+              <span>Ajouter une action/ETF</span>
             </button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Ajouter une action</DialogTitle>
+              <DialogTitle>Ajouter une action/ETF</DialogTitle>
             </DialogHeader>
             <AssetForm 
               onSubmit={handleAddStock} 
@@ -243,7 +243,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Modifier une action</DialogTitle>
+              <DialogTitle>Modifier une action/ETF</DialogTitle>
             </DialogHeader>
             {editingAsset && (
               <AssetForm 
@@ -281,7 +281,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Nombre d'Actions</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Nombre d'Actions/ETF</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{assets.length}</div>
@@ -335,24 +335,24 @@ const StocksPage: React.FC<StocksPageProps> = ({
       </Card>
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">Vos Actions</h2>
+        <h2 className="text-xl font-semibold mb-4">Vos Actions et ETF</h2>
         {assets.length > 0 ? (
           <AssetsList 
             assets={assets} 
-            title="Actions" 
+            title="Actions et ETF" 
             onEdit={handleEditAsset}
             onDelete={handleDeleteAsset}
           />
         ) : (
           <div className="text-center py-12 bg-muted rounded-lg">
             <p className="text-lg text-muted-foreground mb-4">
-              Aucune action dans votre portefeuille
+              Aucune action ou ETF dans votre portefeuille
             </p>
             <button 
               className="wealth-btn wealth-btn-primary"
               onClick={() => setDialogOpen(true)}
             >
-              Ajouter votre première action
+              Ajouter votre première action/ETF
             </button>
           </div>
         )}
