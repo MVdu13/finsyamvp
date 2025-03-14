@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Asset, AssetType } from '@/types/assets';
 import { X, Banknote, Wallet, BookText } from 'lucide-react';
@@ -44,9 +43,12 @@ const AssetForm: React.FC<AssetFormProps> = ({
   
   // Bank account fields
   const [bankName, setBankName] = useState('');
+  const [accountName, setAccountName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   
   // Savings account fields
+  const [savingsBankName, setSavingsBankName] = useState('');
+  const [savingsAccountName, setSavingsAccountName] = useState('');
   const [interestRate, setInterestRate] = useState('');
   const [maturityDate, setMaturityDate] = useState('');
 
@@ -59,7 +61,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
         const match = desc.match(/(\d+\.?\d*) actions à (\d+\.?\d*)€/);
         if (match) {
           setShares(match[1]);
-          // Le prix est calculé à partir de la valeur et des actions
           const calculatedPrice = initialValues.value / parseFloat(match[1]);
           setTicker(initialValues.name.split(' ')[0] || '');
         }
@@ -80,21 +81,59 @@ const AssetForm: React.FC<AssetFormProps> = ({
       } 
       else if (initialValues.type === 'bank-account') {
         const bankDetails = desc.split(' - ');
-        setBankName(bankDetails[0] || '');
-        if (bankDetails.length > 1) {
-          setAccountNumber(bankDetails[1].replace('...', '') + '...');
+        if (bankDetails.length > 0) {
+          const bankNamePart = bankDetails[0] || '';
+          const bankParts = bankNamePart.split(': ');
+          if (bankParts.length > 1) {
+            setBankName(bankParts[1]);
+          } else {
+            setBankName(bankNamePart);
+          }
+          
+          if (bankDetails.length > 1) {
+            const accountPart = bankDetails[1] || '';
+            if (accountPart.includes('Compte: ')) {
+              setAccountName(accountPart.replace('Compte: ', ''));
+            } else if (accountPart.includes('...')) {
+              setAccountNumber(accountPart.replace('Numéro: ', ''));
+            } else {
+              setAccountName(accountPart);
+            }
+          }
         }
       } 
-      else if (initialValues.type === 'savings-account' && desc.includes('Taux:')) {
-        const rateMatch = desc.match(/Taux: (\d+\.?\d*)%/);
-        if (rateMatch) {
-          setInterestRate(rateMatch[1]);
-        }
-        
-        const dateMatch = desc.match(/Échéance: (.*)/);
-        if (dateMatch) {
-          setMaturityDate(dateMatch[1]);
-        }
+      else if (initialValues.type === 'savings-account') {
+        const parts = desc.split(' - ');
+        parts.forEach(part => {
+          if (part.startsWith('Banque: ')) {
+            setSavingsBankName(part.replace('Banque: ', ''));
+          } else if (part.startsWith('Livret: ')) {
+            setSavingsAccountName(part.replace('Livret: ', ''));
+          } else if (part.startsWith('Taux: ')) {
+            const rateMatch = part.match(/Taux: (\d+\.?\d*)%/);
+            if (rateMatch) {
+              setInterestRate(rateMatch[1]);
+            }
+          } else if (part.startsWith('Échéance: ')) {
+            setMaturityDate(part.replace('Échéance: ', ''));
+          }
+        });
+      }
+    }
+    
+    if (initialValues?.name && initialValues.type === 'bank-account' && !accountName) {
+      const parts = initialValues.name.split(' - ');
+      if (parts.length > 1) {
+        if (!bankName) setBankName(parts[0]);
+        setAccountName(parts[1]);
+      }
+    }
+    
+    if (initialValues?.name && initialValues.type === 'savings-account' && !savingsAccountName) {
+      const parts = initialValues.name.split(' - ');
+      if (parts.length > 1) {
+        if (!savingsBankName) setSavingsBankName(parts[0]);
+        setSavingsAccountName(parts[1]);
       }
     }
   }, [initialValues]);
@@ -102,7 +141,13 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Create a description based on the asset type if not provided
+    let finalName = name;
+    if (type === 'bank-account' && bankName && accountName) {
+      finalName = `${bankName} - ${accountName}`;
+    } else if (type === 'savings-account' && savingsBankName && savingsAccountName) {
+      finalName = `${savingsBankName} - ${savingsAccountName}`;
+    }
+    
     let finalDescription = description;
     if (!description) {
       if (type === 'stock') {
@@ -112,33 +157,31 @@ const AssetForm: React.FC<AssetFormProps> = ({
       } else if (type === 'real-estate') {
         finalDescription = `${surface} m² - ${address}`;
       } else if (type === 'bank-account') {
-        finalDescription = bankName + (accountNumber ? ` - ${accountNumber.substring(0, 4)}...` : '');
+        finalDescription = `Banque: ${bankName} - Compte: ${accountName}${accountNumber ? ` - Numéro: ${accountNumber.substring(0, 4)}...` : ''}`;
       } else if (type === 'savings-account') {
-        finalDescription = `Taux: ${interestRate}%${maturityDate ? ` - Échéance: ${maturityDate}` : ''}`;
+        finalDescription = `Banque: ${savingsBankName} - Livret: ${savingsAccountName} - Taux: ${interestRate}%${maturityDate ? ` - Échéance: ${maturityDate}` : ''}`;
       }
     }
     
-    // Pour les comptes bancaires et livrets, attribuer une performance par défaut de 0
     let finalPerformance = performance;
-    if ((type === 'bank-account' || type === 'savings-account') && !performance) {
+    if (type === 'bank-account') {
       finalPerformance = "0";
+    } else if (type === 'savings-account' && interestRate) {
+      finalPerformance = interestRate;
     }
     
     const asset = {
-      name,
+      name: finalName,
       description: finalDescription,
       type,
       value: parseFloat(value),
       performance: parseFloat(finalPerformance || '0'),
-      // Si on édite, on conserve la date de création
       ...(initialValues?.createdAt && { createdAt: initialValues.createdAt }),
-      // Mettre à jour la date de modification
       updatedAt: new Date().toISOString()
     };
     
     onSubmit(asset);
 
-    // Reset form if not editing
     if (!isEditing) {
       setName('');
       setDescription('');
@@ -152,13 +195,15 @@ const AssetForm: React.FC<AssetFormProps> = ({
       setCryptoQty('');
       setCryptoPrice('');
       setBankName('');
+      setAccountName('');
       setAccountNumber('');
+      setSavingsBankName('');
+      setSavingsAccountName('');
       setInterestRate('');
       setMaturityDate('');
     }
   };
 
-  // Get form title based on asset type and editing mode
   const getFormTitle = () => {
     const action = isEditing ? 'Modifier' : 'Ajouter';
     switch (type) {
@@ -169,12 +214,11 @@ const AssetForm: React.FC<AssetFormProps> = ({
       case 'bonds': return `${action} des obligations`;
       case 'commodities': return `${action} des matières premières`;
       case 'bank-account': return `${action} un compte bancaire`;
-      case 'savings-account': return `${action} un livret d\'épargne`;
+      case 'savings-account': return `${action} un livret d'épargne`;
       default: return `${action} un nouvel actif`;
     }
   };
 
-  // Get form icon based on asset type
   const getFormIcon = () => {
     switch (type) {
       case 'bank-account': return <Wallet size={24} className="text-blue-500" />;
@@ -188,23 +232,20 @@ const AssetForm: React.FC<AssetFormProps> = ({
     setTicker(crypto.symbol.toUpperCase());
     setCryptoPrice(crypto.current_price.toString());
     setPerformance(crypto.price_change_percentage_24h.toString());
-    setCryptoQty('1'); // Valeur par défaut
-    setValue((crypto.current_price * 1).toString()); // Valeur par défaut pour 1 unité
+    setCryptoQty('1');
+    setValue((crypto.current_price * 1).toString());
   };
-  
-  // Update crypto value when quantity or price changes
+
   const updateCryptoValue = (qty: string, price: string) => {
     if (qty && price) {
       setValue((parseFloat(price) * parseFloat(qty)).toString());
     }
   };
 
-  // Déterminer si on affiche le champ performance selon le type d'actif
   const shouldShowPerformanceField = () => {
     return type !== 'bank-account' && type !== 'savings-account';
   };
 
-  // Render type-specific fields
   const renderTypeSpecificFields = () => {
     switch (type) {
       case 'stock':
@@ -245,16 +286,22 @@ const AssetForm: React.FC<AssetFormProps> = ({
         return (
           <BankAccountFormFields
             bankName={bankName}
+            accountName={accountName}
             accountNumber={accountNumber}
             setBankName={setBankName}
+            setAccountName={setAccountName}
             setAccountNumber={setAccountNumber}
           />
         );
       case 'savings-account':
         return (
           <SavingsAccountFormFields
+            bankName={savingsBankName}
+            accountName={savingsAccountName}
             interestRate={interestRate}
             maturityDate={maturityDate}
+            setBankName={setSavingsBankName}
+            setAccountName={setSavingsAccountName}
             setInterestRate={setInterestRate}
             setMaturityDate={setMaturityDate}
           />
@@ -284,18 +331,39 @@ const AssetForm: React.FC<AssetFormProps> = ({
           <TypeSelector type={type} setType={setType} />
         )}
         
-        <CommonFormFields
-          name={name}
-          value={value}
-          performance={performance}
-          description={description}
-          setName={setName}
-          setValue={setValue}
-          setPerformance={setPerformance}
-          setDescription={setDescription}
-          assetType={type}
-          showPerformance={shouldShowPerformanceField()}
-        />
+        {type !== 'bank-account' && type !== 'savings-account' && (
+          <CommonFormFields
+            name={name}
+            value={value}
+            performance={performance}
+            description={description}
+            setName={setName}
+            setValue={setValue}
+            setPerformance={setPerformance}
+            setDescription={setDescription}
+            assetType={type}
+            showPerformance={shouldShowPerformanceField()}
+          />
+        )}
+        
+        {(type === 'bank-account' || type === 'savings-account') && (
+          <div>
+            <Label htmlFor="value" className="block text-sm font-medium mb-1">
+              Solde (€)
+            </Label>
+            <Input
+              id="value"
+              type="number"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              className="wealth-input w-full"
+              placeholder="Ex: 1500"
+              min="0"
+              step="0.01"
+              required
+            />
+          </div>
+        )}
         
         {renderTypeSpecificFields()}
         
