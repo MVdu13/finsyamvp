@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { formatCurrency } from '@/lib/formatters';
-import { BarChart4, AlertCircle } from 'lucide-react';
+import { BarChart4, AlertCircle, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FinancialGoal } from '@/types/goals';
 
@@ -23,12 +23,16 @@ const ProjectsOverview: React.FC<ProjectsOverviewProps> = ({
       <Card className="bg-green-50 border border-green-200 mb-5">
         <CardContent className="pt-5">
           <div className="flex items-start gap-2">
-            <AlertCircle className="h-5 w-5 text-green-600 mt-0.5" />
+            <TrendingUp className="h-5 w-5 text-green-600 mt-0.5" />
             <div>
               <h4 className="font-medium text-green-800 mb-1">Analyse financière</h4>
               <p className="text-sm text-green-700">
-                Vous avez actuellement {projectsInProgress} projet(s) en cours avec une allocation mensuelle totale de {formatCurrency(totalAllocation)}. 
-                Cette somme est automatiquement réservée dans votre budget. Veillez à maintenir une épargne de sécurité suffisante avant d'augmenter vos allocations.
+                Vous avez actuellement {projectsInProgress} projet(s) en cours avec une allocation mensuelle totale de <strong>{formatCurrency(totalAllocation)}</strong>. 
+                Cette somme est automatiquement réservée dans votre budget pour atteindre vos objectifs financiers.
+              </p>
+              <p className="text-sm text-green-700 mt-1">
+                Vérifiez que votre matelas de sécurité est suffisant avant d'augmenter vos allocations à ces projets. Une bonne gestion financière commence par 
+                un fonds d'urgence solide.
               </p>
             </div>
           </div>

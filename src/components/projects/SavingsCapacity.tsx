@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { formatCurrency } from '@/lib/formatters';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Budget } from '@/types/budget';
 
@@ -49,10 +48,20 @@ const SavingsCapacity: React.FC<SavingsCapacityProps> = ({ budget, totalAllocati
           
           {isOverallocated && (
             <div className="p-3 bg-red-50 rounded-lg mt-2 flex items-start gap-2">
-              <ShieldAlert className="h-5 w-5 text-red-500 mt-0.5" />
+              <ShieldAlert className="h-5 w-4 text-red-500 mt-0.5" />
               <p className="text-sm text-red-600">
-                Attention : Vos allocations aux projets dépassent votre capacité d'épargne mensuelle. 
-                Ajustez vos contributions ou augmentez vos revenus.
+                <strong>Attention :</strong> Vos allocations aux projets dépassent votre capacité d'épargne mensuelle. 
+                Ajustez vos contributions ou augmentez vos revenus pour maintenir un budget équilibré.
+              </p>
+            </div>
+          )}
+          
+          {!isOverallocated && remainingSavings > 0 && (
+            <div className="p-3 bg-green-50 rounded-lg mt-2 flex items-start gap-2">
+              <TrendingUp className="h-5 w-4 text-green-600 mt-0.5" />
+              <p className="text-sm text-green-700">
+                Vous disposez encore de <strong>{formatCurrency(remainingSavings)}</strong> par mois pour épargner 
+                ou investir. Pensez à renforcer votre matelas de sécurité avant tout autre investissement.
               </p>
             </div>
           )}
