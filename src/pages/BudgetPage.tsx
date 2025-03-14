@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { mockBudget, mockGoals } from '@/lib/mockData';
 import BudgetOverview from '@/components/budget/BudgetOverview';
@@ -15,23 +14,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const BudgetPage = () => {
-  // Initialize budget with the mockBudget but add the 'type' field to expenses
   const initialBudget = {
     ...mockBudget,
     expenses: mockBudget.expenses.map(expense => ({
       ...expense,
-      // Assign expenses as fixed or variable based on if they are essential
       type: expense.essential ? 'fixed' : 'variable' as 'fixed' | 'variable'
     }))
   };
   
   const [budget, setBudget] = useState<Budget>({...initialBudget});
   
-  // Security cushion state
-  const [currentSavings, setCurrentSavings] = useState(15000);
+  const [savingsAccountsTotal, setSavingsAccountsTotal] = useState(15000);
   const [riskProfile, setRiskProfile] = useState<'high' | 'medium' | 'low'>('medium');
   
-  // UI state
   const [incomeFormOpen, setIncomeFormOpen] = useState(false);
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);
   const [cushionFormOpen, setCushionFormOpen] = useState(false);
@@ -40,39 +35,31 @@ const BudgetPage = () => {
   const [itemToDelete, setItemToDelete] = useState<{id: string, type: 'income' | 'expense'} | null>(null);
   const [expenseType, setExpenseType] = useState<'fixed' | 'variable'>('fixed');
 
-  // Calculate security cushion details
   const monthlyExpenses = budget.totalExpenses;
   const recommendedMonths = 
     riskProfile === 'high' ? 3 :
     riskProfile === 'medium' ? 6 : 9;
   const targetAmount = monthlyExpenses * recommendedMonths;
 
-  // Get fixed and variable expenses
   const fixedExpenses = budget.expenses.filter(expense => expense.type === 'fixed');
   const variableExpenses = budget.expenses.filter(expense => expense.type === 'variable');
   
-  // Calculate totals
   const totalFixedExpenses = fixedExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   const totalVariableExpenses = variableExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   
-  // Calculate monthly project contributions
   const monthlyProjectsContribution = mockGoals.reduce(
     (sum, goal) => sum + goal.monthlyContribution, 
     0
   );
 
-  // Calculate available for saving/investing
   const availableAfterExpenses = budget.totalIncome - budget.totalExpenses;
   
-  // Calculate security cushion gap
-  const securityCushionGap = Math.max(0, targetAmount - currentSavings);
+  const securityCushionGap = Math.max(0, targetAmount - savingsAccountsTotal);
   const needsSecurityCushion = securityCushionGap > 0;
   
-  // Calculate available for investment after security cushion and projects
   const availableForInvestment = needsSecurityCushion ? 0 : 
     Math.max(0, availableAfterExpenses - monthlyProjectsContribution);
 
-  // Handle adding or editing income
   const handleSaveIncome = (income: Income) => {
     const isEditing = budget.incomes.some(item => item.id === income.id);
     let newIncomes: Income[];
@@ -85,7 +72,6 @@ const BudgetPage = () => {
       newIncomes = [...budget.incomes, income];
     }
     
-    // Recalculate total income
     const totalIncome = newIncomes.reduce((sum, inc) => sum + inc.amount, 0);
     
     setBudget({
@@ -95,7 +81,6 @@ const BudgetPage = () => {
     });
   };
 
-  // Handle adding or editing expense
   const handleSaveExpense = (expense: Expense) => {
     const isEditing = budget.expenses.some(item => item.id === expense.id);
     let newExpenses: Expense[];
@@ -108,7 +93,6 @@ const BudgetPage = () => {
       newExpenses = [...budget.expenses, expense];
     }
     
-    // Recalculate total expenses
     const totalExpenses = newExpenses.reduce((sum, exp) => sum + exp.amount, 0);
     
     setBudget({
@@ -118,7 +102,6 @@ const BudgetPage = () => {
     });
   };
 
-  // Handle deleting an item
   const handleDelete = () => {
     if (!itemToDelete) return;
     
@@ -151,32 +134,27 @@ const BudgetPage = () => {
     });
   };
 
-  // Handle updating security cushion
   const handleSaveCushion = (data: {currentAmount: number, riskProfile: 'high' | 'medium' | 'low'}) => {
-    setCurrentSavings(data.currentAmount);
+    setSavingsAccountsTotal(data.currentAmount);
     setRiskProfile(data.riskProfile);
   };
 
-  // Edit income
   const handleEditIncome = (income: Income) => {
     setItemToEdit(income);
     setIncomeFormOpen(true);
   };
 
-  // Edit expense
   const handleEditExpense = (expense: Expense) => {
     setItemToEdit(expense);
     setExpenseType(expense.type);
     setExpenseFormOpen(true);
   };
 
-  // Delete confirmation
   const confirmDelete = (id: string, type: 'income' | 'expense') => {
     setItemToDelete({ id, type });
     setDeleteDialogOpen(true);
   };
 
-  // Add expense with type
   const handleAddExpense = (type: 'fixed' | 'variable') => {
     setItemToEdit(null);
     setExpenseType(type);
@@ -199,7 +177,6 @@ const BudgetPage = () => {
         </div>
       </div>
       
-      {/* Income Overview and Chart */}
       <Card className="p-6">
         <CardHeader className="p-0 pb-6">
           <CardTitle>Revenu mensuel</CardTitle>
@@ -222,7 +199,6 @@ const BudgetPage = () => {
             </Button>
           </div>
           
-          {/* Income List */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Liste des revenus</h3>
             <div className="space-y-4">
@@ -282,8 +258,10 @@ const BudgetPage = () => {
             </div>
           </div>
           
-          {/* Income distribution chart */}
-          <BudgetDistribution budget={budget} />
+          <BudgetDistribution 
+            budget={budget}
+            savingsAccountsTotal={savingsAccountsTotal} 
+          />
         </CardContent>
       </Card>
       
@@ -295,7 +273,6 @@ const BudgetPage = () => {
               <p className="text-lg font-medium text-red-600">{formatCurrency(budget.totalExpenses)}</p>
             </div>
             
-            {/* Fixed Expenses */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
@@ -364,7 +341,6 @@ const BudgetPage = () => {
               </div>
             </div>
             
-            {/* Variable Expenses */}
             <div>
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
@@ -437,7 +413,7 @@ const BudgetPage = () => {
         
         <div>
           <SecurityCushion 
-            currentAmount={currentSavings}
+            currentAmount={savingsAccountsTotal}
             targetAmount={targetAmount}
             expenseAmount={monthlyExpenses}
             riskProfile={riskProfile}
@@ -480,7 +456,6 @@ const BudgetPage = () => {
         </div>
       </div>
       
-      {/* Income Form Modal */}
       <BudgetFormModal
         isOpen={incomeFormOpen}
         onClose={() => {
@@ -492,7 +467,6 @@ const BudgetPage = () => {
         editItem={itemToEdit as Income}
       />
       
-      {/* Expense Form Modal */}
       <BudgetFormModal
         isOpen={expenseFormOpen}
         onClose={() => {
@@ -502,18 +476,17 @@ const BudgetPage = () => {
         onSave={handleSaveExpense}
         type="expense"
         editItem={itemToEdit as Expense}
+        expenseType={expenseType}
       />
       
-      {/* Security Cushion Form */}
       <SecurityCushionForm
         isOpen={cushionFormOpen}
         onClose={() => setCushionFormOpen(false)}
         onSave={handleSaveCushion}
-        currentAmount={currentSavings}
+        currentAmount={savingsAccountsTotal}
         riskProfile={riskProfile}
       />
       
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

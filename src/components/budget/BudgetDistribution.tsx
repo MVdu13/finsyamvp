@@ -7,9 +7,13 @@ import { mockGoals } from '@/lib/mockData';
 
 interface BudgetDistributionProps {
   budget: Budget;
+  savingsAccountsTotal?: number;
 }
 
-const BudgetDistribution: React.FC<BudgetDistributionProps> = ({ budget }) => {
+const BudgetDistribution: React.FC<BudgetDistributionProps> = ({ 
+  budget, 
+  savingsAccountsTotal = 15000 // Default value if not provided
+}) => {
   // Calculate total for fixed and variable expenses
   const fixedExpenses = budget.expenses
     .filter(expense => expense.type === 'fixed')
@@ -25,23 +29,32 @@ const BudgetDistribution: React.FC<BudgetDistributionProps> = ({ budget }) => {
     0
   );
   
-  // Calculate savings and investment
+  // Calculate total expenses (fixed + variable)
   const totalExpenses = fixedExpenses + variableExpenses;
+  
+  // Calculate available after expenses
   const availableAfterExpenses = Math.max(0, budget.totalIncome - totalExpenses);
   
   // Calculate security cushion gap
-  // For this example, use average monthly expenses of 6 months as target
+  // Target is 6 months of total expenses by default
   const securityCushionTarget = totalExpenses * 6;
-  const savingsAccountTotal = 15000; // Example value (would be calculated from actual savings accounts)
-  const securityCushionGap = Math.max(0, securityCushionTarget - savingsAccountTotal);
+  const securityCushionGap = Math.max(0, securityCushionTarget - savingsAccountsTotal);
   
-  // Priority: 1. Security cushion gap, 2. Projects, 3. Investments
-  let securityCushionAllocation = Math.min(availableAfterExpenses, securityCushionGap);
-  let projectsAllocation = securityCushionGap > 0 ? 0 : Math.min(availableAfterExpenses, monthlyProjectsContribution);
-  let investmentAllocation = Math.max(0, availableAfterExpenses - securityCushionAllocation - projectsAllocation);
+  // Calculate allocations based on priorities:
+  // 1. If security cushion is not met, allocate to security cushion
+  // 2. If security cushion is met, allocate to projects
+  // 3. Remaining goes to investments
   
-  // If security cushion is met, allocate to projects
-  if (securityCushionGap <= 0) {
+  let securityCushionAllocation = 0;
+  let projectsAllocation = 0;
+  let investmentAllocation = 0;
+  
+  // If security cushion is not met, prioritize it
+  if (securityCushionGap > 0) {
+    securityCushionAllocation = Math.min(availableAfterExpenses, securityCushionGap);
+    investmentAllocation = Math.max(0, availableAfterExpenses - securityCushionAllocation);
+  } else {
+    // Security cushion is met, allocate to projects
     projectsAllocation = Math.min(availableAfterExpenses, monthlyProjectsContribution);
     investmentAllocation = Math.max(0, availableAfterExpenses - projectsAllocation);
   }
