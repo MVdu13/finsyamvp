@@ -12,6 +12,8 @@ import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Asset } from '@/types/assets';
+import { mockAssets } from '@/lib/mockData';
 
 const BudgetPage = () => {
   const initialBudget = {
@@ -22,9 +24,17 @@ const BudgetPage = () => {
     }))
   };
   
+  const savingsAccountsAssets = mockAssets.filter(
+    asset => asset.type === 'savings-account' || asset.type === 'bank-account'
+  );
+  const savingsAccountsDefaultTotal = savingsAccountsAssets.reduce(
+    (sum, asset) => sum + asset.value, 
+    0
+  );
+  
   const [budget, setBudget] = useState<Budget>({...initialBudget});
   
-  const [savingsAccountsTotal, setSavingsAccountsTotal] = useState(15000);
+  const [savingsAccountsTotal, setSavingsAccountsTotal] = useState(savingsAccountsDefaultTotal);
   const [riskProfile, setRiskProfile] = useState<'high' | 'medium' | 'low'>('medium');
   
   const [incomeFormOpen, setIncomeFormOpen] = useState(false);
