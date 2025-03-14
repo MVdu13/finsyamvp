@@ -14,12 +14,21 @@ import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelec
 interface SavingsAccountsPageProps {
   assets: Asset[];
   onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+  onDeleteAsset?: (id: string) => void;
+  onUpdateAsset?: (id: string, asset: Partial<Asset>) => void;
 }
 
-const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({ assets, onAddAsset }) => {
+const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({ 
+  assets, 
+  onAddAsset,
+  onDeleteAsset,
+  onUpdateAsset
+}) => {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   
   // Calculate metrics
   const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
@@ -183,6 +192,33 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({ assets, onAdd
     });
   };
 
+  const handleEditAsset = (asset: Asset) => {
+    setEditingAsset(asset);
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateAsset = (updatedAsset: Omit<Asset, 'id'>) => {
+    if (editingAsset && onUpdateAsset) {
+      onUpdateAsset(editingAsset.id, updatedAsset);
+      toast({
+        title: "Livret modifié",
+        description: `${updatedAsset.name} a été mis à jour`,
+      });
+      setEditDialogOpen(false);
+      setEditingAsset(null);
+    }
+  };
+
+  const handleDeleteAsset = (id: string) => {
+    if (onDeleteAsset) {
+      onDeleteAsset(id);
+      toast({
+        title: "Livret supprimé",
+        description: "Le livret a été supprimé de votre patrimoine",
+      });
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -208,6 +244,28 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({ assets, onAdd
               defaultType="savings-account" 
               showTypeSelector={false}
             />
+          </DialogContent>
+        </Dialog>
+        
+        {/* Edit Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Modifier un livret d'épargne</DialogTitle>
+            </DialogHeader>
+            {editingAsset && (
+              <AssetForm 
+                onSubmit={handleUpdateAsset}
+                onCancel={() => {
+                  setEditDialogOpen(false);
+                  setEditingAsset(null);
+                }}
+                defaultType="savings-account"
+                initialValues={editingAsset}
+                isEditing={true}
+                showTypeSelector={false}
+              />
+            )}
           </DialogContent>
         </Dialog>
       </div>
@@ -281,7 +339,12 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({ assets, onAdd
       <div>
         <h2 className="text-xl font-semibold mb-4">Vos Livrets d'Épargne</h2>
         {assets.length > 0 ? (
-          <AssetsList assets={assets} title="Livrets d'épargne" />
+          <AssetsList 
+            assets={assets} 
+            title="Livrets d'épargne" 
+            onEdit={handleEditAsset}
+            onDelete={handleDeleteAsset}
+          />
         ) : (
           <div className="text-center py-12 bg-muted rounded-lg">
             <p className="text-lg text-muted-foreground mb-4">

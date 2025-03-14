@@ -15,12 +15,21 @@ import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelec
 interface StocksPageProps {
   assets: Asset[];
   onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+  onDeleteAsset?: (id: string) => void;
+  onUpdateAsset?: (id: string, asset: Partial<Asset>) => void;
 }
 
-const StocksPage: React.FC<StocksPageProps> = ({ assets, onAddAsset }) => {
+const StocksPage: React.FC<StocksPageProps> = ({ 
+  assets, 
+  onAddAsset,
+  onDeleteAsset,
+  onUpdateAsset
+}) => {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   
   // Calculate metrics
   const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
@@ -175,6 +184,33 @@ const StocksPage: React.FC<StocksPageProps> = ({ assets, onAddAsset }) => {
       description: `${newStock.name} a été ajouté à votre portefeuille`,
     });
   };
+  
+  const handleEditAsset = (asset: Asset) => {
+    setEditingAsset(asset);
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateAsset = (updatedAsset: Omit<Asset, 'id'>) => {
+    if (editingAsset && onUpdateAsset) {
+      onUpdateAsset(editingAsset.id, updatedAsset);
+      toast({
+        title: "Action modifiée",
+        description: `${updatedAsset.name} a été mise à jour`,
+      });
+      setEditDialogOpen(false);
+      setEditingAsset(null);
+    }
+  };
+
+  const handleDeleteAsset = (id: string) => {
+    if (onDeleteAsset) {
+      onDeleteAsset(id);
+      toast({
+        title: "Action supprimée",
+        description: "L'action a été supprimée de votre portefeuille",
+      });
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -200,6 +236,28 @@ const StocksPage: React.FC<StocksPageProps> = ({ assets, onAddAsset }) => {
               defaultType="stock" 
               showTypeSelector={false}
             />
+          </DialogContent>
+        </Dialog>
+        
+        {/* Edit Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Modifier une action</DialogTitle>
+            </DialogHeader>
+            {editingAsset && (
+              <AssetForm 
+                onSubmit={handleUpdateAsset}
+                onCancel={() => {
+                  setEditDialogOpen(false);
+                  setEditingAsset(null);
+                }}
+                defaultType="stock"
+                initialValues={editingAsset}
+                isEditing={true}
+                showTypeSelector={false}
+              />
+            )}
           </DialogContent>
         </Dialog>
       </div>
@@ -279,7 +337,12 @@ const StocksPage: React.FC<StocksPageProps> = ({ assets, onAddAsset }) => {
       <div>
         <h2 className="text-xl font-semibold mb-4">Vos Actions</h2>
         {assets.length > 0 ? (
-          <AssetsList assets={assets} title="Actions" />
+          <AssetsList 
+            assets={assets} 
+            title="Actions" 
+            onEdit={handleEditAsset}
+            onDelete={handleDeleteAsset}
+          />
         ) : (
           <div className="text-center py-12 bg-muted rounded-lg">
             <p className="text-lg text-muted-foreground mb-4">

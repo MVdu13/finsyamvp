@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BarChart3, ArrowUpRight, ArrowDownRight, ExternalLink } from 'lucide-react';
+import { BarChart3, ArrowUpRight, ArrowDownRight, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Asset } from '@/types/assets';
 import { formatCurrency } from '@/lib/formatters';
@@ -9,9 +9,17 @@ interface AssetsListProps {
   assets: Asset[];
   title: string;
   showActions?: boolean;
+  onEdit?: (asset: Asset) => void;
+  onDelete?: (assetId: string) => void;
 }
 
-const AssetsList: React.FC<AssetsListProps> = ({ assets, title, showActions = true }) => {
+const AssetsList: React.FC<AssetsListProps> = ({ 
+  assets, 
+  title, 
+  showActions = true,
+  onEdit,
+  onDelete
+}) => {
   return (
     <div className="wealth-card h-full flex flex-col">
       <div className="flex justify-between items-center mb-5">
@@ -43,6 +51,8 @@ const AssetsList: React.FC<AssetsListProps> = ({ assets, title, showActions = tr
                       asset.type === 'crypto' ? "bg-purple-100" : 
                       asset.type === 'real-estate' ? "bg-green-100" : 
                       asset.type === 'cash' ? "bg-gray-100" : 
+                      asset.type === 'bank-account' ? "bg-blue-100" :
+                      asset.type === 'savings-account' ? "bg-violet-100" :
                       "bg-orange-100"
                     )}>
                       <span className="font-medium text-sm">
@@ -71,6 +81,29 @@ const AssetsList: React.FC<AssetsListProps> = ({ assets, title, showActions = tr
                     </p>
                   </div>
                 </div>
+
+                {(onEdit || onDelete) && (
+                  <div className="mt-3 pt-3 border-t border-border flex justify-end gap-2">
+                    {onEdit && (
+                      <button 
+                        onClick={() => onEdit(asset)} 
+                        className="p-1.5 rounded-full hover:bg-muted transition-colors text-wealth-primary"
+                        title="Modifier"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button 
+                        onClick={() => onDelete(asset.id)} 
+                        className="p-1.5 rounded-full hover:bg-muted transition-colors text-red-500"
+                        title="Supprimer"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ))
           )}

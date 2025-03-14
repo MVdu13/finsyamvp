@@ -15,12 +15,21 @@ import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelec
 interface CryptoPageProps {
   assets: Asset[];
   onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+  onDeleteAsset?: (id: string) => void;
+  onUpdateAsset?: (id: string, asset: Partial<Asset>) => void;
 }
 
-const CryptoPage: React.FC<CryptoPageProps> = ({ assets, onAddAsset }) => {
+const CryptoPage: React.FC<CryptoPageProps> = ({ 
+  assets, 
+  onAddAsset,
+  onDeleteAsset,
+  onUpdateAsset
+}) => {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   
   // Filter crypto assets
   const cryptoAssets = assets.filter(asset => asset.type === 'crypto');
@@ -179,6 +188,33 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ assets, onAddAsset }) => {
       description: `${newCrypto.name} a été ajouté à votre portefeuille`,
     });
   };
+  
+  const handleEditAsset = (asset: Asset) => {
+    setEditingAsset(asset);
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateAsset = (updatedAsset: Omit<Asset, 'id'>) => {
+    if (editingAsset && onUpdateAsset) {
+      onUpdateAsset(editingAsset.id, updatedAsset);
+      toast({
+        title: "Crypto modifiée",
+        description: `${updatedAsset.name} a été mise à jour`,
+      });
+      setEditDialogOpen(false);
+      setEditingAsset(null);
+    }
+  };
+
+  const handleDeleteAsset = (id: string) => {
+    if (onDeleteAsset) {
+      onDeleteAsset(id);
+      toast({
+        title: "Crypto supprimée",
+        description: "La cryptomonnaie a été supprimée de votre portefeuille",
+      });
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -204,6 +240,28 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ assets, onAddAsset }) => {
               defaultType="crypto" 
               showTypeSelector={false}
             />
+          </DialogContent>
+        </Dialog>
+        
+        {/* Edit Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Modifier une cryptomonnaie</DialogTitle>
+            </DialogHeader>
+            {editingAsset && (
+              <AssetForm 
+                onSubmit={handleUpdateAsset}
+                onCancel={() => {
+                  setEditDialogOpen(false);
+                  setEditingAsset(null);
+                }}
+                defaultType="crypto"
+                initialValues={editingAsset}
+                isEditing={true}
+                showTypeSelector={false}
+              />
+            )}
           </DialogContent>
         </Dialog>
       </div>
@@ -283,7 +341,12 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ assets, onAddAsset }) => {
       <div>
         <h2 className="text-xl font-semibold mb-4">Vos Cryptomonnaies</h2>
         {cryptoAssets.length > 0 ? (
-          <AssetsList assets={cryptoAssets} title="Cryptomonnaies" />
+          <AssetsList 
+            assets={cryptoAssets} 
+            title="Cryptomonnaies" 
+            onEdit={handleEditAsset}
+            onDelete={handleDeleteAsset}
+          />
         ) : (
           <div className="text-center py-12 bg-muted rounded-lg">
             <p className="text-lg text-muted-foreground mb-4">
