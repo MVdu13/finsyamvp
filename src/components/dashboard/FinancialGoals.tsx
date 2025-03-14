@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Target, Clock, TrendingUp } from 'lucide-react';
 import { FinancialGoal } from '@/types/goals';
 import { formatCurrency } from '@/lib/formatters';
@@ -11,13 +11,16 @@ interface FinancialGoalsProps {
 }
 
 const FinancialGoals: React.FC<FinancialGoalsProps> = ({ goals, onAddGoal }) => {
-  // Charge les projets depuis localStorage
-  const getStoredProjects = (): FinancialGoal[] => {
+  // Load projects from localStorage
+  const [storedProjects, setStoredProjects] = useState<FinancialGoal[]>(goals);
+  
+  // Load projects on component mount
+  useEffect(() => {
     const savedProjects = localStorage.getItem('financial-projects');
-    return savedProjects ? JSON.parse(savedProjects) : goals;
-  };
-
-  const storedProjects = getStoredProjects();
+    if (savedProjects) {
+      setStoredProjects(JSON.parse(savedProjects));
+    }
+  }, []);
   
   return (
     <div className="wealth-card h-full flex flex-col">
