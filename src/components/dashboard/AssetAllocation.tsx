@@ -4,13 +4,19 @@ import DonutChart from '../charts/DonutChart';
 import { Info, Settings } from 'lucide-react';
 import { AssetAllocation as AssetAllocationType } from '@/types/assets';
 import { formatCurrency } from '@/lib/formatters';
+import { AssetCategoryFilter } from './NetWorthChart';
 
 interface AssetAllocationProps {
   allocation: AssetAllocationType;
   totalValue: number;
+  selectedCategory?: AssetCategoryFilter;
 }
 
-const AssetAllocation: React.FC<AssetAllocationProps> = ({ allocation, totalValue }) => {
+const AssetAllocation: React.FC<AssetAllocationProps> = ({ 
+  allocation, 
+  totalValue,
+  selectedCategory = 'all'
+}) => {
   const chartData = {
     labels: Object.keys(allocation).map(key => {
       switch(key) {
@@ -36,11 +42,19 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ allocation, totalValu
     ],
   };
 
+  // Generate title based on selected category
+  let title = 'Allocation d\'actifs';
+  if (selectedCategory === 'assets') {
+    title = 'Allocation d\'actifs financiers';
+  } else if (selectedCategory === 'liabilities') {
+    title = 'Allocation des passifs';
+  }
+
   return (
     <div className="wealth-card h-full flex flex-col">
       <div className="flex justify-between items-center mb-5">
         <div>
-          <h3 className="text-lg font-medium">Allocation d'actifs</h3>
+          <h3 className="text-lg font-medium">{title}</h3>
           <p className="text-sm text-muted-foreground">Valeur totale: {formatCurrency(totalValue)}</p>
         </div>
         

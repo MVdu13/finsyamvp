@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import NetWorthChart from '@/components/dashboard/NetWorthChart';
+import NetWorthChart, { AssetCategoryFilter } from '@/components/dashboard/NetWorthChart';
 import AssetAllocation from '@/components/dashboard/AssetAllocation';
 import FinancialGoals from '@/components/dashboard/FinancialGoals';
 import AssetsList from '@/components/assets/AssetsList';
@@ -9,7 +9,6 @@ import { mockGoals } from '@/lib/mockData';
 import AssetForm from '@/components/assets/AssetForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TimeFrame } from '@/components/charts/TimeFrameSelector';
 
 interface DashboardProps {
   assets: Asset[];
@@ -34,43 +33,68 @@ const Dashboard: React.FC<DashboardProps> = ({
   // State for asset type tabs
   const [assetTypeTab, setAssetTypeTab] = useState<AssetType>('stock');
   
-  // Calculate total value from all assets
-  const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
+  // State for asset category filter
+  const [assetCategoryFilter, setAssetCategoryFilter] = useState<AssetCategoryFilter>('all');
   
-  // Calculate asset allocation from assets, combining bank and savings accounts as "liquidity"
+  // Filter assets based on selected category
+  const filteredAssets = assets.filter(asset => {
+    if (assetCategoryFilter === 'all') return true;
+    
+    if (assetCategoryFilter === 'assets') {
+      // Include all financial assets except main/secondary residences
+      if (asset.type === 'real-estate') {
+        return !(asset.usageType === 'main' || asset.usageType === 'secondary');
+      }
+      // Include all other financial assets
+      return asset.type !== 'bank-account' && asset.type !== 'savings-account';
+    }
+    
+    if (assetCategoryFilter === 'liabilities') {
+      // Include bank accounts, savings accounts, and main/secondary residences
+      if (asset.type === 'real-estate') {
+        return asset.usageType === 'main' || asset.usageType === 'secondary';
+      }
+      return asset.type === 'bank-account' || asset.type === 'savings-account';
+    }
+    
+    return true;
+  });
+  
+  // Calculate total value from filtered assets
+  const totalValue = filteredAssets.reduce((sum, asset) => sum + asset.value, 0);
+  
+  // Calculate asset allocation from filtered assets
   const currentAllocation = {
-    stocks: assets.filter(asset => asset.type === 'stock').reduce((sum, asset) => sum + asset.value, 0),
-    realEstate: assets.filter(asset => asset.type === 'real-estate').reduce((sum, asset) => sum + asset.value, 0),
-    crypto: assets.filter(asset => asset.type === 'crypto').reduce((sum, asset) => sum + asset.value, 0),
-    cash: assets.filter(asset => 
+    stocks: filteredAssets.filter(asset => asset.type === 'stock').reduce((sum, asset) => sum + asset.value, 0),
+    realEstate: filteredAssets.filter(asset => asset.type === 'real-estate').reduce((sum, asset) => sum + asset.value, 0),
+    crypto: filteredAssets.filter(asset => asset.type === 'crypto').reduce((sum, asset) => sum + asset.value, 0),
+    cash: filteredAssets.filter(asset => 
       asset.type === 'cash' || 
       asset.type === 'bank-account' || 
       asset.type === 'savings-account'
     ).reduce((sum, asset) => sum + asset.value, 0),
-    bonds: assets.filter(asset => asset.type === 'bonds').reduce((sum, asset) => sum + asset.value, 0),
-    commodities: assets.filter(asset => asset.type === 'commodities').reduce((sum, asset) => sum + asset.value, 0),
-    other: assets.filter(asset => asset.type === 'other').reduce((sum, asset) => sum + asset.value, 0),
+    bonds: filteredAssets.filter(asset => asset.type === 'bonds').reduce((sum, asset) => sum + asset.value, 0),
+    commodities: filteredAssets.filter(asset => asset.type === 'commodities').reduce((sum, asset) => sum + asset.value, 0),
+    other: filteredAssets.filter(asset => asset.type === 'other').reduce((sum, asset) => sum + asset.value, 0),
   };
   
-  // Générer des données d'historique basées sur la date actuelle
+  // Generate history data based on filtered assets
   const generateHistoryData = () => {
     const currentDate = new Date();
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
     
-    // Créer un tableau de labels pour les 12 derniers mois jusqu'à aujourd'hui
+    // Create array of labels for the last 12 months up to today
     const dates = Array.from({ length: 12 }, (_, i) => {
       const date = new Date();
       date.setMonth(currentDate.getMonth() - (11 - i));
       return `${months[date.getMonth()]} ${date.getFullYear()}`;
     });
     
-    // Utiliser la valeur totale actuelle pour générer un historique cohérent
-    // Le patrimoine actuel correspond au dernier mois
+    // Use the current total value to generate a coherent history
     const baseValue = totalValue > 0 ? totalValue : 1000;
-    const factor = baseValue / 1000;
     
-    // Générer des valeurs progressives mais cohérentes avec la valeur finale
-    // Simuler une croissance plus réaliste
+    // Generate progressive but coherent values with the final value
+    // Simulate more realistic growth
     const growthFactors = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.98, 1.0];
     const values = growthFactors.map(factor => Math.round(baseValue * factor));
     
@@ -86,8 +110,8 @@ const Dashboard: React.FC<DashboardProps> = ({
     ? parseFloat(((lastValue - firstValue) / firstValue * 100).toFixed(1))
     : 0;
   
-  // Get only the 3 most valuable assets for the quick view
-  const topAssets = [...assets].sort((a, b) => b.value - a.value).slice(0, 3);
+  // Get only the 3 most valuable assets from filtered assets for the quick view
+  const topAssets = [...filteredAssets].sort((a, b) => b.value - a.value).slice(0, 3);
 
   const handleAddAsset = (asset: Omit<Asset, 'id'>) => {
     onAddAsset(asset);
@@ -176,6 +200,8 @@ const Dashboard: React.FC<DashboardProps> = ({
             data={netWorthHistory} 
             currentNetWorth={totalValue}
             periodGrowth={periodGrowth}
+            selectedCategory={assetCategoryFilter}
+            onCategoryChange={setAssetCategoryFilter}
           />
         </div>
         

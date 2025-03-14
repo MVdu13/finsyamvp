@@ -6,17 +6,25 @@ import { NetWorthHistory } from '@/types/assets';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '../charts/TimeFrameSelector';
 import { Button } from '../ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+
+// Asset category filter types
+export type AssetCategoryFilter = 'all' | 'assets' | 'liabilities';
 
 interface NetWorthChartProps {
   data: NetWorthHistory;
   currentNetWorth: number;
   periodGrowth: number;
+  onCategoryChange?: (category: AssetCategoryFilter) => void;
+  selectedCategory?: AssetCategoryFilter;
 }
 
 const NetWorthChart: React.FC<NetWorthChartProps> = ({ 
   data, 
   currentNetWorth,
-  periodGrowth
+  periodGrowth,
+  onCategoryChange,
+  selectedCategory = 'all'
 }) => {
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [chartType, setChartType] = useState<'line' | 'bar'>('line');
@@ -55,7 +63,7 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
     }
     
     return {
-      labels: filteredDates, // Changed from data.labels to filteredDates
+      labels: filteredDates,
       datasets: [
         {
           label: 'Valeur nette',
@@ -76,6 +84,13 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
     ? parseFloat(((filteredLastValue - filteredFirstValue) / filteredFirstValue * 100).toFixed(1))
     : 0;
 
+  // Handler for category filter change
+  const handleCategoryChange = (value: string) => {
+    if (onCategoryChange) {
+      onCategoryChange(value as AssetCategoryFilter);
+    }
+  };
+
   return (
     <div className="wealth-card">
       <div className="flex justify-between items-center mb-6">
@@ -91,6 +106,18 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
+          {/* Asset Category Filter */}
+          <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Catégorie" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Patrimoine global</SelectItem>
+              <SelectItem value="assets">Actifs financiers</SelectItem>
+              <SelectItem value="liabilities">Passifs</SelectItem>
+            </SelectContent>
+          </Select>
+          
           <TimeFrameSelector 
             selectedTimeFrame={timeFrame} 
             onTimeFrameChange={setTimeFrame} 
