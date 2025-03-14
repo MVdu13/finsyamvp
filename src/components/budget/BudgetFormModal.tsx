@@ -18,6 +18,7 @@ interface BudgetFormModalProps {
   onSave: (item: Income | Expense) => void;
   type: BudgetItemType;
   editItem?: Income | Expense;
+  expenseType?: 'fixed' | 'variable'; // Add this prop to the interface
 }
 
 const BudgetFormModal: React.FC<BudgetFormModalProps> = ({
@@ -25,7 +26,8 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({
   onClose,
   onSave,
   type,
-  editItem
+  editItem,
+  expenseType: initialExpenseType // Rename to avoid conflict with state
 }) => {
   const [name, setName] = useState(editItem ? editItem.name : '');
   const [amount, setAmount] = useState(editItem ? editItem.amount.toString() : '');
@@ -41,7 +43,7 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({
     type === 'expense' && editItem ? (editItem as Expense).essential : false
   );
   const [expenseType, setExpenseType] = useState<'fixed' | 'variable'>(
-    type === 'expense' && editItem ? (editItem as Expense).type : 'fixed'
+    initialExpenseType || (type === 'expense' && editItem ? (editItem as Expense).type : 'fixed')
   );
 
   const handleSubmit = (e: React.FormEvent) => {
