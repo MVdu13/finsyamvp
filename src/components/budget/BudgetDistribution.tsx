@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Budget } from '@/types/budget';
 import DonutChart from '@/components/charts/DonutChart';
 import { formatCurrency } from '@/lib/formatters';
-import { mockGoals } from '@/lib/mockData';
+import { FinancialGoal } from '@/types/goals';
 
 interface BudgetDistributionProps {
   budget: Budget;
@@ -14,6 +14,16 @@ const BudgetDistribution: React.FC<BudgetDistributionProps> = ({
   budget, 
   savingsAccountsTotal = 15000 // Default value if not provided
 }) => {
+  const [projects, setProjects] = useState<FinancialGoal[]>([]);
+  
+  // Load projects from localStorage on component mount and when component updates
+  useEffect(() => {
+    const savedProjects = localStorage.getItem('financial-projects');
+    if (savedProjects) {
+      setProjects(JSON.parse(savedProjects));
+    }
+  }, []);
+  
   // Calculate total for fixed and variable expenses
   const fixedExpenses = budget.expenses
     .filter(expense => expense.type === 'fixed')
@@ -23,8 +33,8 @@ const BudgetDistribution: React.FC<BudgetDistributionProps> = ({
     .filter(expense => expense.type === 'variable')
     .reduce((sum, expense) => sum + expense.amount, 0);
   
-  // Calculate total monthly contribution for projects from mockGoals
-  const monthlyProjectsContribution = mockGoals.reduce(
+  // Calculate total monthly contribution for projects from localStorage
+  const monthlyProjectsContribution = projects.reduce(
     (sum, goal) => sum + goal.monthlyContribution, 
     0
   );

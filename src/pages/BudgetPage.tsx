@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { mockBudget, mockGoals } from '@/lib/mockData';
+import React, { useState, useEffect } from 'react';
+import { mockBudget } from '@/lib/mockData';
 import BudgetOverview from '@/components/budget/BudgetOverview';
 import BudgetDistribution from '@/components/budget/BudgetDistribution';
 import SecurityCushion from '@/components/budget/SecurityCushion';
@@ -16,6 +16,7 @@ import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Asset } from '@/types/assets';
 import { mockAssets } from '@/lib/mockData';
+import { FinancialGoal } from '@/types/goals';
 
 const BudgetPage = () => {
   const initialBudget = {
@@ -35,6 +36,15 @@ const BudgetPage = () => {
   );
   
   const [budget, setBudget] = useState<Budget>({...initialBudget});
+  const [projects, setProjects] = useState<FinancialGoal[]>([]);
+  
+  // Load projects from localStorage
+  useEffect(() => {
+    const savedProjects = localStorage.getItem('financial-projects');
+    if (savedProjects) {
+      setProjects(JSON.parse(savedProjects));
+    }
+  }, []);
   
   const [savingsAccountsTotal, setSavingsAccountsTotal] = useState(savingsAccountsDefaultTotal);
   const [riskProfile, setRiskProfile] = useState<'high' | 'medium' | 'low'>('medium');
@@ -59,7 +69,8 @@ const BudgetPage = () => {
   const totalFixedExpenses = fixedExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   const totalVariableExpenses = variableExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   
-  const monthlyProjectsContribution = mockGoals.reduce(
+  // Calculate monthly project contribution from localStorage projects
+  const monthlyProjectsContribution = projects.reduce(
     (sum, goal) => sum + goal.monthlyContribution, 
     0
   );
