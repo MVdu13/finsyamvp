@@ -39,16 +39,17 @@ const Index = () => {
     });
   };
   
-  const updateAsset = (updatedAsset: Asset) => {
+  // Updated to match the expected signature (id: string, asset: Partial<Asset>)
+  const updateAsset = (id: string, updatedAssetData: Partial<Asset>) => {
     setAssets(prevAssets => 
       prevAssets.map(asset => 
-        asset.id === updatedAsset.id ? updatedAsset : asset
+        asset.id === id ? { ...asset, ...updatedAssetData } : asset
       )
     );
     
     toast({
       title: "Actif mis à jour",
-      description: `${updatedAsset.name} a été mis à jour avec succès.`
+      description: `L'actif a été mis à jour avec succès.`
     });
   };
   
@@ -74,7 +75,9 @@ const Index = () => {
                  assets={assets} 
                  onAddAsset={addAsset} 
                  navigateTo={setActiveItem} 
-                 openProjectsPage={openProjectsPage} 
+                 openProjectsPage={openProjectsPage}
+                 onDeleteAsset={deleteAsset}
+                 onUpdateAsset={updateAsset} 
                />;
       case 'assets':
         return <AssetsPage 
