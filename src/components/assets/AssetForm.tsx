@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Asset, AssetType } from '@/types/assets';
-import { X, Banknote, Wallet, BookText } from 'lucide-react';
+import { X, Banknote, Wallet, BookText, Home } from 'lucide-react';
 import { CryptoInfo } from '@/services/cryptoService';
 import TypeSelector from './form/TypeSelector';
 import CommonFormFields from './form/CommonFormFields';
@@ -37,8 +38,19 @@ const AssetForm: React.FC<AssetFormProps> = ({
   
   const [ticker, setTicker] = useState('');
   const [shares, setShares] = useState('');
+  
+  // Real Estate Fields
   const [address, setAddress] = useState('');
   const [surface, setSurface] = useState('');
+  const [propertyType, setPropertyType] = useState('apartment');
+  const [usageType, setUsageType] = useState('main');
+  const [currentValue, setCurrentValue] = useState('');
+  const [propertyTax, setPropertyTax] = useState('');
+  const [housingTax, setHousingTax] = useState('');
+  const [annualRent, setAnnualRent] = useState('');
+  const [annualFees, setAnnualFees] = useState('');
+  const [annualCharges, setAnnualCharges] = useState('');
+  
   const [cryptoQty, setCryptoQty] = useState('');
   const [cryptoPrice, setCryptoPrice] = useState('');
   
@@ -68,12 +80,31 @@ const AssetForm: React.FC<AssetFormProps> = ({
           setCryptoPrice(match[2]);
         }
       } 
-      else if (initialValues.type === 'real-estate' && desc.includes('m²')) {
-        const match = desc.match(/(\d+\.?\d*) m² - (.*)/);
-        if (match) {
-          setSurface(match[1]);
-          setAddress(match[2]);
-        }
+      else if (initialValues.type === 'real-estate') {
+        // Parse real estate data
+        const parts = desc.split(' | ');
+        parts.forEach(part => {
+          if (part.startsWith('Surface: ')) {
+            setSurface(part.replace('Surface: ', '').replace(' m²', ''));
+          } else if (part.startsWith('Type: ')) {
+            setPropertyType(part.replace('Type: ', ''));
+          } else if (part.startsWith('Usage: ')) {
+            setUsageType(part.replace('Usage: ', ''));
+          } else if (part.startsWith('Taxe foncière: ')) {
+            setPropertyTax(part.replace('Taxe foncière: ', '').replace('€/an', ''));
+          } else if (part.startsWith('Taxe habitation: ')) {
+            setHousingTax(part.replace('Taxe habitation: ', '').replace('€/an', ''));
+          } else if (part.startsWith('Loyer: ')) {
+            setAnnualRent(part.replace('Loyer: ', '').replace('€/an', ''));
+          } else if (part.startsWith('Frais: ')) {
+            setAnnualFees(part.replace('Frais: ', '').replace('€/an', ''));
+          } else if (part.startsWith('Charges: ')) {
+            setAnnualCharges(part.replace('Charges: ', '').replace('€/an', ''));
+          }
+        });
+        
+        setAddress(initialValues.name);
+        setCurrentValue(initialValues.value.toString());
       } 
       else if (initialValues.type === 'bank-account') {
         const bankDetails = desc.split(' - ');
@@ -130,6 +161,13 @@ const AssetForm: React.FC<AssetFormProps> = ({
     }
   }, [initialValues]);
 
+  // When property type or current value changes, update the main value field
+  useEffect(() => {
+    if (type === 'real-estate' && currentValue) {
+      setValue(currentValue);
+    }
+  }, [type, currentValue]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -138,6 +176,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
       finalName = `${bankName} - ${accountName}`;
     } else if (type === 'savings-account' && savingsBankName && savingsAccountName) {
       finalName = `${savingsBankName} - ${savingsAccountName}`;
+    } else if (type === 'real-estate') {
+      finalName = address;
     }
     
     let finalDescription = description;
@@ -146,12 +186,26 @@ const AssetForm: React.FC<AssetFormProps> = ({
         finalDescription = `${shares} actions à ${parseFloat(value) / parseFloat(shares)}€`;
       } else if (type === 'crypto') {
         finalDescription = `${cryptoQty} unités à ${cryptoPrice}€`;
-      } else if (type === 'real-estate') {
-        finalDescription = `${surface} m² - ${address}`;
       } else if (type === 'bank-account') {
         finalDescription = `Banque: ${bankName} - Compte: ${accountName}`;
       } else if (type === 'savings-account') {
         finalDescription = `Banque: ${savingsBankName} - Livret: ${savingsAccountName} - Taux: ${interestRate}%`;
+      } else if (type === 'real-estate') {
+        const descParts = [`Type: ${propertyType}`, `Usage: ${usageType}`, `Surface: ${surface} m²`];
+        
+        if (usageType === 'main' || usageType === 'secondary') {
+          descParts.push(`Taxe foncière: ${propertyTax}€/an`);
+          if (usageType === 'secondary' && housingTax) {
+            descParts.push(`Taxe habitation: ${housingTax}€/an`);
+          }
+        } else if (usageType === 'rental') {
+          descParts.push(`Taxe foncière: ${propertyTax}€/an`);
+          if (annualRent) descParts.push(`Loyer: ${annualRent}€/an`);
+          if (annualFees) descParts.push(`Frais: ${annualFees}€/an`);
+          if (annualCharges) descParts.push(`Charges: ${annualCharges}€/an`);
+        }
+        
+        finalDescription = descParts.join(' | ');
       }
     }
     
@@ -184,6 +238,14 @@ const AssetForm: React.FC<AssetFormProps> = ({
       setShares('');
       setAddress('');
       setSurface('');
+      setPropertyType('apartment');
+      setUsageType('main');
+      setCurrentValue('');
+      setPropertyTax('');
+      setHousingTax('');
+      setAnnualRent('');
+      setAnnualFees('');
+      setAnnualCharges('');
       setCryptoQty('');
       setCryptoPrice('');
       setBankName('');
@@ -211,8 +273,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
 
   const getFormIcon = () => {
     switch (type) {
-      case 'bank-account': return <Wallet size={24} className="text-blue-500" />;
-      case 'savings-account': return <BookText size={24} className="text-purple-500" />;
+      case 'bank-account': return <Wallet size={24} className="text-[#FA5003]" />;
+      case 'savings-account': return <BookText size={24} className="text-[#FA5003]" />;
+      case 'real-estate': return <Home size={24} className="text-[#FA5003]" />;
       default: return null;
     }
   };
@@ -268,8 +331,24 @@ const AssetForm: React.FC<AssetFormProps> = ({
           <RealEstateFormFields
             address={address}
             surface={surface}
+            propertyType={propertyType}
+            usageType={usageType}
+            currentValue={currentValue}
+            propertyTax={propertyTax}
+            housingTax={housingTax}
+            annualRent={annualRent}
+            annualFees={annualFees}
+            annualCharges={annualCharges}
             setAddress={setAddress}
             setSurface={setSurface}
+            setPropertyType={setPropertyType}
+            setUsageType={setUsageType}
+            setCurrentValue={setCurrentValue}
+            setPropertyTax={setPropertyTax}
+            setHousingTax={setHousingTax}
+            setAnnualRent={setAnnualRent}
+            setAnnualFees={setAnnualFees}
+            setAnnualCharges={setAnnualCharges}
           />
         );
       case 'bank-account':
@@ -317,7 +396,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
           <TypeSelector type={type} setType={setType} />
         )}
         
-        {type !== 'bank-account' && type !== 'savings-account' && (
+        {type !== 'bank-account' && type !== 'savings-account' && type !== 'real-estate' && (
           <CommonFormFields
             name={name}
             value={value}

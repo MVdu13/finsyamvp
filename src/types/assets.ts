@@ -27,6 +27,16 @@ export interface Asset {
   description?: string;
   createdAt?: string;
   updatedAt?: string;
+  
+  // Real estate specific properties
+  propertyType?: 'apartment' | 'house' | 'building' | 'commercial' | 'land' | 'other';
+  usageType?: 'main' | 'secondary' | 'rental';
+  surface?: number;
+  propertyTax?: number;
+  housingTax?: number;
+  annualRent?: number;
+  annualFees?: number;
+  annualCharges?: number;
 }
 
 // Add the AssetAllocation type that was referenced but missing
