@@ -134,11 +134,11 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
   const getCategoryTooltipText = (category: AssetCategoryFilter) => {
     switch (category) {
       case 'assets':
-        return "Les actifs financiers représentent l'ensemble de vos investissements et placements qui génèrent ou sont susceptibles de générer de la valeur (actions, crypto, immobilier locatif, etc.).";
+        return "Les actifs financiers représentent uniquement vos placements financiers (actions, crypto, immobilier locatif, etc.) qui sont susceptibles de générer du rendement.";
       case 'liabilities':
-        return "Les passifs regroupent vos dettes et obligations financières (emprunts immobiliers, crédits à la consommation, etc.) ainsi que votre résidence principale et secondaire.";
+        return "Les passifs regroupent vos comptes bancaires ainsi que votre résidence principale et secondaire qui ne sont pas louées, et donc ne génèrent pas de revenus.";
       case 'all':
-        return "Le patrimoine global représente la totalité de vos actifs financiers moins vos passifs, donnant ainsi une vue d'ensemble de votre richesse nette.";
+        return "Le patrimoine global représente l'ensemble de votre fortune, comprenant la totalité de votre argent et de vos investissements, donnant ainsi une vue complète de votre situation financière.";
     }
   };
 
