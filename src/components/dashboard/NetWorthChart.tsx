@@ -1,13 +1,19 @@
 
 import React, { useState } from 'react';
 import LineChart from '../charts/LineChart';
-import { BarChart3, Download } from 'lucide-react';
+import { BarChart3, Download, Info } from 'lucide-react';
 import { NetWorthHistory } from '@/types/assets';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '../charts/TimeFrameSelector';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger 
+} from '../ui/tooltip';
 
 // Asset category filter types
 export type AssetCategoryFilter = 'all' | 'assets' | 'liabilities';
@@ -124,6 +130,18 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
     }
   };
 
+  // Category tooltip descriptions
+  const getCategoryTooltipText = (category: AssetCategoryFilter) => {
+    switch (category) {
+      case 'assets':
+        return "Les actifs financiers représentent l'ensemble de vos investissements et placements qui génèrent ou sont susceptibles de générer de la valeur (actions, crypto, immobilier locatif, etc.).";
+      case 'liabilities':
+        return "Les passifs regroupent vos dettes et obligations financières (emprunts immobiliers, crédits à la consommation, etc.) ainsi que votre résidence principale et secondaire.";
+      case 'all':
+        return "Le patrimoine global représente la totalité de vos actifs financiers moins vos passifs, donnant ainsi une vue d'ensemble de votre richesse nette.";
+    }
+  };
+
   return (
     <div className="wealth-card">
       <div className="flex justify-between items-center mb-6">
@@ -139,17 +157,54 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
-          {/* Asset Category Filter - Made more prominent */}
-          <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="w-[180px] font-medium border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <SelectValue placeholder="Catégorie">{getCategoryLabel()}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Patrimoine global</SelectItem>
-              <SelectItem value="assets">Actifs financiers</SelectItem>
-              <SelectItem value="liabilities">Passifs</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Asset Category Filter with tooltip */}
+          <div className="flex items-center">
+            <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+              <SelectTrigger className="w-[180px] font-medium border-2 border-primary/20 hover:border-primary/40 transition-colors">
+                <SelectValue placeholder="Catégorie">{getCategoryLabel()}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  <div className="flex items-center">
+                    Patrimoine global
+                  </div>
+                </SelectItem>
+                <SelectItem value="assets">
+                  <div className="flex items-center">
+                    Actifs financiers
+                  </div>
+                </SelectItem>
+                <SelectItem value="liabilities">
+                  <div className="flex items-center">
+                    Passifs
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 p-0 ml-1">
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                    <span className="sr-only">Informations sur la catégorie</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs bg-white shadow-md border border-gray-200">
+                  <div className="text-sm">
+                    <p className="font-medium mb-1">Patrimoine global</p>
+                    <p className="text-muted-foreground mb-2">{getCategoryTooltipText('all')}</p>
+                    
+                    <p className="font-medium mb-1">Actifs financiers</p>
+                    <p className="text-muted-foreground mb-2">{getCategoryTooltipText('assets')}</p>
+                    
+                    <p className="font-medium mb-1">Passifs</p>
+                    <p className="text-muted-foreground">{getCategoryTooltipText('liabilities')}</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           
           <TimeFrameSelector 
             selectedTimeFrame={timeFrame} 
