@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Wallet, TrendingUp, TrendingDown, Plus, AlertCircle } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -303,7 +304,7 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
                   <TooltipContent className="max-w-xs">
                     <p className="text-sm">
                       Ce ratio indique la proportion de votre patrimoine global qui est disponible en liquidités sur vos comptes bancaires. 
-                      Un ratio trop élevé (>30%) suggère que vous pourriez diversifier ou investir davantage.
+                      Un ratio trop élevé (&gt;30%) suggère que vous pourriez diversifier ou investir davantage.
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -381,4 +382,3 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
 };
 
 export default BankAccountsPage;
-
