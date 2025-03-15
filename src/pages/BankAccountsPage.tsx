@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Wallet, TrendingUp, TrendingDown, Plus } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, Plus, AlertCircle } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
 import { Asset, AssetType } from '@/types/assets';
@@ -8,21 +7,29 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LineChartComponent from '@/components/charts/LineChart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, formatPercentage } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 interface BankAccountsPageProps {
   assets: Asset[];
   onAddAsset: (asset: Omit<Asset, 'id'>) => void;
   onDeleteAsset?: (id: string) => void;
   onUpdateAsset?: (id: string, asset: Partial<Asset>) => void;
+  totalWealth?: number;
 }
 
 const BankAccountsPage: React.FC<BankAccountsPageProps> = ({ 
   assets, 
   onAddAsset,
   onDeleteAsset,
-  onUpdateAsset
+  onUpdateAsset,
+  totalWealth = 0
 }) => {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -33,7 +40,13 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
   // Calculate metrics
   const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
   
-  // Générer un historique pour les comptes bancaires
+  // Calculate the ratio of bank accounts to total wealth
+  const bankAccountRatio = totalWealth > 0 ? (totalValue / totalWealth) * 100 : 0;
+  
+  // Determine if the ratio is too high (greater than 30%)
+  const isRatioTooHigh = bankAccountRatio > 30;
+  
+  // Generate chart data
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
     
@@ -280,14 +293,36 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Solde Moyen</CardTitle>
+            <CardTitle className="flex items-center gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">Ratio Liquidité/Patrimoine</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <AlertCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-sm">
+                      Ce ratio indique la proportion de votre patrimoine global qui est disponible en liquidités sur vos comptes bancaires. 
+                      Un ratio trop élevé (>30%) suggère que vous pourriez diversifier ou investir davantage.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {assets.length > 0 ? formatCurrency(totalValue / assets.length) : formatCurrency(0)}
+            <div className={`text-2xl font-bold ${isRatioTooHigh ? 'text-amber-600' : 'text-green-600'}`}>
+              {formatPercentage(bankAccountRatio)}
             </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Par compte bancaire
+            <div className={`text-xs mt-1 ${isRatioTooHigh ? 'text-amber-600' : 'text-green-600'}`}>
+              {isRatioTooHigh ? (
+                <span className="flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  Trop de liquidités, pensez à investir
+                </span>
+              ) : (
+                "Ratio équilibré"
+              )}
             </div>
           </CardContent>
         </Card>
@@ -346,3 +381,4 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
 };
 
 export default BankAccountsPage;
+

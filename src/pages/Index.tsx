@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import Dashboard from './Dashboard';
@@ -22,6 +23,9 @@ const Index = () => {
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
+
+  // Calculate the total wealth (value of all assets)
+  const totalWealth = assets.reduce((sum, asset) => sum + asset.value, 0);
 
   const addAsset = (newAsset: Omit<Asset, 'id'>) => {
     const asset = {
@@ -128,6 +132,7 @@ const Index = () => {
                 onAddAsset={addAsset}
                 onUpdateAsset={updateAsset}
                 onDeleteAsset={deleteAsset}
+                totalWealth={totalWealth} // Pass the total wealth to calculate the ratio
                />;
       case 'savings-accounts':
         return <SavingsAccountsPage 
