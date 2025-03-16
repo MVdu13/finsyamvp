@@ -26,7 +26,7 @@ const BudgetPage = () => {
   };
   
   // Get all assets for calculations
-  const [assets, setAssets] = useState(mockAssets);
+  const [assets, setAssets] = useState<Asset[]>(mockAssets);
   
   // Calculate the total of savings accounts
   const calculateSavingsTotal = () => {
@@ -38,37 +38,56 @@ const BudgetPage = () => {
   const [budget, setBudget] = useState<Budget>({...initialBudget});
   const [projects, setProjects] = useState<FinancialGoal[]>([]);
   
-  // Load projects from localStorage
+  // Load projects and assets from localStorage and listen for changes
   useEffect(() => {
-    const savedProjects = localStorage.getItem('financial-projects');
-    if (savedProjects) {
-      setProjects(JSON.parse(savedProjects));
-    }
-    
-    // Listen for changes in localStorage for assets (when modified in other pages)
-    const handleStorageChange = () => {
+    // Function to load assets from localStorage
+    const loadAssetsFromStorage = () => {
       const storedAssets = localStorage.getItem('financial-assets');
       if (storedAssets) {
         setAssets(JSON.parse(storedAssets));
       }
     };
     
+    // Load projects from localStorage
+    const savedProjects = localStorage.getItem('financial-projects');
+    if (savedProjects) {
+      setProjects(JSON.parse(savedProjects));
+    }
+    
+    // Initial load of assets
+    loadAssetsFromStorage();
+    
+    // Listen for storage events to update assets when they change in other pages
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'financial-assets') {
+        loadAssetsFromStorage();
+      }
+    };
+    
     window.addEventListener('storage', handleStorageChange);
     
-    // Check for initial localStorage assets
-    const storedAssets = localStorage.getItem('financial-assets');
-    if (storedAssets) {
-      setAssets(JSON.parse(storedAssets));
-    }
+    // Check every second for changes in localStorage
+    const intervalId = setInterval(() => {
+      loadAssetsFromStorage();
+    }, 1000);
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      clearInterval(intervalId);
     };
   }, []);
   
   // Current savings accounts total
   const savingsAccountsTotal = calculateSavingsTotal();
   const [riskProfile, setRiskProfile] = useState<'high' | 'medium' | 'low'>('medium');
+  
+  // Load risk profile from localStorage on mount
+  useEffect(() => {
+    const savedRiskProfile = localStorage.getItem('security-cushion-risk-profile');
+    if (savedRiskProfile && (savedRiskProfile === 'high' || savedRiskProfile === 'medium' || savedRiskProfile === 'low')) {
+      setRiskProfile(savedRiskProfile as 'high' | 'medium' | 'low');
+    }
+  }, []);
   
   const [incomeFormOpen, setIncomeFormOpen] = useState(false);
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);

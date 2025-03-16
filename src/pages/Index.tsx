@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import Dashboard from './Dashboard';
 import AssetsPage from './AssetsPage';
@@ -19,6 +19,21 @@ const Index = () => {
   const [activeItem, setActiveItem] = useState('dashboard');
   const [assets, setAssets] = useState<Asset[]>(mockAssets);
   const { toast } = useToast();
+
+  // Load assets from localStorage on initial load
+  useEffect(() => {
+    const storedAssets = localStorage.getItem('financial-assets');
+    if (storedAssets) {
+      setAssets(JSON.parse(storedAssets));
+    }
+  }, []);
+
+  // Update localStorage whenever assets change
+  useEffect(() => {
+    localStorage.setItem('financial-assets', JSON.stringify(assets));
+    // Create a storage event to notify other components that assets have changed
+    window.dispatchEvent(new Event('storage'));
+  }, [assets]);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
