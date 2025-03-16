@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { mockBudget } from '@/lib/mockData';
+import { mockBudget, mockAssets } from '@/lib/mockData';
 import BudgetOverview from '@/components/budget/BudgetOverview';
 import BudgetDistribution from '@/components/budget/BudgetDistribution';
 import SecurityCushion from '@/components/budget/SecurityCushion';
@@ -15,7 +14,6 @@ import { Budget, Income, Expense } from '@/types/budget';
 import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Asset } from '@/types/assets';
-import { mockAssets } from '@/lib/mockData';
 import { FinancialGoal } from '@/types/goals';
 
 const BudgetPage = () => {
@@ -27,10 +25,11 @@ const BudgetPage = () => {
     }))
   };
   
-  const savingsAccountsAssets = mockAssets.filter(
+  // Get all bank and savings accounts for the security cushion
+  const liquidAssets = mockAssets.filter(
     asset => asset.type === 'savings-account' || asset.type === 'bank-account'
   );
-  const savingsAccountsDefaultTotal = savingsAccountsAssets.reduce(
+  const liquidAssetsTotal = liquidAssets.reduce(
     (sum, asset) => sum + asset.value, 
     0
   );
@@ -46,7 +45,8 @@ const BudgetPage = () => {
     }
   }, []);
   
-  const [savingsAccountsTotal, setSavingsAccountsTotal] = useState(savingsAccountsDefaultTotal);
+  // Use the total of liquid assets (bank + savings accounts) for the security cushion
+  const [savingsAccountsTotal, setSavingsAccountsTotal] = useState(liquidAssetsTotal);
   const [riskProfile, setRiskProfile] = useState<'high' | 'medium' | 'low'>('medium');
   
   const [incomeFormOpen, setIncomeFormOpen] = useState(false);
@@ -230,16 +230,8 @@ const BudgetPage = () => {
             targetAmount={targetAmount}
             expenseAmount={monthlyExpenses}
             riskProfile={riskProfile}
+            onEditClick={() => setCushionFormOpen(true)}
           />
-          
-          <div className="mt-4 text-right">
-            <button
-              className="wealth-btn wealth-btn-secondary flex items-center gap-2 ml-auto"
-              onClick={() => setCushionFormOpen(true)}
-            >
-              Modifier mon matelas
-            </button>
-          </div>
         </div>
       </div>
       

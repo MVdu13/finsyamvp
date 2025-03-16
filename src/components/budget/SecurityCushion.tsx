@@ -1,21 +1,24 @@
 
 import React from 'react';
-import { AlertCircle, CheckCircle, ShieldAlert } from 'lucide-react';
+import { AlertCircle, CheckCircle, ShieldAlert, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/formatters';
+import { Button } from '@/components/ui/button';
 
 interface SecurityCushionProps {
   currentAmount: number;
   targetAmount: number;
   expenseAmount: number;
   riskProfile: 'high' | 'medium' | 'low';
+  onEditClick: () => void;
 }
 
 const SecurityCushion: React.FC<SecurityCushionProps> = ({ 
   currentAmount, 
   targetAmount, 
   expenseAmount,
-  riskProfile 
+  riskProfile,
+  onEditClick
 }) => {
   const percentage = Math.min(Math.round((currentAmount / targetAmount) * 100), 100);
   
@@ -51,7 +54,18 @@ const SecurityCushion: React.FC<SecurityCushionProps> = ({
 
   return (
     <div className="wealth-card h-full flex flex-col">
-      <h3 className="text-lg font-medium mb-5">Matelas de sécurité</h3>
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-lg font-medium">Matelas de sécurité</h3>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center gap-2 text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+          onClick={onEditClick}
+        >
+          <Settings size={16} />
+          Modifier mon matelas
+        </Button>
+      </div>
       
       <div className="space-y-5 flex-grow">
         <div className="space-y-2">
