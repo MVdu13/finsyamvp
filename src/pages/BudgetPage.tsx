@@ -25,14 +25,15 @@ const BudgetPage = () => {
     }))
   };
   
-  // Get all bank and savings accounts for the security cushion
-  const liquidAssets = mockAssets.filter(
-    asset => asset.type === 'savings-account' || asset.type === 'bank-account'
-  );
-  const liquidAssetsTotal = liquidAssets.reduce(
-    (sum, asset) => sum + asset.value, 
-    0
-  );
+  // Get all assets for calculations
+  const [assets, setAssets] = useState(mockAssets);
+  
+  // Calculate the total of savings accounts
+  const calculateSavingsTotal = () => {
+    return assets
+      .filter(asset => asset.type === 'savings-account')
+      .reduce((sum, asset) => sum + asset.value, 0);
+  };
   
   const [budget, setBudget] = useState<Budget>({...initialBudget});
   const [projects, setProjects] = useState<FinancialGoal[]>([]);
@@ -43,10 +44,30 @@ const BudgetPage = () => {
     if (savedProjects) {
       setProjects(JSON.parse(savedProjects));
     }
+    
+    // Listen for changes in localStorage for assets (when modified in other pages)
+    const handleStorageChange = () => {
+      const storedAssets = localStorage.getItem('financial-assets');
+      if (storedAssets) {
+        setAssets(JSON.parse(storedAssets));
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Check for initial localStorage assets
+    const storedAssets = localStorage.getItem('financial-assets');
+    if (storedAssets) {
+      setAssets(JSON.parse(storedAssets));
+    }
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
   
-  // Use the total of liquid assets (bank + savings accounts) for the security cushion
-  const [savingsAccountsTotal, setSavingsAccountsTotal] = useState(liquidAssetsTotal);
+  // Current savings accounts total
+  const savingsAccountsTotal = calculateSavingsTotal();
   const [riskProfile, setRiskProfile] = useState<'high' | 'medium' | 'low'>('medium');
   
   const [incomeFormOpen, setIncomeFormOpen] = useState(false);
@@ -158,8 +179,16 @@ const BudgetPage = () => {
   };
 
   const handleSaveCushion = (data: {currentAmount: number, riskProfile: 'high' | 'medium' | 'low'}) => {
-    setSavingsAccountsTotal(data.currentAmount);
+    // We only update the risk profile, as the current amount is now calculated dynamically
     setRiskProfile(data.riskProfile);
+    
+    // Save the updated risk profile to localStorage
+    localStorage.setItem('security-cushion-risk-profile', data.riskProfile);
+    
+    toast({
+      title: "Profil de risque mis à jour",
+      description: "Votre profil de risque pour le matelas de sécurité a été mis à jour avec succès.",
+    });
   };
 
   const handleEditIncome = (income: Income) => {

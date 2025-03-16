@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from "@/hooks/use-toast";
 import { ShieldAlert } from 'lucide-react';
+import { formatCurrency } from '@/lib/formatters';
 
 interface SecurityCushionFormProps {
   isOpen: boolean;
@@ -23,42 +23,21 @@ const SecurityCushionForm: React.FC<SecurityCushionFormProps> = ({
   currentAmount,
   riskProfile
 }) => {
-  const [amount, setAmount] = useState(currentAmount.toString());
   const [risk, setRisk] = useState<'high' | 'medium' | 'low'>(riskProfile);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!amount.trim()) {
-      toast({
-        title: "Champ requis",
-        description: "Veuillez renseigner le montant de votre matelas de sécurité.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     try {
-      const numAmount = parseFloat(amount);
-      
-      if (isNaN(numAmount) || numAmount < 0) {
-        toast({
-          title: "Montant invalide",
-          description: "Le montant doit être un nombre positif.",
-          variant: "destructive",
-        });
-        return;
-      }
-
       onSave({
-        currentAmount: numAmount,
+        currentAmount: currentAmount, // Pass the current amount unchanged
         riskProfile: risk
       });
 
       onClose();
       toast({
         title: "Modification réussie",
-        description: "Votre matelas de sécurité a été mis à jour avec succès.",
+        description: "Votre profil de risque a été mis à jour avec succès.",
       });
     } catch (error) {
       toast({
@@ -78,22 +57,18 @@ const SecurityCushionForm: React.FC<SecurityCushionFormProps> = ({
             <span>Ajuster votre matelas de sécurité</span>
           </DialogTitle>
           <DialogDescription>
-            Configurez votre matelas de sécurité selon votre profil de risque.
+            Configurez votre profil de risque pour votre matelas de sécurité.
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="cushion-amount">Montant actuel (€)</Label>
-            <Input 
-              id="cushion-amount" 
-              type="number" 
-              value={amount} 
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Ex: 10000"
-              min="0"
-              step="0.01"
-            />
+          <div className="bg-muted rounded-lg p-3">
+            <p className="text-sm text-muted-foreground mb-1">Montant actuel de vos livrets d'épargne</p>
+            <p className="text-lg font-medium">{formatCurrency(currentAmount)}</p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Ce montant est automatiquement calculé à partir de vos livrets d'épargne.
+              Pour le modifier, ajoutez ou modifiez vos comptes d'épargne.
+            </p>
           </div>
           
           <div className="space-y-2">
