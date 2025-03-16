@@ -36,6 +36,14 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
     ? assets.reduce((sum, asset) => sum + (asset.performance || 0), 0) / assets.length
     : 0;
   
+  // Calculate annual interest earnings
+  const annualInterestEarnings = assets.reduce((sum, asset) => {
+    // Calculate interest earnings for each asset based on its value and performance rate
+    const interestRate = asset.performance || 0;
+    const annualInterest = (asset.value * interestRate) / 100;
+    return sum + annualInterest;
+  }, 0);
+  
   // Générer un historique pour les livrets d'épargne
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
@@ -312,24 +320,14 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Performance</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Intérêts Annuels</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={cn(
-              "text-xl font-bold",
-              absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
-            )}>
-              {absoluteGrowth >= 0 ? (
-                <>Vous avez gagné {formatCurrency(Math.abs(absoluteGrowth))}</>
-              ) : (
-                <>Vous avez perdu {formatCurrency(Math.abs(absoluteGrowth))}</>
-              )}
+            <div className="text-xl font-bold text-green-600">
+              {formatCurrency(annualInterestEarnings)}
             </div>
-            <div className={cn(
-              "text-xs mt-1",
-              absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
-            )}>
-              {getTimePeriodText()} ({avgPerformance.toFixed(2)}%)
+            <div className="text-xs text-green-600 mt-1">
+              Gains d'intérêts par an avec vos livrets
             </div>
           </CardContent>
         </Card>
