@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import Dashboard from './Dashboard';
@@ -48,10 +47,8 @@ const Index = () => {
 
   const totalWealth = assets.reduce((sum, asset) => sum + asset.value, 0);
 
-  const addAsset = (newAsset: Omit<Asset, 'id'>) => {
-    // Si c'est une action, on vérifie si on peut la stacker
+  const addAsset = (newAsset: Omit<Asset, 'id'>): Asset => {
     if (newAsset.type === 'stock' && newAsset.name && newAsset.investmentAccountId) {
-      // On cherche une action existante avec le même nom dans le même compte
       const existingStock = assets.find(asset => 
         asset.type === 'stock' && 
         asset.name === newAsset.name && 
@@ -59,7 +56,6 @@ const Index = () => {
       );
 
       if (existingStock) {
-        // Créer la nouvelle transaction
         const transaction: Transaction = {
           id: Date.now().toString(),
           date: new Date().toISOString(),
@@ -69,12 +65,10 @@ const Index = () => {
           type: 'buy'
         };
 
-        // Calculer les nouvelles valeurs
         const newQuantity = (existingStock.quantity || 0) + (newAsset.quantity || 0);
         const newValue = (existingStock.value || 0) + transaction.total;
         const newWeightedPrice = newValue / newQuantity;
         
-        // Mettre à jour l'action existante
         const updatedAsset: Asset = {
           ...existingStock,
           quantity: newQuantity,
@@ -99,14 +93,12 @@ const Index = () => {
       }
     }
     
-    // Si ce n'est pas une action ou si on ne peut pas stacker, on crée un nouvel actif
     const asset = {
       ...newAsset,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
-    };
+    } as Asset;
     
-    // Ajouter la première transaction pour les actions
     if (asset.type === 'stock' && asset.quantity && asset.purchasePrice) {
       const transaction: Transaction = {
         id: Date.now().toString(),
@@ -120,14 +112,14 @@ const Index = () => {
       asset.transactions = [transaction];
     }
     
-    setAssets(prevAssets => [...prevAssets, asset as Asset]);
+    setAssets(prevAssets => [...prevAssets, asset]);
     
     toast({
       title: "Actif ajouté",
       description: `${newAsset.name} a été ajouté avec succès.`
     });
     
-    return asset as Asset;
+    return asset;
   };
   
   const updateAsset = (idOrAsset: string | Asset, maybeAsset?: Partial<Asset>) => {

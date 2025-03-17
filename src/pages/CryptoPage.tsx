@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Bitcoin, TrendingUp, TrendingDown, Wallet, Plus, Filter, ChevronDown, ChevronRight } from 'lucide-react';
@@ -16,7 +15,7 @@ import { Button } from '@/components/ui/button';
 
 interface CryptoPageProps {
   assets: Asset[];
-  onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+  onAddAsset: (asset: Omit<Asset, 'id'>) => Asset | null | undefined;
   onDeleteAsset?: (id: string) => void;
   onUpdateAsset?: (id: string, asset: Partial<Asset>) => void;
 }
@@ -39,7 +38,6 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   const cryptoAssets = assets.filter(asset => asset.type === 'crypto');
   const cryptoAccounts = assets.filter(asset => asset.type === 'crypto-account');
   
-  // Calculer les valeurs totales et moyennes
   const totalValue = cryptoAssets.reduce((sum, asset) => sum + asset.value, 0);
   const avgPerformance = cryptoAssets.length > 0 
     ? cryptoAssets.reduce((sum, asset) => sum + (asset.performance || 0), 0) / cryptoAssets.length
@@ -166,13 +164,15 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       type: 'crypto' as AssetType
     };
     
-    onAddAsset(cryptoAsset);
+    const addedAsset = onAddAsset(cryptoAsset);
     setDialogOpen(false);
     
     toast({
       title: "Crypto ajoutée",
       description: `${newCrypto.name} a été ajouté à votre portefeuille`,
     });
+    
+    return addedAsset;
   };
 
   const handleAddCryptoAccount = (newAccount: Omit<Asset, 'id'>) => {
