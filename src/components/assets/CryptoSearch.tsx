@@ -15,19 +15,14 @@ import { Input } from '@/components/ui/input';
 
 interface CryptoSearchProps {
   onSelect: (crypto: CryptoInfo) => void;
-  // Add onCryptoSelect as an alternative prop name
-  onCryptoSelect?: (crypto: CryptoInfo) => void;
 }
 
-const CryptoSearch: React.FC<CryptoSearchProps> = ({ onSelect, onCryptoSelect }) => {
+const CryptoSearch: React.FC<CryptoSearchProps> = ({ onSelect }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CryptoInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Use onCryptoSelect as fallback if onSelect is not provided
-  const handleSelect = onSelect || onCryptoSelect;
 
   useEffect(() => {
     const handleSearch = async () => {
@@ -109,9 +104,7 @@ const CryptoSearch: React.FC<CryptoSearchProps> = ({ onSelect, onCryptoSelect })
                 <CommandItem
                   key={crypto.id}
                   onSelect={() => {
-                    if (handleSelect) {
-                      handleSelect(crypto);
-                    }
+                    onSelect(crypto);
                     setOpen(false);
                   }}
                   className="flex items-center gap-2 cursor-pointer"
