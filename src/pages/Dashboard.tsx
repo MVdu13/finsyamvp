@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import NetWorthChart, { AssetCategoryFilter } from '@/components/dashboard/NetWorthChart';
 import AssetAllocation from '@/components/dashboard/AssetAllocation';
@@ -44,8 +43,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         asset.type === 'real-estate' || 
         asset.type === 'stock' || 
         asset.type === 'crypto' || 
-        asset.type === 'bonds' || 
-        asset.type === 'commodities'
+        asset.type === 'bonds'
       );
     }
     
@@ -58,14 +56,11 @@ const Dashboard: React.FC<DashboardProps> = ({
     stocks: filteredAssets.filter(asset => asset.type === 'stock').reduce((sum, asset) => sum + asset.value, 0),
     realEstate: filteredAssets.filter(asset => asset.type === 'real-estate').reduce((sum, asset) => sum + asset.value, 0),
     crypto: filteredAssets.filter(asset => asset.type === 'crypto').reduce((sum, asset) => sum + asset.value, 0),
-    cash: filteredAssets.filter(asset => 
-      asset.type === 'cash' || 
-      asset.type === 'bank-account' || 
-      asset.type === 'savings-account'
-    ).reduce((sum, asset) => sum + asset.value, 0),
+    bankAccounts: filteredAssets.filter(asset => asset.type === 'bank-account').reduce((sum, asset) => sum + asset.value, 0),
+    savingsAccounts: filteredAssets.filter(asset => asset.type === 'savings-account').reduce((sum, asset) => sum + asset.value, 0),
     bonds: filteredAssets.filter(asset => asset.type === 'bonds').reduce((sum, asset) => sum + asset.value, 0),
-    commodities: filteredAssets.filter(asset => asset.type === 'commodities').reduce((sum, asset) => sum + asset.value, 0),
-    other: filteredAssets.filter(asset => asset.type === 'other').reduce((sum, asset) => sum + asset.value, 0),
+    commodities: 0,
+    other: 0,
   };
 
   const generateHistoryData = () => {

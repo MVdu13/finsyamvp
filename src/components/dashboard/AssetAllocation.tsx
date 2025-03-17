@@ -5,6 +5,7 @@ import { Info, Settings } from 'lucide-react';
 import { AssetAllocation as AssetAllocationType } from '@/types/assets';
 import { formatCurrency } from '@/lib/formatters';
 import { AssetCategoryFilter } from './NetWorthChart';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface AssetAllocationProps {
   allocation: AssetAllocationType;
@@ -17,28 +18,38 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({
   totalValue,
   selectedCategory = 'all'
 }) => {
+  // Filter out zero-value and unwanted categories
+  const filteredAllocation = Object.entries(allocation).reduce((acc, [key, value]) => {
+    // Skip commodities and other categories
+    if (key === 'commodities' || key === 'other') {
+      return acc;
+    }
+    return {
+      ...acc,
+      [key]: value,
+    };
+  }, {});
+
   const chartData = {
-    labels: Object.keys(allocation).map(key => {
+    labels: Object.keys(filteredAllocation).map(key => {
       switch(key) {
         case 'stocks': return 'Actions';
         case 'realEstate': return 'Immobilier';
         case 'crypto': return 'Cryptomonnaies';
-        case 'cash': return 'Liquidités';
+        case 'bankAccounts': return 'Comptes bancaires';
+        case 'savingsAccounts': return 'Livrets d\'épargne';
         case 'bonds': return 'Obligations';
-        case 'commodities': return 'Matières premières';
-        case 'other': return 'Autres';
         default: return key;
       }
     }),
-    values: Object.values(allocation) as number[],
+    values: Object.values(filteredAllocation) as number[],
     colors: [
       '#4ade80', // stocks - green
       '#60a5fa', // real estate - blue
       '#c084fc', // crypto - purple
-      '#94a3b8', // cash/liquidity - gray (keeping this color for liquidity)
+      '#94a3b8', // bank accounts - gray
+      '#38bdf8', // savings accounts - light blue
       '#facc15', // bonds - yellow
-      '#f97316', // commodities - orange
-      '#f43f5e'  // other - pink
     ],
   };
 
@@ -59,9 +70,19 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
-          <button className="p-2 rounded-md hover:bg-muted transition-colors">
-            <Info size={18} />
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button className="p-2 rounded-md hover:bg-muted transition-colors">
+                  <Info size={18} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Visualisation de la répartition de vos actifs par catégorie</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
           <button className="p-2 rounded-md hover:bg-muted transition-colors">
             <Settings size={18} />
           </button>
@@ -74,7 +95,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({
       
       <div className="mt-4 pt-4 border-t border-border">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {Object.entries(allocation).map(([key, value]) => {
+          {Object.entries(filteredAllocation).map(([key, value]) => {
             if (value === 0) return null;
             
             const percent = totalValue > 0 ? ((value / totalValue) * 100).toFixed(1) : '0.0';
@@ -83,10 +104,10 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({
               case 'stocks': label = 'Actions'; break;
               case 'realEstate': label = 'Immobilier'; break;
               case 'crypto': label = 'Crypto'; break;
-              case 'cash': label = 'Liquidités'; break;
+              case 'bankAccounts': label = 'Comptes'; break;
+              case 'savingsAccounts': label = 'Livrets'; break;
               case 'bonds': label = 'Obligations'; break;
-              case 'commodities': label = 'Mat. prem.'; break;
-              default: label = 'Autres';
+              default: label = key;
             }
             
             return (

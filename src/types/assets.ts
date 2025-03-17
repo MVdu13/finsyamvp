@@ -39,12 +39,13 @@ export interface Asset {
   annualCharges?: number;
 }
 
-// Add the AssetAllocation type that was referenced but missing
+// Updated AssetAllocation type to include separate properties for bank accounts and savings accounts
 export interface AssetAllocation {
   stocks: number;
   realEstate: number;
   crypto: number;
-  cash: number;
+  bankAccounts: number;
+  savingsAccounts: number;
   bonds: number;
   commodities: number;
   other: number;
