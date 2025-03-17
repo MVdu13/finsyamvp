@@ -4,7 +4,7 @@ import { Income, Expense } from '@/types/budget';
 import { formatCurrency } from '@/lib/formatters';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sankey, Tooltip, Rectangle, ResponsiveContainer } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 interface CashflowChartProps {
   incomes: Income[];
@@ -188,7 +188,7 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
         <CardTitle className="text-lg font-medium">Flux de trésorerie</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[500px] w-full">
+        <div className="h-[400px] w-full overflow-hidden">
           <ChartContainer config={chartConfig}>
             <ResponsiveContainer width="100%" height="100%">
               <Sankey
@@ -202,6 +202,7 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
                     radius={[2, 2, 2, 2]}
                   />
                 }
+                margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
               >
                 <Tooltip
                   content={
