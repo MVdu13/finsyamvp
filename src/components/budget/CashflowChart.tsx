@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Income, Expense } from '@/types/budget';
 import { formatCurrency } from '@/lib/formatters';
@@ -171,13 +172,13 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
         <CardTitle className="text-lg font-medium">Flux de trésorerie</CardTitle>
       </CardHeader>
       <CardContent className="p-2">
-        <div className="h-[420px] w-full overflow-hidden">
+        <div className="h-[350px] w-full overflow-hidden">
           <ChartContainer config={chartConfig}>
-            <ResponsiveContainer width="100%" height={400}>
+            <ResponsiveContainer width="100%" height={320}>
               <Sankey
                 data={{ nodes, links }}
-                nodePadding={8}
-                nodeWidth={10}
+                nodePadding={6}
+                nodeWidth={8}
                 link={{ stroke: '#d1d5db' }}
                 node={
                   <Rectangle 
