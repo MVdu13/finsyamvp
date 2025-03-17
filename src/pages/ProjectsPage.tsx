@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FinancialGoal, ProjectPlan } from '@/types/goals';
 import { mockBudget, mockAssets, mockGoals } from '@/lib/mockData';
@@ -15,6 +14,7 @@ import SecurityCushionForm from '@/components/budget/SecurityCushionForm';
 import SavingsAllocationChart from '@/components/projects/SavingsAllocationChart';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/formatters';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 interface ProjectsPageProps {
   onAddAsset?: (newAsset: Omit<Asset, 'id'>) => void;
@@ -199,39 +199,15 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
         </CardHeader>
         <CardContent className="p-0">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <Card className="col-span-1 p-4">
-              <CardHeader className="p-0 pb-2">
-                <CardTitle className="text-lg">Total des livrets</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="mt-2 mb-4">
-                  <div className="text-3xl font-bold text-wealth-primary">{formatCurrency(savingsAccountsTotal)}</div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Répartis sur {assets.filter(asset => asset.type === 'savings-account').length} livrets d'épargne
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  {assets
-                    .filter(asset => asset.type === 'savings-account')
-                    .map(account => (
-                      <div key={account.id} className="flex justify-between items-center p-2 bg-muted rounded">
-                        <span className="font-medium">{account.name}</span>
-                        <span>{formatCurrency(account.value)}</span>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="col-span-1 p-4">
+            <div className="lg:col-span-1">
               <SavingsAllocationChart 
                 savingsTotal={savingsAccountsTotal}
                 securityCushionAmount={Math.min(savingsAccountsTotal, targetAmount)}
                 projects={projects}
               />
-            </Card>
+            </div>
             
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-2">
               <SecurityCushion 
                 currentAmount={savingsAccountsTotal}
                 targetAmount={targetAmount}
