@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, Plus, ChevronDown, ChevronUp, Trash2, List, Info } from 'lucide-react';
@@ -477,7 +476,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
                 <>Vous avez gagné {formatCurrency(Math.abs(absoluteGrowth))}</>
               ) : (
                 <>Vous avez perdu {formatCurrency(Math.abs(absoluteGrowth))}</>
-              )} {getTimePeriodText()}
+              )}
             </div>
           </CardContent>
         </Card>
@@ -813,3 +812,4 @@ const StocksPage: React.FC<StocksPageProps> = ({
 };
 
 export default StocksPage;
+
