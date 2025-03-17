@@ -1,21 +1,43 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Bitcoin, TrendingUp, TrendingDown, Wallet, Plus, Filter } from 'lucide-react';
+import { Bitcoin, TrendingUp, TrendingDown, Wallet, Plus, ChevronDown, ChevronUp, Trash2, Info } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
-import { Asset, AssetType } from '@/types/assets';
+import { Asset, AssetType, Transaction } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LineChartComponent from '@/components/charts/LineChart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import DeleteConfirmationDialog from '@/components/assets/DeleteConfirmationDialog';
+import StockTransactionsList from '@/components/assets/StockTransactionsList';
 
 interface CryptoPageProps {
   assets: Asset[];
-  onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+  onAddAsset: (asset: Omit<Asset, 'id'>) => Asset | null | undefined;
   onDeleteAsset?: (id: string) => void;
   onUpdateAsset?: (id: string, asset: Partial<Asset>) => void;
+}
+
+interface GroupedCryptos {
+  [accountId: string]: {
+    account: Asset;
+    cryptos: Asset[];
+    totalValue: number;
+    avgPerformance: number;
+  };
 }
 
 const CryptoPage: React.FC<CryptoPageProps> = ({ 
@@ -29,15 +51,51 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
+  const [expandedAccounts, setExpandedAccounts] = useState<Record<string, boolean>>({});
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState<Asset | null>(null);
   
+  const [selectedCrypto, setSelectedCrypto] = useState<Asset | null>(null);
+  const [cryptoDetailsOpen, setCryptoDetailsOpen] = useState(false);
+  
+  const cryptoAccounts = assets.filter(asset => asset.type === 'crypto-account');
   const cryptoAssets = assets.filter(asset => asset.type === 'crypto');
   
+  const groupedCryptos: GroupedCryptos = cryptoAccounts.reduce((acc, account) => {
+    const accountCryptos = cryptoAssets.filter(crypto => crypto.cryptoAccountId === account.id);
+    const totalValue = accountCryptos.reduce((sum, crypto) => sum + crypto.value, 0);
+    const avgPerformance = accountCryptos.length > 0 
+      ? accountCryptos.reduce((sum, crypto) => sum + (crypto.performance || 0), 0) / accountCryptos.length
+      : 0;
+    
+    acc[account.id] = {
+      account,
+      cryptos: accountCryptos,
+      totalValue,
+      avgPerformance
+    };
+    
+    return acc;
+  }, {} as GroupedCryptos);
+  
+  const unassignedCryptos = cryptoAssets.filter(crypto => !crypto.cryptoAccountId || 
+    !cryptoAccounts.some(account => account.id === crypto.cryptoAccountId));
+  
   const totalValue = cryptoAssets.reduce((sum, asset) => sum + asset.value, 0);
+  
   const avgPerformance = cryptoAssets.length > 0 
-    ? cryptoAssets.reduce((sum, asset) => sum + asset.performance, 0) / cryptoAssets.length
+    ? cryptoAssets.reduce((sum, asset) => sum + (asset.performance || 0), 0) / cryptoAssets.length
     : 0;
   
-  const generateChartData = () => {
+  const estimatedAnnualFeePercentage = 1.2; // 1.2% annual fee estimation for crypto (higher than stocks)
+  const estimatedAnnualFees = totalValue * (estimatedAnnualFeePercentage / 100);
+  
+  useEffect(() => {
+    console.info('CryptoPage - Crypto Accounts:', cryptoAccounts);
+  }, [cryptoAccounts]);
+  
+  function generateChartData() {
     const baseValue = totalValue > 0 ? totalValue : 0;
     
     let numDataPoints;
@@ -151,53 +209,15 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   };
 
   const chartData = generateChartData();
-
-  const handleAddCrypto = (newCrypto: Omit<Asset, 'id'>) => {
-    const cryptoAsset = {
-      ...newCrypto,
-      type: 'crypto' as AssetType
-    };
-    
-    onAddAsset(cryptoAsset);
-    setDialogOpen(false);
-    
-    toast({
-      title: "Crypto ajoutée",
-      description: `${newCrypto.name} a été ajouté à votre portefeuille`,
-    });
-  };
   
-  const handleEditAsset = (asset: Asset) => {
-    setEditingAsset(asset);
-    setEditDialogOpen(true);
-  };
-
-  const handleUpdateAsset = (updatedAsset: Omit<Asset, 'id'>) => {
-    if (editingAsset && onUpdateAsset) {
-      onUpdateAsset(editingAsset.id, updatedAsset);
-      toast({
-        title: "Crypto modifiée",
-        description: `${updatedAsset.name} a été mise à jour`,
-      });
-      setEditDialogOpen(false);
-      setEditingAsset(null);
-    }
-  };
-
-  const handleDeleteAsset = (id: string) => {
-    if (onDeleteAsset) {
-      onDeleteAsset(id);
-      toast({
-        title: "Crypto supprimée",
-        description: "La cryptomonnaie a été supprimée de votre portefeuille",
-      });
-    }
-  };
-
   const firstValue = chartData.datasets[0].data[0] || 0;
   const lastValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1] || 0;
   const absoluteGrowth = lastValue - firstValue;
   
+  const percentageGrowth = firstValue > 0 
+    ? Math.round((absoluteGrowth / firstValue) * 100) 
+    : 0;
+
   const getTimePeriodText = () => {
     switch (timeFrame) {
       case '1M': return 'sur le dernier mois';
@@ -208,6 +228,162 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       case '1Y': 
       default: return 'sur les 12 derniers mois';
     }
+  };
+
+  const handleAddCrypto = (newCrypto: Omit<Asset, 'id'>) => {
+    const cryptoAsset = {
+      ...newCrypto,
+      type: 'crypto' as AssetType,
+    };
+    
+    if (typeof cryptoAsset.quantity === 'number' && typeof cryptoAsset.purchasePrice === 'number') {
+      cryptoAsset.value = cryptoAsset.quantity * cryptoAsset.purchasePrice;
+    }
+    
+    const result = onAddAsset(cryptoAsset);
+    
+    if (result) {
+      setDialogOpen(false);
+      
+      if (cryptoAsset.cryptoAccountId && onUpdateAsset) {
+        const account = cryptoAccounts.find(a => a.id === cryptoAsset.cryptoAccountId);
+        if (account) {
+          const accountCryptos = [...cryptoAssets.filter(c => c.cryptoAccountId === account.id), cryptoAsset as Asset];
+          const newTotalValue = accountCryptos.reduce((sum, crypto) => sum + crypto.value, 0);
+          onUpdateAsset(account.id, { value: newTotalValue });
+        }
+      }
+      
+      toast({
+        title: "Crypto ajoutée",
+        description: `${newCrypto.name} a été ajouté à votre portefeuille`,
+      });
+    }
+  };
+  
+  const handleAddAccount = (newAccount: Omit<Asset, 'id'>) => {
+    const accountAsset = {
+      ...newAccount,
+      type: 'crypto-account' as AssetType,
+      value: 0
+    };
+    
+    const addedAccount = onAddAsset(accountAsset);
+    
+    toast({
+      title: "Compte crypto ajouté",
+      description: `${newAccount.name} a été ajouté`,
+    });
+    
+    setDialogOpen(false);
+    
+    return addedAccount;
+  };
+
+  const handleDeleteAccount = (account: Asset) => {
+    setAccountToDelete(account);
+    setDeleteConfirmOpen(true);
+  };
+  
+  const confirmDeleteAccount = () => {
+    if (accountToDelete && onDeleteAsset) {
+      const linkedCryptos = cryptoAssets.filter(crypto => crypto.cryptoAccountId === accountToDelete.id);
+      
+      onDeleteAsset(accountToDelete.id);
+      
+      linkedCryptos.forEach(crypto => {
+        if (onDeleteAsset) {
+          onDeleteAsset(crypto.id);
+        }
+      });
+      
+      toast({
+        title: "Compte supprimé",
+        description: `${accountToDelete.name} et ses ${linkedCryptos.length} cryptos ont été supprimés`,
+      });
+      
+      setDeleteConfirmOpen(false);
+      setAccountToDelete(null);
+    }
+  };
+  
+  const handleEditAsset = (asset: Asset) => {
+    setEditingAsset(asset);
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateAsset = (updatedAsset: Omit<Asset, 'id'>) => {
+    if (editingAsset && onUpdateAsset) {
+      const updatedCrypto = {
+        ...updatedAsset,
+        quantity: updatedAsset.quantity || editingAsset.quantity || 0,
+        purchasePrice: updatedAsset.purchasePrice || editingAsset.purchasePrice || 0
+      };
+      
+      if (updatedCrypto.type === 'crypto' && typeof updatedCrypto.quantity === 'number' && typeof updatedCrypto.purchasePrice === 'number') {
+        updatedCrypto.value = updatedCrypto.quantity * updatedCrypto.purchasePrice;
+      }
+      
+      onUpdateAsset(editingAsset.id, updatedCrypto);
+      
+      if (updatedCrypto.type === 'crypto' && updatedCrypto.cryptoAccountId && onUpdateAsset) {
+        const account = cryptoAccounts.find(a => a.id === updatedCrypto.cryptoAccountId);
+        if (account) {
+          const accountCryptos = cryptoAssets.map(c => 
+            c.id === editingAsset.id ? { ...c, ...updatedCrypto } : c
+          ).filter(c => c.cryptoAccountId === account.id);
+          
+          const newTotalValue = accountCryptos.reduce((sum, crypto) => sum + crypto.value, 0);
+          onUpdateAsset(account.id, { value: newTotalValue });
+        }
+      }
+      
+      toast({
+        title: "Crypto modifiée",
+        description: `${updatedCrypto.name} a été mise à jour`,
+      });
+      setEditDialogOpen(false);
+      setEditingAsset(null);
+    }
+  };
+
+  const handleDeleteAsset = (id: string) => {
+    if (onDeleteAsset) {
+      const assetToDelete = cryptoAssets.find(asset => asset.id === id);
+      
+      if (assetToDelete) {
+        if (assetToDelete.cryptoAccountId && onUpdateAsset) {
+          const account = cryptoAccounts.find(a => a.id === assetToDelete.cryptoAccountId);
+          if (account) {
+            const remainingCryptos = cryptoAssets
+              .filter(c => c.id !== id)
+              .filter(c => c.cryptoAccountId === account.id);
+            
+            const newTotalValue = remainingCryptos.reduce((sum, crypto) => sum + crypto.value, 0);
+            onUpdateAsset(account.id, { value: newTotalValue });
+          }
+        }
+        
+        onDeleteAsset(id);
+        
+        toast({
+          title: "Crypto supprimée",
+          description: "La cryptomonnaie a été supprimée de votre portefeuille",
+        });
+      }
+    }
+  };
+  
+  const toggleAccountExpand = (accountId: string) => {
+    setExpandedAccounts(prev => ({
+      ...prev,
+      [accountId]: !prev[accountId]
+    }));
+  };
+  
+  const openCryptoDetails = (crypto: Asset) => {
+    setSelectedCrypto(crypto);
+    setCryptoDetailsOpen(true);
   };
 
   return (
@@ -233,6 +409,8 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
               onCancel={() => setDialogOpen(false)} 
               defaultType="crypto" 
               showTypeSelector={false}
+              cryptoAccounts={cryptoAccounts}
+              onAddAccount={handleAddAccount}
             />
           </DialogContent>
         </Dialog>
@@ -253,6 +431,8 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
                 initialValues={editingAsset}
                 isEditing={true}
                 showTypeSelector={false}
+                cryptoAccounts={cryptoAccounts}
+                onAddAccount={handleAddAccount}
               />
             )}
           </DialogContent>
@@ -278,23 +458,25 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Nombre de Cryptos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{cryptoAssets.length}</div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Cryptomonnaies en portefeuille
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Performance</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              Performance
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="text-muted-foreground">
+                      <Info size={14} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Performance moyenne de toutes vos cryptos {getTimePeriodText()}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className={cn(
-              "text-xl font-bold",
+              "text-2xl font-bold",
               absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
             )}>
               {absoluteGrowth >= 0 ? (
@@ -304,10 +486,36 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
               )}
             </div>
             <div className={cn(
-              "text-xs mt-1",
+              "text-xs",
               absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
             )}>
-              {getTimePeriodText()} ({avgPerformance > 0 ? "+" : ""}{avgPerformance.toFixed(1)}%)
+              {getTimePeriodText()} ({percentageGrowth > 0 ? "+" : ""}{percentageGrowth}%)
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              Frais Estimés (Annuels)
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="text-muted-foreground">
+                      <Info size={14} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Estimation des frais annuels basée sur {estimatedAnnualFeePercentage}% de votre portefeuille</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{formatCurrency(estimatedAnnualFees)}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {estimatedAnnualFeePercentage}% de frais de gestion estimés
             </div>
           </CardContent>
         </Card>
@@ -338,29 +546,280 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         </CardContent>
       </Card>
 
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Vos Cryptomonnaies</h2>
-        {cryptoAssets.length > 0 ? (
-          <AssetsList 
-            assets={cryptoAssets} 
-            title="Cryptomonnaies" 
-            onEdit={handleEditAsset}
-            onDelete={handleDeleteAsset}
-          />
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold">Vos Comptes Crypto</h2>
+        
+        {Object.keys(groupedCryptos).length > 0 ? (
+          <div className="space-y-4">
+            {Object.entries(groupedCryptos).map(([accountId, { account, cryptos, totalValue, avgPerformance }]) => (
+              <Card key={accountId} className="overflow-hidden">
+                <Collapsible
+                  open={expandedAccounts[accountId]}
+                  onOpenChange={() => toggleAccountExpand(accountId)}
+                >
+                  <CollapsibleTrigger className="w-full">
+                    <div className="p-4 flex items-center justify-between hover:bg-muted/50 cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <Bitcoin className="text-amber-500" size={20} />
+                        <div>
+                          <div className="font-medium">{account.name}</div>
+                          <div className="text-sm text-muted-foreground">{account.cryptoAccountType}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div>
+                          <div className="font-medium text-right">{formatCurrency(totalValue)}</div>
+                          <div className={cn(
+                            "text-xs flex items-center justify-end",
+                            avgPerformance >= 0 ? "text-green-600" : "text-red-600"
+                          )}>
+                            {avgPerformance >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                            <span className="ml-1">{avgPerformance > 0 ? "+" : ""}{avgPerformance.toFixed(1)}%</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteAccount(account);
+                                  }}
+                                  className="p-2 mr-2 text-red-500 hover:bg-red-50 rounded-full"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Supprimer ce compte</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          {expandedAccounts[accountId] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                        </div>
+                      </div>
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 pb-4">
+                      {cryptos.length > 0 ? (
+                        <div className="border rounded-md divide-y">
+                          {cryptos.map((crypto) => (
+                            <div 
+                              key={crypto.id} 
+                              className="p-3 flex items-center justify-between hover:bg-muted/50 cursor-pointer"
+                              onClick={() => openCryptoDetails(crypto)}
+                            >
+                              <div>
+                                <div className="font-medium">{crypto.name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {crypto.quantity} × {formatCurrency(crypto.purchasePrice || 0)}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <div className="text-right">
+                                  <div>{formatCurrency(crypto.value)}</div>
+                                  <div className={cn(
+                                    "text-xs flex items-center justify-end",
+                                    (crypto.performance || 0) >= 0 ? "text-green-600" : "text-red-600"
+                                  )}>
+                                    {(crypto.performance || 0) >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                                    <span className="ml-1">{(crypto.performance || 0) > 0 ? "+" : ""}{(crypto.performance || 0).toFixed(1)}%</span>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditAsset(crypto);
+                                    }}
+                                    className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded"
+                                  >
+                                    Modifier
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteAsset(crypto.id);
+                                    }}
+                                    className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
+                                  >
+                                    Supprimer
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 bg-muted/50 rounded">
+                          <p className="text-muted-foreground">Aucune crypto dans ce compte</p>
+                          <button
+                            onClick={() => setDialogOpen(true)}
+                            className="wealth-btn wealth-btn-sm"
+                          >
+                            Ajouter une crypto
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </Card>
+            ))}
+          </div>
         ) : (
-          <div className="text-center py-12 bg-muted rounded-lg">
-            <p className="text-lg text-muted-foreground mb-4">
-              Aucune cryptomonnaie dans votre portefeuille
-            </p>
-            <button 
-              className="wealth-btn wealth-btn-primary"
+          <Card className="p-6 text-center">
+            <p className="text-muted-foreground mb-4">Vous n'avez pas encore de compte crypto</p>
+            <button
               onClick={() => setDialogOpen(true)}
+              className="wealth-btn wealth-btn-primary"
             >
-              Ajouter votre première cryptomonnaie
+              Ajouter votre première crypto
             </button>
+          </Card>
+        )}
+        
+        {unassignedCryptos.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-medium mb-3">Cryptomonnaies sans compte assigné</h3>
+            <div className="border rounded-md divide-y">
+              {unassignedCryptos.map((crypto) => (
+                <div 
+                  key={crypto.id} 
+                  className="p-3 flex items-center justify-between hover:bg-muted/50 cursor-pointer"
+                  onClick={() => openCryptoDetails(crypto)}
+                >
+                  <div>
+                    <div className="font-medium">{crypto.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {crypto.quantity} × {formatCurrency(crypto.purchasePrice || 0)}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <div>{formatCurrency(crypto.value)}</div>
+                      <div className={cn(
+                        "text-xs flex items-center justify-end",
+                        (crypto.performance || 0) >= 0 ? "text-green-600" : "text-red-600"
+                      )}>
+                        {(crypto.performance || 0) >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                        <span className="ml-1">{(crypto.performance || 0) > 0 ? "+" : ""}{(crypto.performance || 0).toFixed(1)}%</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditAsset(crypto);
+                        }}
+                        className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded"
+                      >
+                        Modifier
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteAsset(crypto.id);
+                        }}
+                        className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
+
+      <Dialog open={cryptoDetailsOpen} onOpenChange={setCryptoDetailsOpen}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>Détails de la crypto</DialogTitle>
+          </DialogHeader>
+          {selectedCrypto && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold">{selectedCrypto.name}</h3>
+              
+              <div className="bg-muted/30 p-4 rounded-lg">
+                <Table>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">Quantité totale</TableCell>
+                      <TableCell className="text-right">{selectedCrypto.quantity || '0'}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Prix moyen d'achat</TableCell>
+                      <TableCell className="text-right">{formatCurrency(selectedCrypto.purchasePrice || 0)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Valeur totale</TableCell>
+                      <TableCell className="text-right">{formatCurrency(selectedCrypto.value)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Performance</TableCell>
+                      <TableCell className={cn(
+                        "text-right",
+                        (selectedCrypto.performance || 0) >= 0 ? "text-green-600" : "text-red-600"
+                      )}>
+                        {(selectedCrypto.performance || 0) > 0 ? "+" : ""}{(selectedCrypto.performance || 0).toFixed(1)}%
+                      </TableCell>
+                    </TableRow>
+                    {selectedCrypto.cryptoAccountId && (
+                      <TableRow>
+                        <TableCell className="font-medium">Compte</TableCell>
+                        <TableCell className="text-right">
+                          {cryptoAccounts.find(acc => acc.id === selectedCrypto.cryptoAccountId)?.name || ""}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {selectedCrypto.transactions && selectedCrypto.transactions.length > 0 ? (
+                <StockTransactionsList transactions={selectedCrypto.transactions} />
+              ) : (
+                <div className="text-center py-4 bg-muted/30 rounded">
+                  <p className="text-muted-foreground">Aucune transaction enregistrée</p>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 mt-4">
+                <button 
+                  className="wealth-btn" 
+                  onClick={() => setCryptoDetailsOpen(false)}
+                >
+                  Fermer
+                </button>
+                <button 
+                  className="wealth-btn wealth-btn-primary" 
+                  onClick={() => {
+                    setCryptoDetailsOpen(false);
+                    handleEditAsset(selectedCrypto);
+                  }}
+                >
+                  Ajouter une transaction
+                </button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <DeleteConfirmationDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={confirmDeleteAccount}
+        assetName={accountToDelete?.name}
+        message={`Supprimer ce compte supprimera également toutes les cryptos qu'il contient (${
+          accountToDelete ? cryptoAssets.filter(c => c.cryptoAccountId === accountToDelete.id).length : 0
+        } cryptos).`}
+      />
     </div>
   );
 };
