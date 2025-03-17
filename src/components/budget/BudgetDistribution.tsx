@@ -4,6 +4,9 @@ import { Budget } from '@/types/budget';
 import DonutChart from '@/components/charts/DonutChart';
 import { formatCurrency } from '@/lib/formatters';
 import { FinancialGoal } from '@/types/goals';
+import { Card, CardContent } from '@/components/ui/card';
+import { Wallet, TrendingUp, TrendingDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface BudgetDistributionProps {
   budget: Budget;
@@ -81,6 +84,45 @@ const BudgetDistribution: React.FC<BudgetDistributionProps> = ({
     colors: filteredColors,
   };
 
+  // Mockup accounts data for display
+  const accounts = [
+    { 
+      id: '1', 
+      name: 'Compte Courant', 
+      type: 'bank-account', 
+      bank: 'BNP Paribas',
+      balance: 3500,
+      monthlyChange: 2.3
+    },
+    { 
+      id: '2', 
+      name: 'Livret A', 
+      type: 'savings-account', 
+      bank: 'Société Générale',
+      balance: 7800,
+      monthlyChange: 0.5
+    },
+    { 
+      id: '3', 
+      name: 'PEL', 
+      type: 'savings-account', 
+      bank: 'Crédit Agricole',
+      balance: 12500,
+      monthlyChange: 0.3
+    },
+    { 
+      id: '4', 
+      name: 'PEA', 
+      type: 'investment-account', 
+      bank: 'Boursorama',
+      balance: 8200,
+      monthlyChange: -1.5
+    }
+  ];
+
+  // Calculate total account balance
+  const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
+
   return (
     <div className="wealth-card">
       <h3 className="text-lg font-medium mb-4">Répartition des revenus</h3>
@@ -117,6 +159,45 @@ const BudgetDistribution: React.FC<BudgetDistributionProps> = ({
               <span className="font-medium">{formatCurrency(budget.totalIncome)}</span>
             </div>
           </div>
+        </div>
+      </div>
+      
+      {/* Accounts section - Added below the chart */}
+      <div className="mt-8">
+        <h3 className="text-lg font-medium mb-4">Vos Comptes</h3>
+        <div className="space-y-3">
+          {accounts.map(account => (
+            <Card key={account.id} className="overflow-hidden">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Wallet className="text-primary" size={20} />
+                    <div>
+                      <div className="font-medium">{account.name}</div>
+                      <div className="text-sm text-muted-foreground">{account.bank}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-medium">{formatCurrency(account.balance)}</div>
+                    <div className={cn(
+                      "text-xs flex items-center justify-end",
+                      account.monthlyChange >= 0 ? "text-green-600" : "text-red-600"
+                    )}>
+                      {account.monthlyChange >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                      <span className="ml-1">
+                        {account.monthlyChange > 0 ? "+" : ""}{account.monthlyChange.toFixed(1)}% ce mois
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="mt-4 flex justify-between items-center bg-muted p-4 rounded-md">
+          <span className="font-medium">Total comptes</span>
+          <span className="font-medium">{formatCurrency(totalBalance)}</span>
         </div>
       </div>
     </div>
