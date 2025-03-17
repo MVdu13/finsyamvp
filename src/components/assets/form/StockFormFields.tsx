@@ -34,7 +34,7 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
 }) => {
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [newAccountName, setNewAccountName] = useState('');
-  const [newAccountType, setNewAccountType] = useState('PEA');
+  const [newAccountType, setNewAccountType] = useState<'PEA' | 'CTO' | 'Assurance Vie' | 'PER' | 'Autre'>('PEA');
 
   const handleAddAccount = () => {
     if (onAddAccount && newAccountName.trim()) {

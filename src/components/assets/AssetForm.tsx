@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Asset, AssetType } from '@/types/assets';
 import { X, Banknote, Wallet, BookText, Home } from 'lucide-react';
@@ -20,6 +19,8 @@ interface AssetFormProps {
   showTypeSelector?: boolean;
   initialValues?: Asset;
   isEditing?: boolean;
+  investmentAccounts?: Asset[];
+  onAddAccount?: (account: Omit<Asset, 'id'>) => void;
 }
 
 const AssetForm: React.FC<AssetFormProps> = ({ 
@@ -28,7 +29,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
   defaultType = 'stock',
   showTypeSelector = true,
   initialValues,
-  isEditing = false
+  isEditing = false,
+  investmentAccounts = [],
+  onAddAccount
 }) => {
   const [name, setName] = useState(initialValues?.name || '');
   const [description, setDescription] = useState(initialValues?.description || '');
@@ -39,8 +42,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [ticker, setTicker] = useState('');
   const [shares, setShares] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
+  const [investmentAccountId, setInvestmentAccountId] = useState(initialValues?.investmentAccountId || '');
   
-  // Real Estate Fields
   const [address, setAddress] = useState('');
   const [surface, setSurface] = useState('');
   const [propertyType, setPropertyType] = useState('apartment');
@@ -81,14 +84,12 @@ const AssetForm: React.FC<AssetFormProps> = ({
         if (match) {
           setCryptoQty(match[1]);
           setCryptoPurchasePrice(match[2]);
-          // Le prix actuel est différent du prix d'achat
           if (initialValues.value && match[1]) {
             setCryptoPrice((initialValues.value / parseFloat(match[1])).toString());
           }
         }
       } 
       else if (initialValues.type === 'real-estate') {
-        // Parse real estate data
         const parts = desc.split(' | ');
         parts.forEach(part => {
           if (part.startsWith('Surface: ')) {
@@ -168,14 +169,12 @@ const AssetForm: React.FC<AssetFormProps> = ({
     }
   }, [initialValues]);
 
-  // When property type or current value changes, update the main value field
   useEffect(() => {
     if (type === 'real-estate' && currentValue) {
       setValue(currentValue);
     }
   }, [type, currentValue]);
 
-  // Calculate value based on quantity and price for stocks and crypto
   useEffect(() => {
     if (type === 'stock' && shares && purchasePrice) {
       setValue((parseFloat(shares) * parseFloat(purchasePrice)).toString());
@@ -239,7 +238,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
       value: parseFloat(value),
       performance: parseFloat(finalPerformance || '0'),
       ...(initialValues?.createdAt && { createdAt: initialValues.createdAt }),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      ...(type === 'stock' && investmentAccountId && { investmentAccountId }),
     };
     
     onSubmit(asset);
@@ -302,7 +302,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
     setName(crypto.name);
     setTicker(crypto.symbol.toUpperCase());
     setCryptoPrice(crypto.current_price.toString());
-    setCryptoPurchasePrice(crypto.current_price.toString()); // Par défaut, prix d'achat = prix actuel
+    setCryptoPurchasePrice(crypto.current_price.toString());
     setPerformance(crypto.price_change_percentage_24h.toString());
     setCryptoQty('1');
     setValue((crypto.current_price * 1).toString());
@@ -326,9 +326,13 @@ const AssetForm: React.FC<AssetFormProps> = ({
             ticker={ticker}
             shares={shares}
             purchasePrice={purchasePrice}
+            investmentAccountId={investmentAccountId}
             setTicker={setTicker}
             setShares={setShares}
             setPurchasePrice={setPurchasePrice}
+            setInvestmentAccountId={setInvestmentAccountId}
+            investmentAccounts={investmentAccounts || []}
+            onAddAccount={onAddAccount}
           />
         );
       case 'crypto':

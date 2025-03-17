@@ -6,9 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 interface InvestmentAccountFormFieldsProps {
   accountName: string;
-  accountType: string;
+  accountType: 'PEA' | 'CTO' | 'Assurance Vie' | 'PER' | 'Autre';
   setAccountName: (value: string) => void;
-  setAccountType: (value: string) => void;
+  setAccountType: (value: 'PEA' | 'CTO' | 'Assurance Vie' | 'PER' | 'Autre') => void;
 }
 
 const InvestmentAccountFormFields: React.FC<InvestmentAccountFormFieldsProps> = ({
@@ -39,7 +39,7 @@ const InvestmentAccountFormFields: React.FC<InvestmentAccountFormFieldsProps> = 
         <select
           id="accountType"
           value={accountType}
-          onChange={(e) => setAccountType(e.target.value)}
+          onChange={(e) => setAccountType(e.target.value as 'PEA' | 'CTO' | 'Assurance Vie' | 'PER' | 'Autre')}
           className="wealth-input w-full"
         >
           <option value="PEA">PEA</option>
