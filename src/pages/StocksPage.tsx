@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Briefcase, TrendingUp, TrendingDown, Plus, Filter, ChevronDown, ChevronUp, InfoIcon, Trash2 } from 'lucide-react';
-import AssetsList from '@/components/assets/AssetsList';
-import AssetForm from '@/components/assets/AssetForm';
-import { Asset, AssetType } from '@/types/assets';
+import { Briefcase, TrendingUp, TrendingDown, Plus, ChevronDown, ChevronUp, Trash2, List } from 'lucide-react';
+import { Asset, AssetType, Transaction } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LineChartComponent from '@/components/charts/LineChart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Table,
@@ -22,6 +19,8 @@ import {
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import DeleteConfirmationDialog from '@/components/assets/DeleteConfirmationDialog';
+import AssetForm from '@/components/assets/AssetForm';
+import StockTransactionsList from '@/components/assets/StockTransactionsList';
 
 interface StocksPageProps {
   assets: Asset[];
@@ -54,6 +53,9 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const [expandedAccounts, setExpandedAccounts] = useState<Record<string, boolean>>({});
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<Asset | null>(null);
+  
+  const [selectedStock, setSelectedStock] = useState<Asset | null>(null);
+  const [stockDetailsOpen, setStockDetailsOpen] = useState(false);
   
   const investmentAccounts = assets.filter(asset => asset.type === 'investment-account');
   const stocks = assets.filter(asset => asset.type === 'stock');
@@ -88,7 +90,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
     console.info('StocksPage - Investment Accounts:', investmentAccounts);
   }, [investmentAccounts]);
   
-  const generateChartData = () => {
+  function generateChartData() {
     const baseValue = totalValue > 0 ? totalValue : 0;
     
     let numDataPoints;
@@ -369,9 +371,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
       [accountId]: !prev[accountId]
     }));
   };
-
-  const [selectedStock, setSelectedStock] = useState<Asset | null>(null);
-  const [stockDetailsOpen, setStockDetailsOpen] = useState(false);
   
   const openStockDetails = (stock: Asset) => {
     setSelectedStock(stock);
@@ -588,19 +587,38 @@ const StocksPage: React.FC<StocksPageProps> = ({
                                     <span className="ml-1">{(stock.performance || 0) > 0 ? "+" : ""}{(stock.performance || 0).toFixed(1)}%</span>
                                   </div>
                                 </div>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => handleEditAsset(stock)}
-                                    className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded"
-                                  >
-                                    Modifier
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteAsset(stock.id)}
-                                    className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
-                                  >
-                                    Supprimer
-                                  </button>
+                                <div className="flex items-center gap-2">
+                                  {(stock.transactions && stock.transactions.length > 1) && (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <button
+                                            onClick={() => openStockDetails(stock)}
+                                            className="p-2 text-primary hover:bg-primary/10 rounded-full"
+                                          >
+                                            <List size={16} />
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Voir l'historique des transactions</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleEditAsset(stock)}
+                                      className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded"
+                                    >
+                                      Modifier
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteAsset(stock.id)}
+                                      className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
+                                    >
+                                      Supprimer
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -681,7 +699,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
       </div>
 
       <Dialog open={stockDetailsOpen} onOpenChange={setStockDetailsOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle>Détails de l'action</DialogTitle>
           </DialogHeader>
@@ -697,7 +715,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
                       <TableCell className="text-right">{selectedStock.quantity || '0'}</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">Prix d'achat</TableCell>
+                      <TableCell className="font-medium">Prix moyen d'achat</TableCell>
                       <TableCell className="text-right">{formatCurrency(selectedStock.purchasePrice || 0)}</TableCell>
                     </TableRow>
                     <TableRow>
@@ -725,29 +743,13 @@ const StocksPage: React.FC<StocksPageProps> = ({
                 </Table>
               </div>
               
-              <div>
-                <h4 className="font-medium mb-2">Transactions</h4>
-                <div className="border rounded-md overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Quantité</TableHead>
-                        <TableHead>Prix</TableHead>
-                        <TableHead className="text-right">Montant</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>{selectedStock.purchaseDate || "Non spécifiée"}</TableCell>
-                        <TableCell>{selectedStock.quantity || '0'}</TableCell>
-                        <TableCell>{formatCurrency(selectedStock.purchasePrice || 0)}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(selectedStock.value)}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
+              {selectedStock.transactions && selectedStock.transactions.length > 0 ? (
+                <StockTransactionsList transactions={selectedStock.transactions} />
+              ) : (
+                <div className="text-center py-4 bg-muted/30 rounded">
+                  <p className="text-muted-foreground">Aucune transaction enregistrée</p>
                 </div>
-              </div>
+              )}
 
               <div className="flex justify-end gap-2 mt-4">
                 <button 
@@ -763,7 +765,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
                     handleEditAsset(selectedStock);
                   }}
                 >
-                  Modifier
+                  Ajouter une transaction
                 </button>
               </div>
             </div>
@@ -785,3 +787,4 @@ const StocksPage: React.FC<StocksPageProps> = ({
 };
 
 export default StocksPage;
+

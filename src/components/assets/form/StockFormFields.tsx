@@ -146,7 +146,7 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
 
       <div>
         <Label htmlFor="ticker" className="block text-sm font-medium mb-1">
-          Nom de l'action/ETF
+          Nom de l'action/ETF <span className="text-red-500">*</span>
         </Label>
         <Input
           id="ticker"
@@ -155,11 +155,12 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
           onChange={(e) => setTicker(e.target.value)}
           className="wealth-input w-full"
           placeholder="Ex: AAPL"
+          required
         />
       </div>
       <div>
         <Label htmlFor="shares" className="block text-sm font-medium mb-1">
-          Quantité d'actions
+          Quantité d'actions <span className="text-red-500">*</span>
         </Label>
         <Input
           id="shares"
@@ -170,11 +171,12 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
           placeholder="Ex: 10"
           min="0"
           step="0.01"
+          required
         />
       </div>
       <div>
         <Label htmlFor="purchasePrice" className="block text-sm font-medium mb-1">
-          Prix d'achat par action (€)
+          Prix d'achat par action (€) <span className="text-red-500">*</span>
         </Label>
         <Input
           id="purchasePrice"
@@ -185,6 +187,7 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
           placeholder="Ex: 150"
           min="0"
           step="0.01"
+          required
         />
       </div>
     </>

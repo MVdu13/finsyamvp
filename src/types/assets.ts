@@ -11,6 +11,15 @@ export type AssetType =
   | 'savings-account'
   | 'investment-account';
 
+export interface Transaction {
+  id: string;
+  date: string;
+  quantity: number;
+  price: number;
+  total: number;
+  type: 'buy' | 'sell';
+}
+
 export interface Asset {
   id: string;
   name: string;
@@ -34,6 +43,7 @@ export interface Asset {
   
   // Stock specific
   investmentAccountId?: string;
+  transactions?: Transaction[];
   
   // Real estate specific properties
   propertyType?: 'apartment' | 'house' | 'building' | 'commercial' | 'land' | 'other';
