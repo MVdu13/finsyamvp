@@ -3,7 +3,8 @@ import React from 'react';
 import { Income, Expense } from '@/types/budget';
 import { formatCurrency } from '@/lib/formatters';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowUp, ArrowDown } from 'lucide-react';
+import { Sankey, Tooltip, Rectangle, ResponsiveContainer } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 interface CashflowChartProps {
   incomes: Income[];
@@ -12,16 +13,173 @@ interface CashflowChartProps {
   totalExpenses: number;
 }
 
+interface SankeyNode {
+  name: string;
+  value?: number;
+  fill?: string;
+}
+
+interface SankeyLink {
+  source: number;
+  target: number;
+  value: number;
+  name?: string;
+  fill?: string;
+}
+
 const CashflowChart: React.FC<CashflowChartProps> = ({
   incomes,
   expenses,
   totalIncome,
   totalExpenses
 }) => {
-  // Calculer la hauteur des barres en fonction du montant maximum
-  const maxAmount = Math.max(totalIncome, totalExpenses);
-  const getHeightPercentage = (amount: number) => {
-    return Math.max(10, (amount / maxAmount) * 100);
+  // Prepare data for Sankey diagram
+  const prepareData = () => {
+    const nodes: SankeyNode[] = [];
+    const links: SankeyLink[] = [];
+
+    // Income source node
+    nodes.push({ 
+      name: `Revenus: ${formatCurrency(totalIncome)}`, 
+      fill: '#a5b4fc' // Light blue
+    });
+
+    // Budget allocation node
+    nodes.push({ 
+      name: `Budget: ${formatCurrency(totalIncome)}`,
+      fill: '#fdba74' // Light orange
+    });
+
+    // Add the main link between income and budget
+    links.push({
+      source: 0,
+      target: 1,
+      value: totalIncome,
+      fill: '#a5b4fc80', // Transparent light blue
+    });
+
+    // Add fixed expenses category
+    const fixedExpenses = expenses.filter(expense => expense.type === 'fixed');
+    const variableExpenses = expenses.filter(expense => expense.type === 'variable');
+    
+    // Group fixed and variable expenses by category
+    const expenseCategories: Record<string, { fixed: Expense[], variable: Expense[] }> = {};
+    
+    // Initialize categories
+    expenses.forEach(expense => {
+      if (!expenseCategories[expense.category]) {
+        expenseCategories[expense.category] = {
+          fixed: [],
+          variable: []
+        };
+      }
+      
+      if (expense.type === 'fixed') {
+        expenseCategories[expense.category].fixed.push(expense);
+      } else {
+        expenseCategories[expense.category].variable.push(expense);
+      }
+    });
+
+    // Starting index for category nodes
+    let nodeIndex = 2;
+    
+    // Process expense categories
+    Object.entries(expenseCategories).forEach(([category, { fixed, variable }]) => {
+      const categoryExpenses = [...fixed, ...variable];
+      const categoryTotal = categoryExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      
+      if (categoryTotal > 0) {
+        // Add category node
+        nodes.push({
+          name: `${category}: ${formatCurrency(categoryTotal)}`,
+          fill: getCategoryColor(category)
+        });
+        
+        // Link from budget to this category
+        links.push({
+          source: 1,
+          target: nodeIndex,
+          value: categoryTotal,
+          name: category,
+          fill: getCategoryColorTransparent(category)
+        });
+        
+        // For each expense in this category
+        categoryExpenses.forEach(expense => {
+          // Add expense node
+          nodes.push({
+            name: `${expense.name}: ${formatCurrency(expense.amount)}`,
+            fill: getCategoryColor(category, true)
+          });
+          
+          // Link from category to this expense
+          links.push({
+            source: nodeIndex,
+            target: nodeIndex + 1,
+            value: expense.amount,
+            name: expense.name,
+            fill: getCategoryColorTransparent(category, true)
+          });
+          
+          nodeIndex++;
+        });
+        
+        nodeIndex++;
+      }
+    });
+
+    return { nodes, links };
+  };
+
+  // Get color for a specific category
+  const getCategoryColor = (category: string, isExpense = false) => {
+    const opacity = isExpense ? '80' : '';
+    
+    switch (category.toLowerCase()) {
+      case 'logement':
+        return `#e879f9${opacity}`; // Pink
+      case 'nourriture':
+      case 'courses':
+        return `#c4b5fd${opacity}`; // Purple
+      case 'transport':
+        return `#a5f3fc${opacity}`; // Cyan
+      case 'loisirs':
+      case 'sport':
+        return `#86efac${opacity}`; // Green
+      case 'santé':
+      case 'assurance':
+      case 'assurance vie':
+        return `#fda4af${opacity}`; // Red
+      case 'investissement':
+      case 'investissements':
+      case 'épargne':
+        return `#fcd34d${opacity}`; // Yellow
+      case 'abonnements':
+      case 'internet':
+      case 'téléphone':
+        return `#93c5fd${opacity}`; // Blue
+      case 'vie quotidienne':
+        return `#fdba74${opacity}`; // Orange
+      default:
+        return `#d1d5db${opacity}`; // Gray
+    }
+  };
+
+  // Get transparent color for a specific category
+  const getCategoryColorTransparent = (category: string, isExpense = false) => {
+    return getCategoryColor(category, isExpense) + '80'; // 50% opacity
+  };
+
+  const { nodes, links } = prepareData();
+
+  const chartConfig = {
+    income: {
+      color: '#a5b4fc',
+    },
+    expense: {
+      color: '#fdba74',
+    },
   };
 
   return (
@@ -30,58 +188,31 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
         <CardTitle className="text-lg font-medium">Flux de trésorerie</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-between gap-8 h-80">
-          {/* Colonne des revenus */}
-          <div className="flex-1 flex flex-col">
-            <div className="flex items-center justify-center mb-3 gap-2">
-              <ArrowUp className="h-5 w-5 text-green-500" />
-              <h3 className="font-medium">Revenus</h3>
-            </div>
-            <div className="flex-1 flex items-end justify-center relative">
-              <div 
-                className="w-40 bg-green-500/20 border-t-4 border-green-500 rounded-t-md"
-                style={{ height: `${getHeightPercentage(totalIncome)}%` }}
+        <div className="h-[500px] w-full">
+          <ChartContainer config={chartConfig}>
+            <ResponsiveContainer width="100%" height="100%">
+              <Sankey
+                data={{ nodes, links }}
+                nodePadding={10}
+                nodeWidth={10}
+                link={{ stroke: '#d1d5db' }}
+                node={
+                  <Rectangle 
+                    fill="#a5b4fc"
+                    radius={[2, 2, 2, 2]}
+                  />
+                }
               >
-                <div className="absolute -top-8 left-0 right-0 text-center font-medium">
-                  {formatCurrency(totalIncome)}
-                </div>
-                <div className="p-4 h-full overflow-y-auto">
-                  {incomes.map(income => (
-                    <div key={income.id} className="flex justify-between text-sm mb-2 border-b border-green-200 pb-1">
-                      <span>{income.name}</span>
-                      <span className="font-medium">{formatCurrency(income.amount)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Colonne des dépenses */}
-          <div className="flex-1 flex flex-col">
-            <div className="flex items-center justify-center mb-3 gap-2">
-              <ArrowDown className="h-5 w-5 text-red-500" />
-              <h3 className="font-medium">Dépenses</h3>
-            </div>
-            <div className="flex-1 flex items-end justify-center relative">
-              <div 
-                className="w-40 bg-red-500/20 border-t-4 border-red-500 rounded-t-md"
-                style={{ height: `${getHeightPercentage(totalExpenses)}%` }}
-              >
-                <div className="absolute -top-8 left-0 right-0 text-center font-medium">
-                  {formatCurrency(totalExpenses)}
-                </div>
-                <div className="p-4 h-full overflow-y-auto">
-                  {expenses.map(expense => (
-                    <div key={expense.id} className="flex justify-between text-sm mb-2 border-b border-red-200 pb-1">
-                      <span>{expense.name}</span>
-                      <span className="font-medium">{formatCurrency(expense.amount)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+                <Tooltip
+                  content={
+                    <ChartTooltipContent 
+                      formatter={(value, name) => [formatCurrency(value as number), name]}
+                    />
+                  }
+                />
+              </Sankey>
+            </ResponsiveContainer>
+          </ChartContainer>
         </div>
       </CardContent>
     </Card>
