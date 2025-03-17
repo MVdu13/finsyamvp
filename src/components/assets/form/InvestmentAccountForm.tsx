@@ -19,8 +19,6 @@ const InvestmentAccountForm: React.FC<InvestmentAccountFormProps> = ({
   isEditing = false,
 }) => {
   const [name, setName] = useState(initialValues?.name || '');
-  const [value, setValue] = useState(initialValues?.value ? initialValues.value.toString() : '0');
-  const [performance, setPerformance] = useState(initialValues?.performance ? initialValues.performance.toString() : '0');
   const [accountType, setAccountType] = useState<InvestmentAccountType>(initialValues?.accountType || 'PEA');
   const [description, setDescription] = useState(initialValues?.description || '');
 
@@ -32,8 +30,8 @@ const InvestmentAccountForm: React.FC<InvestmentAccountFormProps> = ({
       description: description || `Compte ${accountType}`,
       type: 'investment-account' as const,
       accountType,
-      value: parseFloat(value) || 0,
-      performance: parseFloat(performance) || 0,
+      value: 0,
+      performance: 0,
       updatedAt: new Date().toISOString(),
       ...(initialValues?.createdAt && { createdAt: initialValues.createdAt }),
     };
@@ -87,37 +85,6 @@ const InvestmentAccountForm: React.FC<InvestmentAccountFormProps> = ({
           onChange={(e) => setDescription(e.target.value)}
           className="wealth-input w-full"
           placeholder="Entrez une description"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="value" className="block text-sm font-medium mb-1">
-          Valeur totale (€)
-        </Label>
-        <Input
-          id="value"
-          type="number"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className="wealth-input w-full"
-          placeholder="Ex: 10000"
-          min="0"
-          step="0.01"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="performance" className="block text-sm font-medium mb-1">
-          Performance (%)
-        </Label>
-        <Input
-          id="performance"
-          type="number"
-          value={performance}
-          onChange={(e) => setPerformance(e.target.value)}
-          className="wealth-input w-full"
-          placeholder="Ex: 5.2"
-          step="0.1"
         />
       </div>
 
