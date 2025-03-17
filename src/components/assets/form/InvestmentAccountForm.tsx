@@ -31,13 +31,14 @@ const InvestmentAccountForm: React.FC<InvestmentAccountFormProps> = ({
     const accountAsset = {
       name: accountName,
       description: `Type: ${accountTypeLabels[accountType]}`,
-      type: 'investment-account' as const, // Add the required type property
+      type: 'investment-account' as const, // This is critical - it was missing
       accountType,
       value: 0, // Default to zero, no value input required
       performance: 0, // Default to zero, no performance input required
       updatedAt: new Date().toISOString()
     };
-    
+
+    console.log("Submitting new account:", accountAsset);
     onSubmit(accountAsset);
   };
 

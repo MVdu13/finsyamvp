@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, Plus, Filter, FileCheck } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -26,7 +25,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
   assets, 
   onAddAsset,
   onDeleteAsset,
-  onUpdateAsset
+  onUpdateAsset 
 }) => {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -35,10 +34,17 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [newlyCreatedAccountId, setNewlyCreatedAccountId] = useState<string | null>(null);
+  const [forceRefresh, setForceRefresh] = useState(0);
   
   // Filter assets by type
   const stocks = assets.filter(asset => asset.type === 'stock');
   const investmentAccounts = assets.filter(asset => asset.type === 'investment-account');
+  
+  // Add a console log to debug the accounts
+  useEffect(() => {
+    console.log('Investment accounts:', investmentAccounts);
+    console.log('Stocks:', stocks);
+  }, [investmentAccounts, stocks, forceRefresh]);
   
   // Calculate metrics
   const totalValue = stocks.reduce((sum, asset) => sum + asset.value, 0);
@@ -210,9 +216,14 @@ const StocksPage: React.FC<StocksPageProps> = ({
       title: "Action ajoutée",
       description: `${newStock.name} a été ajouté à votre portefeuille`,
     });
+    
+    // Force refresh to update the lists
+    setForceRefresh(prev => prev + 1);
   };
   
   const handleAddAccount = (newAccount: Omit<Asset, 'id'>) => {
+    console.log("Adding account:", newAccount);
+    
     // Make sure we're adding an investment account asset with default values
     const accountAsset = {
       ...newAccount,
@@ -230,8 +241,12 @@ const StocksPage: React.FC<StocksPageProps> = ({
     if (newlyCreatedAccountId !== null) {
       setTimeout(() => {
         setDialogOpen(true);
+        setNewlyCreatedAccountId(null);
       }, 300);
     }
+    
+    // Force refresh to update the lists
+    setForceRefresh(prev => prev + 1);
     
     // Show success toast
     toast({
@@ -274,6 +289,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
     setEditingAsset(null);
     setDialogOpen(false); // Close the stock dialog if it's open
     setAccountDialogOpen(true);
+    setNewlyCreatedAccountId('pending'); // Mark that we're creating an account for a stock
   };
 
   const handleOpenAddStock = () => {

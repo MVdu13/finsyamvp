@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Asset, InvestmentAccountType } from '@/types/assets';
 import { Label } from '@/components/ui/label';
@@ -31,6 +31,11 @@ const StockForm: React.FC<StockFormProps> = ({
   const [showCreateAccount, setShowCreateAccount] = useState(false);
   const [investmentAccountName, setInvestmentAccountName] = useState('');
   const [accountType, setAccountType] = useState<InvestmentAccountType>('cto');
+
+  // Log the accounts received for debugging
+  useEffect(() => {
+    console.log('Available accounts in StockForm:', investmentAccounts);
+  }, [investmentAccounts]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

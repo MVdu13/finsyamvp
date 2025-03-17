@@ -40,6 +40,11 @@ const Index = () => {
     localStorage.setItem('financial-assets', JSON.stringify(assets));
     // Create a storage event to notify other components that assets have changed
     window.dispatchEvent(new Event('storage'));
+    
+    // Log assets for debugging
+    console.log('Updated assets:', assets);
+    console.log('Investment accounts:', assets.filter(a => a.type === 'investment-account'));
+    console.log('Stocks:', assets.filter(a => a.type === 'stock'));
   }, [assets]);
   
   // Save sidebar state to localStorage when it changes
@@ -67,6 +72,8 @@ const Index = () => {
       title: "Actif ajouté",
       description: `${newAsset.name} a été ajouté avec succès.`
     });
+    
+    return asset.id; // Return the new asset ID
   };
   
   const updateAsset = (idOrAsset: string | Asset, maybeAsset?: Partial<Asset>) => {
