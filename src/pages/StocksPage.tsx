@@ -39,11 +39,17 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const [editingAccount, setEditingAccount] = useState<Asset | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
   const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
+  const [forceRefresh, setForceRefresh] = useState(0); // New state for forcing refresh
   
   // Filter stocks and investment accounts
   const stocks = assets.filter(asset => asset.type === 'stock');
   const investmentAccounts = assets.filter(asset => asset.type === 'investment-account');
   
+  // Log when accounts change to debug
+  useEffect(() => {
+    console.log('StocksPage - Investment Accounts:', investmentAccounts);
+  }, [investmentAccounts]);
+
   // Calculate metrics
   const stocksWithoutAccounts = stocks.filter(stock => !stock.parentAccountId);
   const totalValue = stocks.reduce((sum, asset) => sum + asset.value, 0);
@@ -212,6 +218,11 @@ const StocksPage: React.FC<StocksPageProps> = ({
   };
   
   const handleAddAccount = (newAccount: Omit<Asset, 'id'>) => {
+    const addedAccount = {
+      ...newAccount,
+      id: Date.now().toString(), // Temporary ID to use before it's officially added
+    };
+    
     onAddAsset(newAccount);
     setAccountDialogOpen(false);
     
@@ -220,8 +231,14 @@ const StocksPage: React.FC<StocksPageProps> = ({
       description: `${newAccount.name} a été ajouté à vos comptes d'investissement`,
     });
 
+    // Force refresh to update the accounts list
+    setForceRefresh(prev => prev + 1);
+
     // If we're creating an account before adding a stock, open the stock dialog with this account selected
     if (selectedAccountId === 'new') {
+      // Set the selected account ID to the new account's ID
+      setSelectedAccountId(addedAccount.id);
+      
       // Wait for the state to update with the new account
       setTimeout(() => {
         setStockDialogOpen(true);
@@ -345,6 +362,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
                 accounts={investmentAccounts}
                 onCreateNewAccount={handleCreateNewAccount}
                 selectedAccountId={selectedAccountId}
+                forceRefresh={forceRefresh}
               />
             </DialogContent>
           </Dialog>
@@ -367,6 +385,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
                 isEditing={true}
                 accounts={investmentAccounts}
                 onCreateNewAccount={handleCreateNewAccount}
+                forceRefresh={forceRefresh}
               />
             )}
           </DialogContent>

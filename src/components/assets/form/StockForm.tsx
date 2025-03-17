@@ -13,6 +13,7 @@ interface StockFormProps {
   accounts: Asset[];
   onCreateNewAccount: () => void;
   selectedAccountId?: string;
+  forceRefresh?: number; // Add a force refresh prop
 }
 
 const StockForm: React.FC<StockFormProps> = ({
@@ -23,6 +24,7 @@ const StockForm: React.FC<StockFormProps> = ({
   accounts,
   onCreateNewAccount,
   selectedAccountId,
+  forceRefresh,
 }) => {
   const [name, setName] = useState(initialValues?.name || '');
   const [ticker, setTicker] = useState(initialValues?.symbol || '');
@@ -32,6 +34,20 @@ const StockForm: React.FC<StockFormProps> = ({
   const [value, setValue] = useState(initialValues?.value ? initialValues.value.toString() : '0');
   const [description, setDescription] = useState(initialValues?.description || '');
   const [accountId, setAccountId] = useState(initialValues?.parentAccountId || selectedAccountId || '');
+
+  // Reset account ID when forceRefresh changes or when selected account ID changes
+  useEffect(() => {
+    if (selectedAccountId) {
+      setAccountId(selectedAccountId);
+    }
+  }, [selectedAccountId, forceRefresh]);
+
+  // Log accounts and selectedAccountId to debug
+  useEffect(() => {
+    console.log('StockForm - Accounts:', accounts);
+    console.log('StockForm - Selected Account ID:', selectedAccountId);
+    console.log('StockForm - Current Account ID:', accountId);
+  }, [accounts, selectedAccountId, accountId]);
 
   // Update value when quantity or purchase price changes
   useEffect(() => {
