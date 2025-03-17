@@ -9,9 +9,11 @@ import { Asset, AssetType } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LineChartComponent from '@/components/charts/LineChart';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
+import StockForm from '@/components/assets/form/StockForm';
+import InvestmentAccountForm from '@/components/assets/form/InvestmentAccountForm';
 
 interface StocksPageProps {
   assets: Asset[];
@@ -210,10 +212,12 @@ const StocksPage: React.FC<StocksPageProps> = ({
   };
   
   const handleAddAccount = (newAccount: Omit<Asset, 'id'>) => {
-    // Make sure we're adding an investment account asset
+    // Make sure we're adding an investment account asset with default values
     const accountAsset = {
       ...newAccount,
-      type: 'investment-account' as AssetType
+      type: 'investment-account' as AssetType,
+      value: 0,  // Default value
+      performance: 0  // Default performance
     };
     
     // Call the parent's onAddAsset function
@@ -285,12 +289,13 @@ const StocksPage: React.FC<StocksPageProps> = ({
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>Ajouter un compte d'investissement</DialogTitle>
+                <DialogDescription>
+                  Créez un nouveau compte pour y stocker vos actions et ETF.
+                </DialogDescription>
               </DialogHeader>
-              <AssetForm 
+              <InvestmentAccountForm 
                 onSubmit={handleAddAccount} 
                 onCancel={() => setAccountDialogOpen(false)} 
-                defaultType="investment-account" 
-                showTypeSelector={false}
               />
             </DialogContent>
           </Dialog>
@@ -305,13 +310,15 @@ const StocksPage: React.FC<StocksPageProps> = ({
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>Ajouter une action/ETF</DialogTitle>
+                <DialogDescription>
+                  Ajoutez une action ou un ETF à votre portefeuille.
+                </DialogDescription>
               </DialogHeader>
-              <AssetForm 
+              <StockForm 
                 onSubmit={handleAddStock} 
-                onCancel={() => setDialogOpen(false)} 
-                defaultType="stock" 
-                showTypeSelector={false}
+                onCancel={() => setDialogOpen(false)}
                 investmentAccounts={investmentAccounts}
+                onNeedAccount={handleOpenAddAccount}
               />
             </DialogContent>
           </Dialog>

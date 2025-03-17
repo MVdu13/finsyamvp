@@ -3,19 +3,22 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InvestmentAccountType } from '@/types/assets';
+import { Input } from '@/components/ui/input';
 
 interface InvestmentAccountFormFieldsProps {
   accountName: string;
   accountType: InvestmentAccountType;
   setAccountName: (value: string) => void;
   setAccountType: (value: InvestmentAccountType) => void;
+  simplified?: boolean;
 }
 
 const InvestmentAccountFormFields: React.FC<InvestmentAccountFormFieldsProps> = ({
   accountName,
   accountType,
   setAccountName,
-  setAccountType
+  setAccountType,
+  simplified = false
 }) => {
   return (
     <>
@@ -23,7 +26,7 @@ const InvestmentAccountFormFields: React.FC<InvestmentAccountFormFieldsProps> = 
         <Label htmlFor="accountName" className="block text-sm font-medium mb-1">
           Nom du compte
         </Label>
-        <input
+        <Input
           id="accountName"
           type="text"
           value={accountName}
