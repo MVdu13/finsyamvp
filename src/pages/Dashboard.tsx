@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import NetWorthChart, { AssetCategoryFilter } from '@/components/dashboard/NetWorthChart';
 import AssetAllocation from '@/components/dashboard/AssetAllocation';
 import FinancialGoals from '@/components/dashboard/FinancialGoals';
-import AssetsList from '@/components/assets/AssetsList';
 import UserProfile from '@/components/dashboard/UserProfile';
 import { Asset, AssetType } from '@/types/assets';
 import { mockGoals } from '@/lib/mockData';
 import AssetForm from '@/components/assets/AssetForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import GroupedAssetsList from '@/components/assets/GroupedAssetsList';
 
 interface DashboardProps {
   assets: Asset[];
@@ -30,6 +30,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [assetTypeTab, setAssetTypeTab] = useState<AssetType>('stock');
   const [assetCategoryFilter, setAssetCategoryFilter] = useState<AssetCategoryFilter>('all');
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
 
   const filteredAssets = assets.filter(asset => {
     if (assetCategoryFilter === 'all') return true;
@@ -114,6 +115,21 @@ const Dashboard: React.FC<DashboardProps> = ({
     riskProfile: 'balanced' as const,
     profileImage: undefined,
   };
+
+  // Grouped assets for display
+  const groupedAssets = assets.reduce((groups, asset) => {
+    const type = asset.type;
+    if (!groups[type]) {
+      groups[type] = [];
+    }
+    groups[type].push(asset);
+    return groups;
+  }, {} as Record<AssetType, Asset[]>);
+
+  // Sort each group by value
+  Object.keys(groupedAssets).forEach(type => {
+    groupedAssets[type as AssetType].sort((a, b) => b.value - a.value);
+  });
 
   return (
     <div className="p-6 space-y-6">
@@ -215,9 +231,14 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
         
         <div>
-          <AssetsList 
-            assets={topAssets}
-            title="Actifs principaux"
+          <GroupedAssetsList 
+            groupedAssets={groupedAssets}
+            navigateTo={navigateTo}
+            onEdit={onUpdateAsset ? (asset) => {
+              setEditingAsset(asset);
+              setDialogOpen(true);
+            } : undefined}
+            onDelete={onDeleteAsset}
           />
         </div>
       </div>

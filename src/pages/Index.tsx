@@ -18,6 +18,7 @@ const Index = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeItem, setActiveItem] = useState('dashboard');
   const [assets, setAssets] = useState<Asset[]>(mockAssets);
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const { toast } = useToast();
 
   // Load assets from localStorage on initial load
