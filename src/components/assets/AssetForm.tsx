@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Asset, AssetType } from '@/types/assets';
-import { X, Banknote, Wallet, BookText, Home, Bitcoin } from 'lucide-react';
+import { X, Banknote, Wallet, BookText, Home } from 'lucide-react';
 import { CryptoInfo } from '@/services/cryptoService';
 import TypeSelector from './form/TypeSelector';
 import CommonFormFields from './form/CommonFormFields';
@@ -60,7 +61,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [cryptoQty, setCryptoQty] = useState('');
   const [cryptoPrice, setCryptoPrice] = useState('');
   const [cryptoPurchasePrice, setCryptoPurchasePrice] = useState('');
-  const [cryptoAccountId, setCryptoAccountId] = useState(initialValues?.cryptoAccountId || '');
   
   const [bankName, setBankName] = useState('');
   const [accountName, setAccountName] = useState('');
@@ -69,11 +69,12 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [savingsAccountName, setSavingsAccountName] = useState('');
   const [interestRate, setInterestRate] = useState('');
 
-  const filteredAccounts = type === 'stock'
-    ? investmentAccounts?.filter(acc => acc.type === 'investment-account') || []
-    : type === 'crypto'
-    ? investmentAccounts?.filter(acc => acc.type === 'crypto-account') || []
-    : [];
+  const handleAddAccount = (accountData: Omit<Asset, 'id'>) => {
+    if (onAddAccount) {
+      return onAddAccount(accountData);
+    }
+    return null;
+  };
 
   useEffect(() => {
     if (initialValues?.description) {
@@ -176,10 +177,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
         setSavingsAccountName(parts[1]);
       }
     }
-    
-    if (initialValues?.cryptoAccountId) {
-      setCryptoAccountId(initialValues.cryptoAccountId);
-    }
   }, [initialValues]);
 
   useEffect(() => {
@@ -203,16 +200,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
       });
       return false;
     }
-    
-    if (type === 'crypto' && !cryptoAccountId) {
-      toast({
-        title: "Attention",
-        description: "Veuillez sélectionner un compte crypto",
-        variant: "destructive",
-      });
-      return false;
-    }
-    
     return true;
   };
 
@@ -279,11 +266,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
       ...(initialValues?.createdAt && { createdAt: initialValues.createdAt }),
       updatedAt: new Date().toISOString(),
       ...(type === 'stock' && investmentAccountId && { investmentAccountId }),
-      ...(type === 'crypto' && cryptoAccountId && { cryptoAccountId }),
       ...(type === 'stock' && { quantity: parseFloat(shares) || 0 }),
       ...(type === 'stock' && { purchasePrice: parseFloat(purchasePrice) || 0 }),
-      ...(type === 'crypto' && { quantity: parseFloat(cryptoQty) || 0 }),
-      ...(type === 'crypto' && { purchasePrice: parseFloat(cryptoPurchasePrice) || 0 }),
     };
     
     onSubmit(asset);
@@ -310,7 +294,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
       setCryptoQty('');
       setCryptoPrice('');
       setCryptoPurchasePrice('');
-      setCryptoAccountId('');
       setBankName('');
       setAccountName('');
       setSavingsBankName('');
@@ -339,7 +322,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
       case 'bank-account': return <Wallet size={24} className="text-[#FA5003]" />;
       case 'savings-account': return <BookText size={24} className="text-[#FA5003]" />;
       case 'real-estate': return <Home size={24} className="text-[#FA5003]" />;
-      case 'crypto': return <Bitcoin size={24} className="text-[#FA5003]" />;
       default: return null;
     }
   };
@@ -377,8 +359,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
             setShares={setShares}
             setPurchasePrice={setPurchasePrice}
             setInvestmentAccountId={setInvestmentAccountId}
-            investmentAccounts={filteredAccounts}
-            onAddAccount={onAddAccount}
+            investmentAccounts={investmentAccounts || []}
+            onAddAccount={handleAddAccount}
           />
         );
       case 'crypto':
@@ -387,7 +369,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
             cryptoQty={cryptoQty}
             cryptoPrice={cryptoPrice}
             purchasePrice={cryptoPurchasePrice}
-            cryptoAccountId={cryptoAccountId}
             setCryptoQty={(newQty) => {
               setCryptoQty(newQty);
               updateCryptoValue(newQty, cryptoPrice);
@@ -397,10 +378,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
               updateCryptoValue(cryptoQty, newPrice);
             }}
             setPurchasePrice={setCryptoPurchasePrice}
-            setCryptoAccountId={setCryptoAccountId}
             onCryptoSelect={handleCryptoSelect}
-            cryptoAccounts={filteredAccounts}
-            onAddAccount={onAddAccount}
           />
         );
       case 'real-estate':
