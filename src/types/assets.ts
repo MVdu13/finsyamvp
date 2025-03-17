@@ -8,7 +8,15 @@ export type AssetType =
   | 'commodities' 
   | 'other'
   | 'bank-account'
-  | 'savings-account';
+  | 'savings-account'
+  | 'investment-account';
+
+export type InvestmentAccountType = 
+  | 'PEA' 
+  | 'PER' 
+  | 'CTO' 
+  | 'Assurance-vie'
+  | 'Autre';
 
 export interface Asset {
   id: string;
@@ -37,6 +45,12 @@ export interface Asset {
   annualRent?: number;
   annualFees?: number;
   annualCharges?: number;
+  
+  // Investment account specific properties
+  accountType?: InvestmentAccountType;
+  
+  // For assets linked to an account
+  parentAccountId?: string;
 }
 
 // Updated AssetAllocation type to include separate properties for bank accounts and savings accounts

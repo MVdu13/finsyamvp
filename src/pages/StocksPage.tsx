@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, Plus, Filter } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -10,6 +11,10 @@ import LineChartComponent from '@/components/charts/LineChart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
+import InvestmentAccountForm from '@/components/assets/form/InvestmentAccountForm';
+import StockForm from '@/components/assets/form/StockForm';
+import InvestmentAccountsList from '@/components/assets/InvestmentAccountsList';
+import DeleteConfirmationDialog from '@/components/assets/DeleteConfirmationDialog';
 
 interface StocksPageProps {
   assets: Asset[];
@@ -25,15 +30,25 @@ const StocksPage: React.FC<StocksPageProps> = ({
   onUpdateAsset
 }) => {
   const { toast } = useToast();
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [stockDialogOpen, setStockDialogOpen] = useState(false);
+  const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editAccountDialogOpen, setEditAccountDialogOpen] = useState(false);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [editingAccount, setEditingAccount] = useState<Asset | null>(null);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
+  const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
+  
+  // Filter stocks and investment accounts
+  const stocks = assets.filter(asset => asset.type === 'stock');
+  const investmentAccounts = assets.filter(asset => asset.type === 'investment-account');
   
   // Calculate metrics
-  const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
-  const avgPerformance = assets.length > 0 
-    ? assets.reduce((sum, asset) => sum + asset.performance, 0) / assets.length
+  const stocksWithoutAccounts = stocks.filter(stock => !stock.parentAccountId);
+  const totalValue = stocks.reduce((sum, asset) => sum + asset.value, 0);
+  const avgPerformance = stocks.length > 0 
+    ? stocks.reduce((sum, asset) => sum + (asset.performance || 0), 0) / stocks.length
     : 0;
   
   // Générer un historique cohérent basé sur la valeur totale actuelle et la timeframe
@@ -185,15 +200,9 @@ const StocksPage: React.FC<StocksPageProps> = ({
   };
 
   const handleAddStock = (newStock: Omit<Asset, 'id'>) => {
-    // Make sure we're adding a stock asset
-    const stockAsset = {
-      ...newStock,
-      type: 'stock' as AssetType
-    };
-    
     // Call the parent's onAddAsset function
-    onAddAsset(stockAsset);
-    setDialogOpen(false);
+    onAddAsset(newStock);
+    setStockDialogOpen(false);
     
     // Show success toast
     toast({
@@ -202,12 +211,35 @@ const StocksPage: React.FC<StocksPageProps> = ({
     });
   };
   
-  const handleEditAsset = (asset: Asset) => {
+  const handleAddAccount = (newAccount: Omit<Asset, 'id'>) => {
+    onAddAsset(newAccount);
+    setAccountDialogOpen(false);
+    
+    toast({
+      title: "Compte créé",
+      description: `${newAccount.name} a été ajouté à vos comptes d'investissement`,
+    });
+
+    // If we're creating an account before adding a stock, open the stock dialog with this account selected
+    if (selectedAccountId === 'new') {
+      // Wait for the state to update with the new account
+      setTimeout(() => {
+        setStockDialogOpen(true);
+      }, 100);
+    }
+  };
+  
+  const handleEditStock = (asset: Asset) => {
     setEditingAsset(asset);
     setEditDialogOpen(true);
   };
 
-  const handleUpdateAsset = (updatedAsset: Omit<Asset, 'id'>) => {
+  const handleEditAccount = (account: Asset) => {
+    setEditingAccount(account);
+    setEditAccountDialogOpen(true);
+  };
+
+  const handleUpdateStock = (updatedAsset: Omit<Asset, 'id'>) => {
     if (editingAsset && onUpdateAsset) {
       onUpdateAsset(editingAsset.id, updatedAsset);
       toast({
@@ -219,14 +251,55 @@ const StocksPage: React.FC<StocksPageProps> = ({
     }
   };
 
-  const handleDeleteAsset = (id: string) => {
-    if (onDeleteAsset) {
-      onDeleteAsset(id);
+  const handleUpdateAccount = (updatedAccount: Omit<Asset, 'id'>) => {
+    if (editingAccount && onUpdateAsset) {
+      onUpdateAsset(editingAccount.id, updatedAccount);
       toast({
-        title: "Action supprimée",
-        description: "L'action a été supprimée de votre portefeuille",
+        title: "Compte modifié",
+        description: `${updatedAccount.name} a été mis à jour`,
       });
+      setEditAccountDialogOpen(false);
+      setEditingAccount(null);
     }
+  };
+
+  const handleDeleteAsset = () => {
+    if (assetToDelete && onDeleteAsset) {
+      // Check if this is an account with stocks
+      const isAccount = assetToDelete.type === 'investment-account';
+      if (isAccount) {
+        // Find all stocks in this account
+        const stocksInAccount = stocks.filter(stock => stock.parentAccountId === assetToDelete.id);
+        
+        // Delete all stocks in this account first
+        stocksInAccount.forEach(stock => {
+          onDeleteAsset(stock.id);
+        });
+      }
+      
+      // Delete the asset
+      onDeleteAsset(assetToDelete.id);
+      
+      toast({
+        title: isAccount ? "Compte supprimé" : "Action supprimée",
+        description: isAccount 
+          ? "Le compte et tous ses titres ont été supprimés" 
+          : "L'action a été supprimée de votre portefeuille",
+      });
+      
+      setAssetToDelete(null);
+    }
+  };
+
+  const handleAddStockToAccount = (accountId: string) => {
+    setSelectedAccountId(accountId);
+    setStockDialogOpen(true);
+  };
+
+  const handleCreateNewAccount = () => {
+    setSelectedAccountId('new');
+    setStockDialogOpen(false);
+    setAccountDialogOpen(true);
   };
 
   return (
@@ -236,43 +309,84 @@ const StocksPage: React.FC<StocksPageProps> = ({
           <h1 className="text-2xl font-bold tracking-tight">Portefeuille d'Actions et ETF</h1>
           <p className="text-muted-foreground">Gérez vos actions et ETF et suivez leur performance</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <button className="wealth-btn wealth-btn-primary flex items-center gap-2">
-              <Plus size={16} />
-              <span>Ajouter une action/ETF</span>
-            </button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Ajouter une action/ETF</DialogTitle>
-            </DialogHeader>
-            <AssetForm 
-              onSubmit={handleAddStock} 
-              onCancel={() => setDialogOpen(false)} 
-              defaultType="stock" 
-              showTypeSelector={false}
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+          <Dialog open={accountDialogOpen} onOpenChange={setAccountDialogOpen}>
+            <DialogTrigger asChild>
+              <button className="wealth-btn wealth-btn-secondary flex items-center gap-2">
+                <Plus size={16} />
+                <span>Nouveau compte</span>
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>Ajouter un compte d'investissement</DialogTitle>
+              </DialogHeader>
+              <InvestmentAccountForm 
+                onSubmit={handleAddAccount} 
+                onCancel={() => setAccountDialogOpen(false)} 
+              />
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={stockDialogOpen} onOpenChange={setStockDialogOpen}>
+            <DialogTrigger asChild>
+              <button className="wealth-btn wealth-btn-primary flex items-center gap-2">
+                <Plus size={16} />
+                <span>Ajouter une action/ETF</span>
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>Ajouter une action/ETF</DialogTitle>
+              </DialogHeader>
+              <StockForm 
+                onSubmit={handleAddStock} 
+                onCancel={() => setStockDialogOpen(false)} 
+                accounts={investmentAccounts}
+                onCreateNewAccount={handleCreateNewAccount}
+                selectedAccountId={selectedAccountId}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
         
-        {/* Edit Dialog */}
+        {/* Edit Stock Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Modifier une action/ETF</DialogTitle>
             </DialogHeader>
             {editingAsset && (
-              <AssetForm 
-                onSubmit={handleUpdateAsset}
+              <StockForm 
+                onSubmit={handleUpdateStock}
                 onCancel={() => {
                   setEditDialogOpen(false);
                   setEditingAsset(null);
                 }}
-                defaultType="stock"
                 initialValues={editingAsset}
                 isEditing={true}
-                showTypeSelector={false}
+                accounts={investmentAccounts}
+                onCreateNewAccount={handleCreateNewAccount}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+        
+        {/* Edit Account Dialog */}
+        <Dialog open={editAccountDialogOpen} onOpenChange={setEditAccountDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Modifier un compte d'investissement</DialogTitle>
+            </DialogHeader>
+            {editingAccount && (
+              <InvestmentAccountForm 
+                onSubmit={handleUpdateAccount}
+                onCancel={() => {
+                  setEditAccountDialogOpen(false);
+                  setEditingAccount(null);
+                }}
+                initialValues={editingAccount}
+                isEditing={true}
               />
             )}
           </DialogContent>
@@ -301,7 +415,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
             <CardTitle className="text-sm font-medium text-muted-foreground">Nombre d'Actions/ETF</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{assets.length}</div>
+            <div className="text-2xl font-bold">{stocks.length}</div>
             <div className="text-xs text-muted-foreground mt-1">
               Titres en portefeuille
             </div>
@@ -359,28 +473,50 @@ const StocksPage: React.FC<StocksPageProps> = ({
       </Card>
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">Vos Actions et ETF</h2>
-        {assets.length > 0 ? (
-          <AssetsList 
-            assets={assets} 
-            title="Actions et ETF" 
-            onEdit={handleEditAsset}
-            onDelete={handleDeleteAsset}
+        <h2 className="text-xl font-semibold mb-4">Vos comptes d'investissement</h2>
+        {investmentAccounts.length > 0 ? (
+          <InvestmentAccountsList 
+            accounts={investmentAccounts}
+            stocks={stocks}
+            onEditAccount={handleEditAccount}
+            onDeleteAccount={(id) => setAssetToDelete(assets.find(a => a.id === id) || null)}
+            onAddStock={handleAddStockToAccount}
+            onEditStock={handleEditStock}
+            onDeleteStock={(id) => setAssetToDelete(assets.find(a => a.id === id) || null)}
           />
         ) : (
           <div className="text-center py-12 bg-muted rounded-lg">
             <p className="text-lg text-muted-foreground mb-4">
-              Aucune action ou ETF dans votre portefeuille
+              Aucun compte d'investissement dans votre portefeuille
             </p>
             <button 
               className="wealth-btn wealth-btn-primary"
-              onClick={() => setDialogOpen(true)}
+              onClick={() => setAccountDialogOpen(true)}
             >
-              Ajouter votre première action/ETF
+              Créer votre premier compte d'investissement
             </button>
           </div>
         )}
       </div>
+
+      {stocksWithoutAccounts.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Actions et ETF sans compte associé</h2>
+          <AssetsList 
+            assets={stocksWithoutAccounts} 
+            title="" 
+            onEdit={handleEditStock}
+            onDelete={(id) => setAssetToDelete(assets.find(a => a.id === id) || null)}
+          />
+        </div>
+      )}
+
+      <DeleteConfirmationDialog 
+        isOpen={!!assetToDelete}
+        onClose={() => setAssetToDelete(null)}
+        onConfirm={handleDeleteAsset}
+        assetName={assetToDelete?.name}
+      />
     </div>
   );
 };
