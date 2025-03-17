@@ -6,6 +6,7 @@ import { Asset, AssetType } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LineChartComponent from '@/components/charts/LineChart';
+import DonutChart from '@/components/charts/DonutChart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
@@ -30,29 +31,23 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   
-  // Calculate metrics
   const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
   const avgPerformance = assets.length > 0 
     ? assets.reduce((sum, asset) => sum + (asset.performance || 0), 0) / assets.length
     : 0;
   
-  // Calculate annual interest earnings
   const annualInterestEarnings = assets.reduce((sum, asset) => {
-    // Calculate interest earnings for each asset based on its value and performance rate
     const interestRate = asset.performance || 0;
     const annualInterest = (asset.value * interestRate) / 100;
     return sum + annualInterest;
   }, 0);
   
-  // Générer un historique pour les livrets d'épargne
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
     
-    // Déterminer le nombre de points de données selon la timeframe
     let numDataPoints;
     let labels;
     
-    // Créer des dates basées sur la timeframe sélectionnée
     const currentDate = new Date();
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
     
@@ -108,7 +103,6 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
         break;
     }
     
-    // Si aucun livret, retourner des valeurs à zéro
     if (baseValue === 0) {
       return {
         labels,
@@ -123,43 +117,37 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
       };
     }
     
-    // Les livrets ont une croissance stable mais lente
     const generateSteadyIncrease = (steps: number, finalValue: number, avgPerformance: number) => {
-      // Calculer la valeur initiale en fonction de la performance moyenne sur la période
-      // Pour un taux de performance annuel, sur un timeframe différent
       let initialValue;
-      
-      // Ajuster le facteur de progression selon la timeframe
       let growthFactor;
+      
       switch (timeFrame) {
         case '1M':
-          growthFactor = Math.pow(1 + avgPerformance/100, 1/12); // Performance mensuelle
+          growthFactor = Math.pow(1 + avgPerformance/100, 1/12);
           break;
         case '3M':
-          growthFactor = Math.pow(1 + avgPerformance/100, 1/4); // Performance trimestrielle
+          growthFactor = Math.pow(1 + avgPerformance/100, 1/4);
           break;
         case '6M':
-          growthFactor = Math.pow(1 + avgPerformance/100, 1/2); // Performance semestrielle
+          growthFactor = Math.pow(1 + avgPerformance/100, 1/2);
           break;
         case '5Y':
-          growthFactor = Math.pow(1 + avgPerformance/100, 5); // Performance sur 5 ans
+          growthFactor = Math.pow(1 + avgPerformance/100, 5);
           break;
         case 'ALL':
-          growthFactor = Math.pow(1 + avgPerformance/100, 5); // Performance sur "tout"
+          growthFactor = Math.pow(1 + avgPerformance/100, 5);
           break;
         case '1Y':
         default:
-          growthFactor = 1 + avgPerformance/100; // Performance annuelle
+          growthFactor = 1 + avgPerformance/100;
           break;
       }
       
       initialValue = finalValue / growthFactor;
       
-      // Générer une progression constante
       const values = [];
       for (let i = 0; i < steps; i++) {
         const progress = i / (steps - 1);
-        // Légère variation pour rendre la courbe plus naturelle
         const randomNoise = 1 + (Math.random() * 0.005 - 0.0025);
         values.push(initialValue + (finalValue - initialValue) * progress * randomNoise);
       }
@@ -184,12 +172,10 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
 
   const chartData = generateChartData();
   
-  // Calculate absolute performance change in currency
   const firstValue = chartData.datasets[0].data[0] || 0;
   const lastValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1] || 0;
   const absoluteGrowth = lastValue - firstValue;
   
-  // Get time period text based on selected timeframe
   const getTimePeriodText = () => {
     switch (timeFrame) {
       case '1M': return 'sur le dernier mois';
@@ -203,7 +189,6 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
   };
 
   const handleAddSavingsAccount = (newAsset: Omit<Asset, 'id'>) => {
-    // Assurer que nous ajoutons un livret d'épargne
     const savingsAccount = {
       ...newAsset,
       type: 'savings-account' as AssetType
@@ -245,6 +230,37 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
     }
   };
 
+  const generateDistributionChartData = () => {
+    if (assets.length === 0) {
+      return {
+        labels: ['Aucun livret'],
+        values: [1],
+        colors: ['#e5e7eb'],
+      };
+    }
+
+    const sortedAssets = [...assets].sort((a, b) => b.value - a.value);
+    
+    const colors = [
+      '#8B5CF6',
+      '#EC4899',
+      '#3B82F6',
+      '#10B981',
+      '#F97316',
+      '#A855F7',
+      '#14B8A6',
+      '#6366F1',
+    ];
+
+    return {
+      labels: sortedAssets.map(asset => asset.name),
+      values: sortedAssets.map(asset => asset.value),
+      colors: sortedAssets.map((_, index) => colors[index % colors.length]),
+    };
+  };
+
+  const distributionChartData = generateDistributionChartData();
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -273,7 +289,6 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
           </DialogContent>
         </Dialog>
         
-        {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
@@ -333,30 +348,46 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
         </Card>
       </div>
 
-      <Card className="col-span-3">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <div>
-            <CardTitle>Évolution de l'épargne</CardTitle>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle>Évolution de l'épargne</CardTitle>
+              <CardDescription>
+                {timeFrame === '1Y' ? 'Sur les 12 derniers mois' : 
+                 timeFrame === '1M' ? 'Sur le dernier mois' : 
+                 timeFrame === '3M' ? 'Sur les 3 derniers mois' : 
+                 timeFrame === '6M' ? 'Sur les 6 derniers mois' : 
+                 timeFrame === '5Y' ? 'Sur les 5 dernières années' : 
+                 'Historique complet'}
+              </CardDescription>
+            </div>
+            <TimeFrameSelector 
+              selectedTimeFrame={timeFrame} 
+              onTimeFrameChange={setTimeFrame} 
+            />
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <LineChartComponent data={chartData} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Répartition des livrets</CardTitle>
             <CardDescription>
-              {timeFrame === '1Y' ? 'Sur les 12 derniers mois' : 
-               timeFrame === '1M' ? 'Sur le dernier mois' : 
-               timeFrame === '3M' ? 'Sur les 3 derniers mois' : 
-               timeFrame === '6M' ? 'Sur les 6 derniers mois' : 
-               timeFrame === '5Y' ? 'Sur les 5 dernières années' : 
-               'Historique complet'}
+              Distribution par livret d'épargne
             </CardDescription>
-          </div>
-          <TimeFrameSelector 
-            selectedTimeFrame={timeFrame} 
-            onTimeFrameChange={setTimeFrame} 
-          />
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <LineChartComponent data={chartData} />
-          </div>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] flex items-center justify-center">
+              <DonutChart data={distributionChartData} height={260} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div>
         <h2 className="text-xl font-semibold mb-4">Vos Livrets d'Épargne</h2>
