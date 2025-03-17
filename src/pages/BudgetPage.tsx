@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { mockBudget, mockAssets } from '@/lib/mockData';
-import BudgetOverview from '@/components/budget/BudgetOverview';
-import BudgetDistribution from '@/components/budget/BudgetDistribution';
-import SecurityCushion from '@/components/budget/SecurityCushion';
-import BudgetFormModal from '@/components/budget/BudgetFormModal';
-import SecurityCushionForm from '@/components/budget/SecurityCushionForm';
 import BudgetHeader from '@/components/budget/BudgetHeader';
 import IncomeSection from '@/components/budget/IncomeSection';
 import ExpenseSection from '@/components/budget/ExpenseSection';
+import SecurityCushion from '@/components/budget/SecurityCushion';
+import BudgetFormModal from '@/components/budget/BudgetFormModal';
+import SecurityCushionForm from '@/components/budget/SecurityCushionForm';
 import FinancialRecommendations from '@/components/budget/FinancialRecommendations';
 import DeleteConfirmationDialog from '@/components/budget/DeleteConfirmationDialog';
+import KeyMetrics from '@/components/budget/KeyMetrics';
+import CashflowChart from '@/components/budget/CashflowChart';
 import { Budget, Income, Expense } from '@/types/budget';
 import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -122,6 +122,11 @@ const BudgetPage = () => {
   
   const availableForInvestment = needsSecurityCushion ? 0 : 
     Math.max(0, availableAfterExpenses - monthlyProjectsContribution);
+
+  // Calculate savings rate
+  const savingsRate = budget.totalIncome > 0 
+    ? Math.round((availableAfterExpenses / budget.totalIncome) * 100) 
+    : 0;
 
   const handleSaveIncome = (income: Income) => {
     const isEditing = budget.incomes.some(item => item.id === income.id);
@@ -236,31 +241,44 @@ const BudgetPage = () => {
     <div className="p-6 space-y-6">
       <BudgetHeader />
       
-      <Card className="p-6">
-        <CardHeader className="p-0 pb-6">
-          <CardTitle>Revenu mensuel</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <IncomeSection 
-            incomes={budget.incomes}
-            totalIncome={budget.totalIncome}
-            onAddIncome={() => {
-              setItemToEdit(null);
-              setIncomeFormOpen(true);
-            }}
-            onEditIncome={handleEditIncome}
-            onDeleteIncome={(id) => confirmDelete(id, 'income')}
-          />
-          
-          <BudgetDistribution 
-            budget={budget}
-            savingsAccountsTotal={savingsAccountsTotal} 
-          />
-        </CardContent>
-      </Card>
+      {/* Métriques clés */}
+      <KeyMetrics 
+        totalIncome={budget.totalIncome}
+        totalExpenses={budget.totalExpenses}
+        savingsAmount={availableAfterExpenses}
+        savingsRate={savingsRate}
+      />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      {/* Graphique de flux de trésorerie */}
+      <CashflowChart 
+        incomes={budget.incomes}
+        expenses={budget.expenses}
+        totalIncome={budget.totalIncome}
+        totalExpenses={budget.totalExpenses}
+      />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Section revenus */}
+        <Card className="p-6">
+          <CardHeader className="p-0 pb-6">
+            <CardTitle>Revenu mensuel</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <IncomeSection 
+              incomes={budget.incomes}
+              totalIncome={budget.totalIncome}
+              onAddIncome={() => {
+                setItemToEdit(null);
+                setIncomeFormOpen(true);
+              }}
+              onEditIncome={handleEditIncome}
+              onDeleteIncome={(id) => confirmDelete(id, 'income')}
+            />
+          </CardContent>
+        </Card>
+        
+        {/* Section dépenses */}
+        <Card className="p-0">
           <ExpenseSection 
             fixedExpenses={fixedExpenses}
             variableExpenses={variableExpenses}
@@ -270,28 +288,31 @@ const BudgetPage = () => {
             onEditExpense={handleEditExpense}
             onDeleteExpense={(id) => confirmDelete(id, 'expense')}
           />
-        </div>
-        
-        <div>
-          <SecurityCushion 
-            currentAmount={savingsAccountsTotal}
-            targetAmount={targetAmount}
-            expenseAmount={monthlyExpenses}
-            riskProfile={riskProfile}
-            onEditClick={() => setCushionFormOpen(true)}
-          />
-        </div>
+        </Card>
       </div>
       
-      <FinancialRecommendations 
-        totalIncome={budget.totalIncome}
-        totalExpenses={budget.totalExpenses}
-        availableAfterExpenses={availableAfterExpenses}
-        monthlyProjectsContribution={monthlyProjectsContribution}
-        availableForInvestment={availableForInvestment}
-        needsSecurityCushion={needsSecurityCushion}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <FinancialRecommendations 
+            totalIncome={budget.totalIncome}
+            totalExpenses={budget.totalExpenses}
+            availableAfterExpenses={availableAfterExpenses}
+            monthlyProjectsContribution={monthlyProjectsContribution}
+            availableForInvestment={availableForInvestment}
+            needsSecurityCushion={needsSecurityCushion}
+          />
+        </div>
+        
+        <SecurityCushion 
+          currentAmount={savingsAccountsTotal}
+          targetAmount={targetAmount}
+          expenseAmount={monthlyExpenses}
+          riskProfile={riskProfile}
+          onEditClick={() => setCushionFormOpen(true)}
+        />
+      </div>
       
+      {/* Modals */}
       <BudgetFormModal
         isOpen={incomeFormOpen}
         onClose={() => {
