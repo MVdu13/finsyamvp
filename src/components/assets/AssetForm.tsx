@@ -183,14 +183,12 @@ const AssetForm: React.FC<AssetFormProps> = ({
     }
   }, [initialValues]);
 
-  // When property type or current value changes, update the main value field
   useEffect(() => {
     if (type === 'real-estate' && currentValue) {
       setValue(currentValue);
     }
   }, [type, currentValue]);
 
-  // Calculate value based on quantity and price for stocks and crypto
   useEffect(() => {
     if (type === 'stock' && shares && purchasePrice) {
       setValue((parseFloat(shares) * parseFloat(purchasePrice)).toString());
