@@ -219,7 +219,9 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const handleAddStock = (newStock: Omit<Asset, 'id'>) => {
     const stockAsset = {
       ...newStock,
-      type: 'stock' as AssetType
+      type: 'stock' as AssetType,
+      quantity: parseFloat(shares) || 0,
+      purchasePrice: parseFloat(purchasePrice) || 0
     };
     
     if (typeof stockAsset.quantity === 'number' && typeof stockAsset.purchasePrice === 'number') {
@@ -268,17 +270,23 @@ const StocksPage: React.FC<StocksPageProps> = ({
 
   const handleUpdateAsset = (updatedAsset: Omit<Asset, 'id'>) => {
     if (editingAsset && onUpdateAsset) {
-      if (updatedAsset.type === 'stock' && typeof updatedAsset.quantity === 'number' && typeof updatedAsset.purchasePrice === 'number') {
-        updatedAsset.value = updatedAsset.quantity * updatedAsset.purchasePrice;
+      const updatedStock = {
+        ...updatedAsset,
+        quantity: updatedAsset.quantity || editingAsset.quantity || 0,
+        purchasePrice: updatedAsset.purchasePrice || editingAsset.purchasePrice || 0
+      };
+      
+      if (updatedStock.type === 'stock' && typeof updatedStock.quantity === 'number' && typeof updatedStock.purchasePrice === 'number') {
+        updatedStock.value = updatedStock.quantity * updatedStock.purchasePrice;
       }
       
-      onUpdateAsset(editingAsset.id, updatedAsset);
+      onUpdateAsset(editingAsset.id, updatedStock);
       
-      if (updatedAsset.type === 'stock' && updatedAsset.investmentAccountId && onUpdateAsset) {
-        const account = investmentAccounts.find(a => a.id === updatedAsset.investmentAccountId);
+      if (updatedStock.type === 'stock' && updatedStock.investmentAccountId && onUpdateAsset) {
+        const account = investmentAccounts.find(a => a.id === updatedStock.investmentAccountId);
         if (account) {
           const accountStocks = stocks.map(s => 
-            s.id === editingAsset.id ? { ...s, ...updatedAsset } : s
+            s.id === editingAsset.id ? { ...s, ...updatedStock } : s
           ).filter(s => s.investmentAccountId === account.id);
           
           const newTotalValue = accountStocks.reduce((sum, stock) => sum + stock.value, 0);
@@ -288,7 +296,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
       
       toast({
         title: "Action modifiée",
-        description: `${updatedAsset.name} a été mise à jour`,
+        description: `${updatedStock.name} a été mise à jour`,
       });
       setEditDialogOpen(false);
       setEditingAsset(null);

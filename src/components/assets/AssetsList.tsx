@@ -82,9 +82,9 @@ const AssetsList: React.FC<AssetsListProps> = ({
                       <p className="text-xs text-muted-foreground">
                         {asset.description}
                       </p>
-                      {asset.type === 'stock' && asset.quantity && asset.purchasePrice && (
+                      {asset.type === 'stock' && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          {asset.quantity} × {formatCurrency(asset.purchasePrice)}
+                          {asset.quantity || 0} × {formatCurrency(asset.purchasePrice || 0)}
                         </p>
                       )}
                     </div>
