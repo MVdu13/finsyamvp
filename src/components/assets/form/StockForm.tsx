@@ -42,6 +42,7 @@ const StockForm: React.FC<StockFormProps> = ({
 
     const stockAsset = {
       name: ticker,
+      type: 'stock' as const, // Add the required type property
       description: `${shares} actions à ${purchasePrice}€`,
       value: calculatedValue,
       performance: 0, // Default performance for new stocks

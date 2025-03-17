@@ -31,6 +31,7 @@ const InvestmentAccountForm: React.FC<InvestmentAccountFormProps> = ({
     const accountAsset = {
       name: accountName,
       description: `Type: ${accountTypeLabels[accountType]}`,
+      type: 'investment-account' as const, // Add the required type property
       accountType,
       value: 0, // Default to zero, no value input required
       performance: 0, // Default to zero, no performance input required
