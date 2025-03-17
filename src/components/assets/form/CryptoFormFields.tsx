@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CryptoSearch from '../CryptoSearch';
 import { CryptoInfo } from '@/services/cryptoService';
 import { Button } from '@/components/ui/button';
@@ -56,13 +55,13 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
       // Ajouter le compte
       const addedAccount = onAddAccount(newAccount);
       
-      // On réinitialise le formulaire mais on ne ferme PAS la dialog
+      // On réinitialise le formulaire
       setNewAccountName('');
       
       // Si l'ID est disponible immédiatement (si onAddAccount retourne le compte créé)
       if (addedAccount && addedAccount.id) {
         setCryptoAccountId(addedAccount.id);
-        setAccountDialogOpen(false); // Fermer seulement si on a l'ID
+        setAccountDialogOpen(false); // Fermer le dialogue immédiatement
       } else {
         // Sinon, on utilisera l'effet pour sélectionner le compte quand il sera disponible
         setLastAddedAccountId('pending');
@@ -71,7 +70,7 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
   };
 
   // Effet pour sélectionner automatiquement le compte nouvellement ajouté
-  React.useEffect(() => {
+  useEffect(() => {
     if (lastAddedAccountId === 'pending' && cryptoAccounts.length > 0) {
       // On cherche le compte le plus récemment ajouté (qui aura l'ID le plus récent)
       const mostRecentAccount = cryptoAccounts[cryptoAccounts.length - 1];
