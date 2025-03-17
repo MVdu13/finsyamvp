@@ -47,15 +47,20 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
         performance: 0,
       };
       
-      // Ajouter le compte et marquer que nous venons d'ajouter un compte
-      onAddAccount(newAccount);
+      // Ajouter le compte
+      const addedAccount = onAddAccount(newAccount);
       
-      // Fermer la dialog et réinitialiser le formulaire
-      setAccountDialogOpen(false);
+      // On réinitialise le formulaire mais on ne ferme PAS la dialog
       setNewAccountName('');
       
-      // On va sélectionner automatiquement ce compte une fois qu'il aura été ajouté
-      setLastAddedAccountId('pending');
+      // Si l'ID est disponible immédiatement (si onAddAccount retourne le compte créé)
+      if (addedAccount && 'id' in addedAccount) {
+        setInvestmentAccountId(addedAccount.id);
+        setAccountDialogOpen(false); // Fermer seulement si on a l'ID
+      } else {
+        // Sinon, on utilisera l'effet pour sélectionner le compte quand il sera disponible
+        setLastAddedAccountId('pending');
+      }
     }
   };
 
@@ -67,6 +72,7 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
       if (mostRecentAccount) {
         setInvestmentAccountId(mostRecentAccount.id);
         setLastAddedAccountId(null); // On réinitialise pour ne pas refaire la sélection
+        setAccountDialogOpen(false); // Fermer la dialog après avoir sélectionné le compte
       }
     }
   }, [investmentAccounts, lastAddedAccountId, setInvestmentAccountId]);

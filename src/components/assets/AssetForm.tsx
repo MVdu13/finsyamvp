@@ -68,6 +68,14 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [savingsAccountName, setSavingsAccountName] = useState('');
   const [interestRate, setInterestRate] = useState('');
 
+  const handleAddAccount = (accountData: Omit<Asset, 'id'>) => {
+    if (onAddAccount) {
+      const newAccount = onAddAccount(accountData);
+      return newAccount;
+    }
+    return null;
+  };
+
   useEffect(() => {
     if (initialValues?.description) {
       const desc = initialValues.description;
@@ -352,7 +360,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
             setPurchasePrice={setPurchasePrice}
             setInvestmentAccountId={setInvestmentAccountId}
             investmentAccounts={investmentAccounts || []}
-            onAddAccount={onAddAccount}
+            onAddAccount={handleAddAccount}
           />
         );
       case 'crypto':
