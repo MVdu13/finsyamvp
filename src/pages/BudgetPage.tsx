@@ -3,7 +3,6 @@ import { mockBudget, mockAssets } from '@/lib/mockData';
 import BudgetHeader from '@/components/budget/BudgetHeader';
 import IncomeSection from '@/components/budget/IncomeSection';
 import ExpenseSection from '@/components/budget/ExpenseSection';
-import SecurityCushion from '@/components/budget/SecurityCushion';
 import BudgetFormModal from '@/components/budget/BudgetFormModal';
 import SecurityCushionForm from '@/components/budget/SecurityCushionForm';
 import FinancialRecommendations from '@/components/budget/FinancialRecommendations';
@@ -234,26 +233,15 @@ const BudgetPage = () => {
         savingsRate={savingsRate}
       />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <SecurityCushion 
-            currentAmount={savingsAccountsTotal}
-            targetAmount={targetAmount}
-            expenseAmount={monthlyExpenses}
-            riskProfile={riskProfile}
-            onEditClick={() => setCushionFormOpen(true)}
-          />
-        </div>
-        <div className="lg:col-span-1">
-          <FinancialRecommendations 
-            totalIncome={budget.totalIncome}
-            totalExpenses={budget.totalExpenses}
-            availableAfterExpenses={availableAfterExpenses}
-            monthlyProjectsContribution={monthlyProjectsContribution}
-            availableForInvestment={availableForInvestment}
-            needsSecurityCushion={needsSecurityCushion}
-          />
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+        <FinancialRecommendations 
+          totalIncome={budget.totalIncome}
+          totalExpenses={budget.totalExpenses}
+          availableAfterExpenses={availableAfterExpenses}
+          monthlyProjectsContribution={monthlyProjectsContribution}
+          availableForInvestment={availableForInvestment}
+          needsSecurityCushion={needsSecurityCushion}
+        />
       </div>
       
       <CashflowChart 
