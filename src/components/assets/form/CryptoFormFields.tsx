@@ -152,7 +152,7 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
         <Label htmlFor="cryptoSearch" className="block text-sm font-medium mb-1">
           Rechercher une crypto
         </Label>
-        <CryptoSearch onCryptoSelect={onCryptoSelect} />
+        <CryptoSearch onSelect={onCryptoSelect} />
       </div>
 
       <div>

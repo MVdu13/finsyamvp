@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Asset, AssetType } from '@/types/assets';
 import { X, Banknote, Wallet, BookText, Home, Bitcoin } from 'lucide-react';
@@ -284,10 +283,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
       performance: parseFloat(finalPerformance || '0'),
       ...(initialValues?.createdAt && { createdAt: initialValues.createdAt }),
       updatedAt: new Date().toISOString(),
-      // Account IDs
       ...(type === 'stock' && investmentAccountId && { investmentAccountId }),
       ...(type === 'crypto' && cryptoAccountId && { cryptoAccountId }),
-      // Stock & Crypto shared properties
       ...((type === 'stock' || type === 'crypto') && { 
         quantity: type === 'stock' ? parseFloat(shares) || 0 : parseFloat(cryptoQty) || 0,
         purchasePrice: type === 'stock' ? parseFloat(purchasePrice) || 0 : parseFloat(cryptoPurchasePrice) || 0
@@ -536,3 +533,4 @@ const AssetForm: React.FC<AssetFormProps> = ({
 };
 
 export default AssetForm;
+
