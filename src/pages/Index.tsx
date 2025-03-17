@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import Dashboard from './Dashboard';
@@ -9,7 +10,7 @@ import CryptoPage from './CryptoPage';
 import ProjectsPage from './ProjectsPage';
 import BankAccountsPage from './BankAccountsPage';
 import SavingsAccountsPage from './SavingsAccountsPage';
-import { Asset, AssetType } from '@/types/assets';
+import { Asset } from '@/types/assets';
 import { mockAssets } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,23 +21,28 @@ const Index = () => {
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const { toast } = useToast();
 
+  // Load assets from localStorage on initial load
   useEffect(() => {
     const storedAssets = localStorage.getItem('financial-assets');
     if (storedAssets) {
       setAssets(JSON.parse(storedAssets));
     }
     
+    // Load sidebar state from localStorage if available
     const sidebarState = localStorage.getItem('sidebar-collapsed');
     if (sidebarState) {
       setIsCollapsed(sidebarState === 'true');
     }
   }, []);
 
+  // Update localStorage whenever assets change
   useEffect(() => {
     localStorage.setItem('financial-assets', JSON.stringify(assets));
+    // Create a storage event to notify other components that assets have changed
     window.dispatchEvent(new Event('storage'));
   }, [assets]);
   
+  // Save sidebar state to localStorage when it changes
   useEffect(() => {
     localStorage.setItem('sidebar-collapsed', isCollapsed.toString());
   }, [isCollapsed]);
@@ -45,16 +51,12 @@ const Index = () => {
     setIsCollapsed(!isCollapsed);
   };
 
+  // Calculate the total wealth (value of all assets)
   const totalWealth = assets.reduce((sum, asset) => sum + asset.value, 0);
 
   const addAsset = (newAsset: Omit<Asset, 'id'>) => {
-    const assetWithType = {
-      ...newAsset,
-      type: newAsset.type as AssetType,
-    };
-    
     const asset = {
-      ...assetWithType,
+      ...newAsset,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
     };
@@ -157,7 +159,7 @@ const Index = () => {
                 onAddAsset={addAsset}
                 onUpdateAsset={updateAsset}
                 onDeleteAsset={deleteAsset}
-                totalWealth={totalWealth}
+                totalWealth={totalWealth} // Pass the total wealth to calculate the ratio
                />;
       case 'savings-accounts':
         return <SavingsAccountsPage 
