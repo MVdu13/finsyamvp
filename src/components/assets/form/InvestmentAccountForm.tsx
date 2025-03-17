@@ -64,7 +64,7 @@ const InvestmentAccountForm: React.FC<InvestmentAccountFormProps> = ({
             className="wealth-btn wealth-btn-primary flex-1"
             disabled={!accountName}
           >
-            Créer le compte
+            {initialValues ? 'Modifier' : 'Créer'} le compte
           </button>
         </div>
       </form>

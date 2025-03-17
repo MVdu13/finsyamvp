@@ -42,7 +42,7 @@ const StockForm: React.FC<StockFormProps> = ({
 
     const stockAsset = {
       name: ticker,
-      type: 'stock' as const, // Add the required type property
+      type: 'stock' as const,
       description: `${shares} actions à ${purchasePrice}€`,
       value: calculatedValue,
       performance: 0, // Default performance for new stocks
@@ -159,13 +159,47 @@ const StockForm: React.FC<StockFormProps> = ({
           >
             Annuler
           </button>
-          <button
-            type="submit"
-            className="wealth-btn wealth-btn-primary flex-1"
-            disabled={showCreateAccount || (!ticker || !shares || !purchasePrice || (!selectedAccountId && !showCreateAccount))}
-          >
-            Ajouter
-          </button>
+          {showCreateAccount ? (
+            <button
+              type="button"
+              className="wealth-btn wealth-btn-primary flex-1"
+              disabled={!investmentAccountName}
+              onClick={() => {
+                if (onNeedAccount && investmentAccountName) {
+                  // Creating a new account
+                  const accountTypeLabels = {
+                    'cto': 'Compte-Titres Ordinaire',
+                    'pea': 'Plan d\'Épargne en Actions',
+                    'per': 'Plan d\'Épargne Retraite',
+                    'assurance-vie': 'Assurance Vie'
+                  };
+                  
+                  const newAccount = {
+                    name: investmentAccountName,
+                    description: `Type: ${accountTypeLabels[accountType]}`,
+                    type: 'investment-account' as const,
+                    accountType,
+                    value: 0,
+                    performance: 0,
+                    updatedAt: new Date().toISOString()
+                  };
+                  
+                  onNeedAccount();
+                  setShowCreateAccount(false);
+                }
+              }}
+            >
+              Créer le compte
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="wealth-btn wealth-btn-primary flex-1"
+              disabled={!ticker || !shares || !purchasePrice || !selectedAccountId}
+            >
+              Ajouter
+            </button>
+          )}
         </div>
       </form>
     </div>

@@ -34,6 +34,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [newlyCreatedAccountId, setNewlyCreatedAccountId] = useState<string | null>(null);
   
   // Filter assets by type
   const stocks = assets.filter(asset => asset.type === 'stock');
@@ -224,6 +225,14 @@ const StocksPage: React.FC<StocksPageProps> = ({
     onAddAsset(accountAsset);
     setAccountDialogOpen(false);
     
+    // If we were adding a stock and needed to create an account first,
+    // reopen the stock dialog
+    if (newlyCreatedAccountId !== null) {
+      setTimeout(() => {
+        setDialogOpen(true);
+      }, 300);
+    }
+    
     // Show success toast
     toast({
       title: "Compte d'investissement ajouté",
@@ -263,6 +272,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
 
   const handleOpenAddAccount = () => {
     setEditingAsset(null);
+    setDialogOpen(false); // Close the stock dialog if it's open
     setAccountDialogOpen(true);
   };
 
