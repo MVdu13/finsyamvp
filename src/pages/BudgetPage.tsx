@@ -231,6 +231,7 @@ const BudgetPage = () => {
         totalExpenses={budget.totalExpenses}
         savingsAmount={availableAfterExpenses}
         savingsRate={savingsRate}
+        monthlyProjectsContribution={monthlyProjectsContribution}
       />
       
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">

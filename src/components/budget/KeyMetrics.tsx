@@ -2,23 +2,27 @@
 import React from 'react';
 import { formatCurrency } from '@/lib/formatters';
 import { Card, CardContent } from '@/components/ui/card';
-import { EuroIcon, ArrowDownIcon, ArrowUpIcon, PiggyBankIcon } from 'lucide-react';
+import { EuroIcon, ArrowDownIcon, ArrowUpIcon, PiggyBankIcon, TrendingUpIcon } from 'lucide-react';
 
 interface KeyMetricsProps {
   totalIncome: number;
   totalExpenses: number;
   savingsAmount: number;
   savingsRate: number;
+  monthlyProjectsContribution: number;
 }
 
 const KeyMetrics: React.FC<KeyMetricsProps> = ({
   totalIncome,
   totalExpenses,
   savingsAmount,
-  savingsRate
+  savingsRate,
+  monthlyProjectsContribution
 }) => {
+  const investmentCapacity = Math.max(0, savingsAmount - monthlyProjectsContribution);
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
       <Card className="bg-white">
         <CardContent className="flex items-center p-6">
           <div className="rounded-full p-3 bg-green-100 mr-4">
@@ -51,6 +55,18 @@ const KeyMetrics: React.FC<KeyMetricsProps> = ({
           <div>
             <p className="text-sm font-medium text-muted-foreground">Épargne</p>
             <h3 className="text-2xl font-bold">{formatCurrency(savingsAmount)}</h3>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card className="bg-white">
+        <CardContent className="flex items-center p-6">
+          <div className="rounded-full p-3 bg-amber-100 mr-4">
+            <TrendingUpIcon className="h-6 w-6 text-amber-600" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Capacité d'investissement</p>
+            <h3 className="text-2xl font-bold">{formatCurrency(investmentCapacity)}</h3>
           </div>
         </CardContent>
       </Card>
