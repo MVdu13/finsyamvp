@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import LineChart from '../charts/LineChart';
-import { BarChart3, Download, Info } from 'lucide-react';
+import { BarChart3, Download, Info, Wallet, Coins, BarChart4 } from 'lucide-react';
 import { NetWorthHistory } from '@/types/assets';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '../charts/TimeFrameSelector';
@@ -16,7 +16,7 @@ import {
 } from '../ui/tooltip';
 
 // Asset category filter types
-export type AssetCategoryFilter = 'all' | 'assets' | 'liabilities';
+export type AssetCategoryFilter = 'all' | 'savings' | 'investments';
 
 interface NetWorthChartProps {
   data: NetWorthHistory;
@@ -123,8 +123,8 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
   // Get category label text
   const getCategoryLabel = () => {
     switch (selectedCategory) {
-      case 'assets': return 'Actifs financiers';
-      case 'liabilities': return 'Passifs';
+      case 'savings': return 'Mon épargne';
+      case 'investments': return 'Placements financiers';
       case 'all':
       default: return 'Patrimoine global';
     }
@@ -133,12 +133,21 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
   // Category tooltip descriptions
   const getCategoryTooltipText = (category: AssetCategoryFilter) => {
     switch (category) {
-      case 'assets':
-        return "Les actifs financiers représentent uniquement vos placements financiers (actions, crypto, immobilier locatif, etc.) qui sont susceptibles de générer du rendement.";
-      case 'liabilities':
-        return "Les passifs regroupent vos comptes bancaires ainsi que votre résidence principale et secondaire qui ne sont pas louées, et donc ne génèrent pas de revenus.";
+      case 'savings':
+        return "Votre épargne comprend les comptes bancaires courants et livrets d'épargne, représentant votre argent facilement disponible.";
+      case 'investments':
+        return "Les placements financiers regroupent tous vos investissements destinés à générer du rendement : immobilier, actions, crypto, etc.";
       case 'all':
-        return "Le patrimoine global représente l'ensemble de votre fortune, comprenant la totalité de votre argent et de vos investissements, donnant ainsi une vue complète de votre situation financière.";
+        return "Le patrimoine global représente l'ensemble de votre fortune, comprenant la totalité de votre argent et de vos investissements.";
+    }
+  };
+
+  // Get the icon for each category
+  const getCategoryIcon = (category: AssetCategoryFilter) => {
+    switch (category) {
+      case 'savings': return <Coins size={16} className="mr-2" />;
+      case 'investments': return <BarChart4 size={16} className="mr-2" />;
+      case 'all': return <Wallet size={16} className="mr-2" />;
     }
   };
 
@@ -160,23 +169,26 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
           {/* Asset Category Filter with tooltip */}
           <div className="flex items-center">
             <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-              <SelectTrigger className="w-[180px] font-medium border-2 border-primary/20 hover:border-primary/40 transition-colors">
+              <SelectTrigger className="w-[210px] font-medium border-2 border-primary/20 hover:border-primary/40 transition-colors">
                 <SelectValue placeholder="Catégorie">{getCategoryLabel()}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">
                   <div className="flex items-center">
+                    {getCategoryIcon('all')}
                     Patrimoine global
                   </div>
                 </SelectItem>
-                <SelectItem value="assets">
+                <SelectItem value="savings">
                   <div className="flex items-center">
-                    Actifs financiers
+                    {getCategoryIcon('savings')}
+                    Mon épargne
                   </div>
                 </SelectItem>
-                <SelectItem value="liabilities">
+                <SelectItem value="investments">
                   <div className="flex items-center">
-                    Passifs
+                    {getCategoryIcon('investments')}
+                    Placements financiers
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -195,11 +207,11 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
                     <p className="font-medium mb-1">Patrimoine global</p>
                     <p className="text-muted-foreground mb-2">{getCategoryTooltipText('all')}</p>
                     
-                    <p className="font-medium mb-1">Actifs financiers</p>
-                    <p className="text-muted-foreground mb-2">{getCategoryTooltipText('assets')}</p>
+                    <p className="font-medium mb-1">Mon épargne</p>
+                    <p className="text-muted-foreground mb-2">{getCategoryTooltipText('savings')}</p>
                     
-                    <p className="font-medium mb-1">Passifs</p>
-                    <p className="text-muted-foreground">{getCategoryTooltipText('liabilities')}</p>
+                    <p className="font-medium mb-1">Placements financiers</p>
+                    <p className="text-muted-foreground">{getCategoryTooltipText('investments')}</p>
                   </div>
                 </TooltipContent>
               </Tooltip>

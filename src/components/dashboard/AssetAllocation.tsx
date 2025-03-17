@@ -44,10 +44,10 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({
 
   // Generate title based on selected category
   let title = 'Allocation d\'actifs';
-  if (selectedCategory === 'assets') {
-    title = 'Allocation d\'actifs financiers';
-  } else if (selectedCategory === 'liabilities') {
-    title = 'Allocation des passifs';
+  if (selectedCategory === 'savings') {
+    title = 'Répartition de mon épargne';
+  } else if (selectedCategory === 'investments') {
+    title = 'Répartition des placements';
   }
 
   return (
@@ -75,13 +75,15 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({
       <div className="mt-4 pt-4 border-t border-border">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {Object.entries(allocation).map(([key, value]) => {
+            if (value === 0) return null;
+            
             const percent = totalValue > 0 ? ((value / totalValue) * 100).toFixed(1) : '0.0';
             let label;
             switch(key) {
               case 'stocks': label = 'Actions'; break;
               case 'realEstate': label = 'Immobilier'; break;
               case 'crypto': label = 'Crypto'; break;
-              case 'cash': label = 'Liquidités'; break; // Cash now correctly represents bank accounts + savings accounts
+              case 'cash': label = 'Liquidités'; break;
               case 'bonds': label = 'Obligations'; break;
               case 'commodities': label = 'Mat. prem.'; break;
               default: label = 'Autres';

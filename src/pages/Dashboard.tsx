@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import NetWorthChart, { AssetCategoryFilter } from '@/components/dashboard/NetWorthChart';
 import AssetAllocation from '@/components/dashboard/AssetAllocation';
@@ -34,18 +35,18 @@ const Dashboard: React.FC<DashboardProps> = ({
   const filteredAssets = assets.filter(asset => {
     if (assetCategoryFilter === 'all') return true;
     
-    if (assetCategoryFilter === 'assets') {
-      if (asset.type === 'real-estate') {
-        return !(asset.usageType === 'main' || asset.usageType === 'secondary');
-      }
-      return asset.type !== 'bank-account' && asset.type !== 'savings-account';
+    if (assetCategoryFilter === 'savings') {
+      return asset.type === 'bank-account' || asset.type === 'savings-account';
     }
     
-    if (assetCategoryFilter === 'liabilities') {
-      if (asset.type === 'real-estate') {
-        return asset.usageType === 'main' || asset.usageType === 'secondary';
-      }
-      return asset.type === 'bank-account' || asset.type === 'savings-account';
+    if (assetCategoryFilter === 'investments') {
+      return (
+        asset.type === 'real-estate' || 
+        asset.type === 'stock' || 
+        asset.type === 'crypto' || 
+        asset.type === 'bonds' || 
+        asset.type === 'commodities'
+      );
     }
     
     return true;
