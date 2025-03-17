@@ -569,7 +569,11 @@ const StocksPage: React.FC<StocksPageProps> = ({
                       {stocks.length > 0 ? (
                         <div className="border rounded-md divide-y">
                           {stocks.map((stock) => (
-                            <div key={stock.id} className="p-3 flex items-center justify-between hover:bg-muted/50">
+                            <div 
+                              key={stock.id} 
+                              className="p-3 flex items-center justify-between hover:bg-muted/50 cursor-pointer"
+                              onClick={() => openStockDetails(stock)}
+                            >
                               <div>
                                 <div className="font-medium">{stock.name}</div>
                                 <div className="text-xs text-muted-foreground">
@@ -587,38 +591,25 @@ const StocksPage: React.FC<StocksPageProps> = ({
                                     <span className="ml-1">{(stock.performance || 0) > 0 ? "+" : ""}{(stock.performance || 0).toFixed(1)}%</span>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  {(stock.transactions && stock.transactions.length > 1) && (
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <button
-                                            onClick={() => openStockDetails(stock)}
-                                            className="p-2 text-primary hover:bg-primary/10 rounded-full"
-                                          >
-                                            <List size={16} />
-                                          </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>Voir l'historique des transactions</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  )}
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={() => handleEditAsset(stock)}
-                                      className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded"
-                                    >
-                                      Modifier
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteAsset(stock.id)}
-                                      className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
-                                    >
-                                      Supprimer
-                                    </button>
-                                  </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditAsset(stock);
+                                    }}
+                                    className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded"
+                                  >
+                                    Modifier
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteAsset(stock.id);
+                                    }}
+                                    className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
+                                  >
+                                    Supprimer
+                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -658,7 +649,11 @@ const StocksPage: React.FC<StocksPageProps> = ({
             <h3 className="text-lg font-medium mb-3">Actions sans compte assigné</h3>
             <div className="border rounded-md divide-y">
               {unassignedStocks.map((stock) => (
-                <div key={stock.id} className="p-3 flex items-center justify-between hover:bg-muted/50">
+                <div 
+                  key={stock.id} 
+                  className="p-3 flex items-center justify-between hover:bg-muted/50 cursor-pointer"
+                  onClick={() => openStockDetails(stock)}
+                >
                   <div>
                     <div className="font-medium">{stock.name}</div>
                     <div className="text-xs text-muted-foreground">
@@ -678,13 +673,19 @@ const StocksPage: React.FC<StocksPageProps> = ({
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleEditAsset(stock)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditAsset(stock);
+                        }}
                         className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded"
                       >
                         Modifier
                       </button>
                       <button
-                        onClick={() => handleDeleteAsset(stock.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteAsset(stock.id);
+                        }}
                         className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
                       >
                         Supprimer
@@ -787,4 +788,3 @@ const StocksPage: React.FC<StocksPageProps> = ({
 };
 
 export default StocksPage;
-
