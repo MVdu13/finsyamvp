@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Asset, AssetType } from '@/types/assets';
 import { X, Banknote, Wallet, BookText, Home } from 'lucide-react';
@@ -21,7 +22,7 @@ interface AssetFormProps {
   initialValues?: Asset;
   isEditing?: boolean;
   investmentAccounts?: Asset[];
-  onAddAccount?: (account: Omit<Asset, 'id'>) => void;
+  onAddAccount?: (account: Omit<Asset, 'id'>) => Asset | null | undefined;
 }
 
 const AssetForm: React.FC<AssetFormProps> = ({ 

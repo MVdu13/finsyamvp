@@ -24,7 +24,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 interface StocksPageProps {
   assets: Asset[];
-  onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+  onAddAsset: (asset: Omit<Asset, 'id'>) => Asset | null | undefined;
   onDeleteAsset?: (id: string) => void;
   onUpdateAsset?: (id: string, asset: Partial<Asset>) => void;
 }
@@ -226,22 +226,25 @@ const StocksPage: React.FC<StocksPageProps> = ({
       stockAsset.value = stockAsset.quantity * stockAsset.purchasePrice;
     }
     
-    onAddAsset(stockAsset);
-    setDialogOpen(false);
+    const result = onAddAsset(stockAsset);
     
-    if (stockAsset.investmentAccountId && onUpdateAsset) {
-      const account = investmentAccounts.find(a => a.id === stockAsset.investmentAccountId);
-      if (account) {
-        const accountStocks = [...stocks.filter(s => s.investmentAccountId === account.id), stockAsset as Asset];
-        const newTotalValue = accountStocks.reduce((sum, stock) => sum + stock.value, 0);
-        onUpdateAsset(account.id, { value: newTotalValue });
+    if (result) {
+      setDialogOpen(false);
+      
+      if (stockAsset.investmentAccountId && onUpdateAsset) {
+        const account = investmentAccounts.find(a => a.id === stockAsset.investmentAccountId);
+        if (account) {
+          const accountStocks = [...stocks.filter(s => s.investmentAccountId === account.id), stockAsset as Asset];
+          const newTotalValue = accountStocks.reduce((sum, stock) => sum + stock.value, 0);
+          onUpdateAsset(account.id, { value: newTotalValue });
+        }
       }
+      
+      toast({
+        title: "Action ajoutée",
+        description: `${newStock.name} a été ajouté à votre portefeuille`,
+      });
     }
-    
-    toast({
-      title: "Action ajoutée",
-      description: `${newStock.name} a été ajouté à votre portefeuille`,
-    });
   };
   
   const handleAddAccount = (newAccount: Omit<Asset, 'id'>) => {
