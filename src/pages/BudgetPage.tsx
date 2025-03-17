@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { mockBudget, mockAssets } from '@/lib/mockData';
 import BudgetHeader from '@/components/budget/BudgetHeader';
@@ -26,10 +25,8 @@ const BudgetPage = () => {
     }))
   };
   
-  // Get all assets for calculations
   const [assets, setAssets] = useState<Asset[]>(mockAssets);
   
-  // Calculate the total of savings accounts
   const calculateSavingsTotal = () => {
     return assets
       .filter(asset => asset.type === 'savings-account')
@@ -39,9 +36,7 @@ const BudgetPage = () => {
   const [budget, setBudget] = useState<Budget>({...initialBudget});
   const [projects, setProjects] = useState<FinancialGoal[]>([]);
   
-  // Load projects and assets from localStorage and listen for changes
   useEffect(() => {
-    // Function to load assets from localStorage
     const loadAssetsFromStorage = () => {
       const storedAssets = localStorage.getItem('financial-assets');
       if (storedAssets) {
@@ -49,16 +44,13 @@ const BudgetPage = () => {
       }
     };
     
-    // Load projects from localStorage
     const savedProjects = localStorage.getItem('financial-projects');
     if (savedProjects) {
       setProjects(JSON.parse(savedProjects));
     }
     
-    // Initial load of assets
     loadAssetsFromStorage();
     
-    // Listen for storage events to update assets when they change in other pages
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'financial-assets') {
         loadAssetsFromStorage();
@@ -67,7 +59,6 @@ const BudgetPage = () => {
     
     window.addEventListener('storage', handleStorageChange);
     
-    // Check every second for changes in localStorage
     const intervalId = setInterval(() => {
       loadAssetsFromStorage();
     }, 1000);
@@ -78,11 +69,9 @@ const BudgetPage = () => {
     };
   }, []);
   
-  // Current savings accounts total
   const savingsAccountsTotal = calculateSavingsTotal();
   const [riskProfile, setRiskProfile] = useState<'high' | 'medium' | 'low'>('medium');
   
-  // Load risk profile from localStorage on mount
   useEffect(() => {
     const savedRiskProfile = localStorage.getItem('security-cushion-risk-profile');
     if (savedRiskProfile && (savedRiskProfile === 'high' || savedRiskProfile === 'medium' || savedRiskProfile === 'low')) {
@@ -110,7 +99,6 @@ const BudgetPage = () => {
   const totalFixedExpenses = fixedExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   const totalVariableExpenses = variableExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   
-  // Calculate monthly project contribution from localStorage projects
   const monthlyProjectsContribution = projects.reduce(
     (sum, goal) => sum + goal.monthlyContribution, 
     0
@@ -124,7 +112,6 @@ const BudgetPage = () => {
   const availableForInvestment = needsSecurityCushion ? 0 : 
     Math.max(0, availableAfterExpenses - monthlyProjectsContribution);
 
-  // Calculate savings rate
   const savingsRate = budget.totalIncome > 0 
     ? Math.round((availableAfterExpenses / budget.totalIncome) * 100) 
     : 0;
@@ -204,10 +191,8 @@ const BudgetPage = () => {
   };
 
   const handleSaveCushion = (data: {currentAmount: number, riskProfile: 'high' | 'medium' | 'low'}) => {
-    // We only update the risk profile, as the current amount is now calculated dynamically
     setRiskProfile(data.riskProfile);
     
-    // Save the updated risk profile to localStorage
     localStorage.setItem('security-cushion-risk-profile', data.riskProfile);
     
     toast({
@@ -242,7 +227,6 @@ const BudgetPage = () => {
     <div className="p-6 space-y-6">
       <BudgetHeader />
       
-      {/* Métriques clés */}
       <KeyMetrics 
         totalIncome={budget.totalIncome}
         totalExpenses={budget.totalExpenses}
@@ -250,17 +234,28 @@ const BudgetPage = () => {
         savingsRate={savingsRate}
       />
       
-      {/* Analyse financière */}
-      <FinancialRecommendations 
-        totalIncome={budget.totalIncome}
-        totalExpenses={budget.totalExpenses}
-        availableAfterExpenses={availableAfterExpenses}
-        monthlyProjectsContribution={monthlyProjectsContribution}
-        availableForInvestment={availableForInvestment}
-        needsSecurityCushion={needsSecurityCushion}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <SecurityCushion 
+            currentAmount={savingsAccountsTotal}
+            targetAmount={targetAmount}
+            expenseAmount={monthlyExpenses}
+            riskProfile={riskProfile}
+            onEditClick={() => setCushionFormOpen(true)}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <FinancialRecommendations 
+            totalIncome={budget.totalIncome}
+            totalExpenses={budget.totalExpenses}
+            availableAfterExpenses={availableAfterExpenses}
+            monthlyProjectsContribution={monthlyProjectsContribution}
+            availableForInvestment={availableForInvestment}
+            needsSecurityCushion={needsSecurityCushion}
+          />
+        </div>
+      </div>
       
-      {/* Graphique de flux de trésorerie */}
       <CashflowChart 
         incomes={budget.incomes}
         expenses={budget.expenses}
@@ -269,7 +264,6 @@ const BudgetPage = () => {
       />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Section revenus */}
         <Card className="p-6">
           <CardHeader className="p-0 pb-6">
             <CardTitle>Revenu mensuel</CardTitle>
@@ -288,7 +282,6 @@ const BudgetPage = () => {
           </CardContent>
         </Card>
         
-        {/* Section dépenses */}
         <Card className="p-0">
           <ExpenseSection 
             fixedExpenses={fixedExpenses}
@@ -302,19 +295,6 @@ const BudgetPage = () => {
         </Card>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <SecurityCushion 
-            currentAmount={savingsAccountsTotal}
-            targetAmount={targetAmount}
-            expenseAmount={monthlyExpenses}
-            riskProfile={riskProfile}
-            onEditClick={() => setCushionFormOpen(true)}
-          />
-        </div>
-      </div>
-      
-      {/* Modals */}
       <BudgetFormModal
         isOpen={incomeFormOpen}
         onClose={() => {
