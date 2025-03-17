@@ -55,14 +55,15 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
     <>
       <div className="mb-4">
         <Label htmlFor="investmentAccount" className="block text-sm font-medium mb-1">
-          Compte d'investissement
+          Compte d'investissement <span className="text-red-500">*</span>
         </Label>
         <div className="flex gap-2">
           <select
             id="investmentAccount"
             value={investmentAccountId}
             onChange={(e) => setInvestmentAccountId(e.target.value)}
-            className="wealth-input flex-grow"
+            className={`wealth-input flex-grow ${!investmentAccountId ? 'border-red-300 focus:border-red-500' : ''}`}
+            required
           >
             <option value="">-- Sélectionner un compte --</option>
             {investmentAccounts.map((account) => (
@@ -112,6 +113,9 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
             </DialogContent>
           </Dialog>
         </div>
+        {!investmentAccountId && (
+          <p className="text-red-500 text-xs mt-1">Un compte d'investissement est requis</p>
+        )}
       </div>
 
       <div>

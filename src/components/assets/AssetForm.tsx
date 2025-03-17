@@ -11,6 +11,7 @@ import BankAccountFormFields from './form/BankAccountFormFields';
 import SavingsAccountFormFields from './form/SavingsAccountFormFields';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 interface AssetFormProps {
   onSubmit: (asset: Omit<Asset, 'id'>) => void;
@@ -33,6 +34,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
   investmentAccounts = [],
   onAddAccount
 }) => {
+  const { toast } = useToast();
   const [name, setName] = useState(initialValues?.name || '');
   const [description, setDescription] = useState(initialValues?.description || '');
   const [type, setType] = useState<AssetType>(initialValues?.type || defaultType);
@@ -181,8 +183,24 @@ const AssetForm: React.FC<AssetFormProps> = ({
     }
   }, [type, shares, purchasePrice]);
 
+  const validateForm = (): boolean => {
+    if (type === 'stock' && !investmentAccountId) {
+      toast({
+        title: "Attention",
+        description: "Veuillez sélectionner un compte d'investissement",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
     
     let finalName = name;
     if (type === 'bank-account' && bankName && accountName) {
@@ -240,6 +258,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
       ...(initialValues?.createdAt && { createdAt: initialValues.createdAt }),
       updatedAt: new Date().toISOString(),
       ...(type === 'stock' && investmentAccountId && { investmentAccountId }),
+      ...(type === 'stock' && { quantity: parseFloat(shares) || 0 }),
+      ...(type === 'stock' && { purchasePrice: parseFloat(purchasePrice) || 0 }),
     };
     
     onSubmit(asset);
