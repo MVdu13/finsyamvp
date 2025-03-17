@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Briefcase, TrendingUp, TrendingDown, Plus, Filter, ChevronDown, ChevronUp, InfoIcon } from 'lucide-react';
+import { Briefcase, TrendingUp, TrendingDown, Plus, Filter, ChevronDown, ChevronUp, InfoIcon, Trash2 } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
 import { Asset, AssetType } from '@/types/assets';
@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import DeleteConfirmationDialog from '@/components/assets/DeleteConfirmationDialog';
 
 interface StocksPageProps {
   assets: Asset[];
@@ -51,6 +52,8 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
   const [expandedAccounts, setExpandedAccounts] = useState<Record<string, boolean>>({});
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState<Asset | null>(null);
   
   const investmentAccounts = assets.filter(asset => asset.type === 'investment-account');
   const stocks = assets.filter(asset => asset.type === 'stock');
@@ -254,7 +257,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
       value: 0
     };
     
-    onAddAsset(accountAsset);
+    const addedAccount = onAddAsset(accountAsset);
     
     toast({
       title: "Compte d'investissement ajouté",
@@ -262,6 +265,35 @@ const StocksPage: React.FC<StocksPageProps> = ({
     });
     
     setDialogOpen(false);
+    
+    return addedAccount;
+  };
+
+  const handleDeleteAccount = (account: Asset) => {
+    setAccountToDelete(account);
+    setDeleteConfirmOpen(true);
+  };
+  
+  const confirmDeleteAccount = () => {
+    if (accountToDelete && onDeleteAsset) {
+      const linkedStocks = stocks.filter(stock => stock.investmentAccountId === accountToDelete.id);
+      
+      onDeleteAsset(accountToDelete.id);
+      
+      linkedStocks.forEach(stock => {
+        if (onDeleteAsset) {
+          onDeleteAsset(stock.id);
+        }
+      });
+      
+      toast({
+        title: "Compte supprimé",
+        description: `${accountToDelete.name} et ses ${linkedStocks.length} actions ont été supprimés`,
+      });
+      
+      setDeleteConfirmOpen(false);
+      setAccountToDelete(null);
+    }
   };
   
   const handleEditAsset = (asset: Asset) => {
@@ -509,7 +541,27 @@ const StocksPage: React.FC<StocksPageProps> = ({
                             <span className="ml-1">{avgPerformance > 0 ? "+" : ""}{avgPerformance.toFixed(1)}%</span>
                           </div>
                         </div>
-                        {expandedAccounts[accountId] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                        <div className="flex items-center">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteAccount(account);
+                                  }}
+                                  className="p-2 mr-2 text-red-500 hover:bg-red-50 rounded-full"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Supprimer ce compte</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          {expandedAccounts[accountId] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                        </div>
                       </div>
                     </div>
                   </CollapsibleTrigger>
@@ -536,40 +588,15 @@ const StocksPage: React.FC<StocksPageProps> = ({
                                     <span className="ml-1">{(stock.performance || 0) > 0 ? "+" : ""}{(stock.performance || 0).toFixed(1)}%</span>
                                   </div>
                                 </div>
-                                <div className="flex gap-2 items-center">
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            openStockDetails(stock);
-                                          }}
-                                          className="text-xs p-1.5 bg-muted hover:bg-muted/80 rounded-full"
-                                        >
-                                          <InfoIcon size={14} />
-                                        </button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Voir les détails</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  
+                                <div className="flex gap-2">
                                   <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditAsset(stock);
-                                    }}
+                                    onClick={() => handleEditAsset(stock)}
                                     className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded"
                                   >
                                     Modifier
                                   </button>
                                   <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteAsset(stock.id);
-                                    }}
+                                    onClick={() => handleDeleteAsset(stock.id)}
                                     className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
                                   >
                                     Supprimer
@@ -584,7 +611,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
                           <p className="text-muted-foreground">Aucune action dans ce compte</p>
                           <button
                             onClick={() => setDialogOpen(true)}
-                            className="mt-2 wealth-btn wealth-btn-sm"
+                            className="wealth-btn wealth-btn-sm"
                           >
                             Ajouter une action
                           </button>
@@ -743,6 +770,16 @@ const StocksPage: React.FC<StocksPageProps> = ({
           )}
         </DialogContent>
       </Dialog>
+
+      <DeleteConfirmationDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={confirmDeleteAccount}
+        assetName={accountToDelete?.name}
+        message={`Supprimer ce compte supprimera également toutes les actions qu'il contient (${
+          accountToDelete ? stocks.filter(s => s.investmentAccountId === accountToDelete.id).length : 0
+        } actions).`}
+      />
     </div>
   );
 };

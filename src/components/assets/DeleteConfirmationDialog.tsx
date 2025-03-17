@@ -17,13 +17,15 @@ interface DeleteConfirmationDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   assetName?: string;
+  message?: string;
 }
 
 const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  assetName
+  assetName,
+  message
 }) => {
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
@@ -33,10 +35,14 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
             <AlertTriangle size={20} />
             <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
           </div>
-          <AlertDialogDescription>
+          <AlertDialogDescription className="space-y-2">
             {assetName 
-              ? `Êtes-vous sûr de vouloir supprimer "${assetName}" ? Cette action est irréversible.`
-              : "Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible."}
+              ? <p>Êtes-vous sûr de vouloir supprimer "{assetName}" ?</p>
+              : <p>Êtes-vous sûr de vouloir supprimer cet élément ?</p>}
+            
+            {message && <p>{message}</p>}
+            
+            <p className="font-medium text-red-500">Cette action est irréversible.</p>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
