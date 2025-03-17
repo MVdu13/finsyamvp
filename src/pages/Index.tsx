@@ -26,6 +26,12 @@ const Index = () => {
     if (storedAssets) {
       setAssets(JSON.parse(storedAssets));
     }
+    
+    // Load sidebar state from localStorage if available
+    const sidebarState = localStorage.getItem('sidebar-collapsed');
+    if (sidebarState) {
+      setIsCollapsed(sidebarState === 'true');
+    }
   }, []);
 
   // Update localStorage whenever assets change
@@ -34,6 +40,11 @@ const Index = () => {
     // Create a storage event to notify other components that assets have changed
     window.dispatchEvent(new Event('storage'));
   }, [assets]);
+  
+  // Save sidebar state to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('sidebar-collapsed', isCollapsed.toString());
+  }, [isCollapsed]);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
