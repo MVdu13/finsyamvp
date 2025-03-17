@@ -20,7 +20,7 @@ const KeyMetrics: React.FC<KeyMetricsProps> = ({
   const investmentCapacity = Math.max(0, savingsAmount - monthlyProjectsContribution);
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
       <Card className="bg-white">
         <CardContent className="flex items-center p-6">
           <div className="rounded-full p-3 bg-green-100 mr-4">

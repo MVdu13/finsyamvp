@@ -5,7 +5,6 @@ import IncomeSection from '@/components/budget/IncomeSection';
 import ExpenseSection from '@/components/budget/ExpenseSection';
 import BudgetFormModal from '@/components/budget/BudgetFormModal';
 import SecurityCushionForm from '@/components/budget/SecurityCushionForm';
-import FinancialRecommendations from '@/components/budget/FinancialRecommendations';
 import DeleteConfirmationDialog from '@/components/budget/DeleteConfirmationDialog';
 import KeyMetrics from '@/components/budget/KeyMetrics';
 import CashflowChart from '@/components/budget/CashflowChart';
@@ -232,17 +231,6 @@ const BudgetPage = () => {
         savingsAmount={availableAfterExpenses}
         monthlyProjectsContribution={monthlyProjectsContribution}
       />
-      
-      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-        <FinancialRecommendations 
-          totalIncome={budget.totalIncome}
-          totalExpenses={budget.totalExpenses}
-          availableAfterExpenses={availableAfterExpenses}
-          monthlyProjectsContribution={monthlyProjectsContribution}
-          availableForInvestment={availableForInvestment}
-          needsSecurityCushion={needsSecurityCushion}
-        />
-      </div>
       
       <CashflowChart 
         incomes={budget.incomes}
