@@ -11,6 +11,14 @@ export type AssetType =
   | 'savings-account'
   | 'investment-account';
 
+export interface Transaction {
+  id: string;
+  date: string;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
 export interface Asset {
   id: string;
   name: string;
@@ -34,6 +42,8 @@ export interface Asset {
   
   // Stock specific
   investmentAccountId?: string;
+  ticker?: string;  // Ajout d'un champ ticker pour identifier les actions similaires
+  transactions?: Transaction[]; // Historique des transactions
   
   // Real estate specific properties
   propertyType?: 'apartment' | 'house' | 'building' | 'commercial' | 'land' | 'other';

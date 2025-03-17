@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -47,32 +46,26 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
         performance: 0,
       };
       
-      // Ajouter le compte
       const addedAccount = onAddAccount(newAccount);
       
-      // On réinitialise le formulaire mais on ne ferme PAS la dialog
       setNewAccountName('');
       
-      // Si l'ID est disponible immédiatement (si onAddAccount retourne le compte créé)
       if (addedAccount && addedAccount.id) {
         setInvestmentAccountId(addedAccount.id);
-        setAccountDialogOpen(false); // Fermer seulement si on a l'ID
+        setAccountDialogOpen(false);
       } else {
-        // Sinon, on utilisera l'effet pour sélectionner le compte quand il sera disponible
         setLastAddedAccountId('pending');
       }
     }
   };
 
-  // Effet pour sélectionner automatiquement le compte nouvellement ajouté
   React.useEffect(() => {
     if (lastAddedAccountId === 'pending' && investmentAccounts.length > 0) {
-      // On cherche le compte le plus récemment ajouté (qui aura l'ID le plus récent)
       const mostRecentAccount = investmentAccounts[investmentAccounts.length - 1];
       if (mostRecentAccount) {
         setInvestmentAccountId(mostRecentAccount.id);
-        setLastAddedAccountId(null); // On réinitialise pour ne pas refaire la sélection
-        setAccountDialogOpen(false); // Fermer la dialog après avoir sélectionné le compte
+        setLastAddedAccountId(null);
+        setAccountDialogOpen(false);
       }
     }
   }, [investmentAccounts, lastAddedAccountId, setInvestmentAccountId]);
@@ -146,7 +139,7 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
 
       <div>
         <Label htmlFor="ticker" className="block text-sm font-medium mb-1">
-          Nom de l'action/ETF
+          Ticker de l'action/ETF <span className="text-muted-foreground text-xs">(identifiant unique)</span>
         </Label>
         <Input
           id="ticker"
@@ -154,9 +147,27 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
           value={ticker}
           onChange={(e) => setTicker(e.target.value)}
           className="wealth-input w-full"
-          placeholder="Ex: AAPL"
+          placeholder="Ex: AAPL, AMZN, SPY"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Ce code permet de regrouper les achats multiples d'une même action
+        </p>
+      </div>
+      
+      <div>
+        <Label htmlFor="name" className="block text-sm font-medium mb-1">
+          Nom de l'action/ETF
+        </Label>
+        <Input
+          id="name"
+          type="text"
+          value={ticker}
+          onChange={(e) => setTicker(e.target.value)}
+          className="wealth-input w-full"
+          placeholder="Ex: Apple Inc., Amazon.com, S&P 500 ETF"
         />
       </div>
+      
       <div>
         <Label htmlFor="shares" className="block text-sm font-medium mb-1">
           Quantité d'actions

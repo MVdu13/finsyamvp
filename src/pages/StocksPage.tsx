@@ -223,6 +223,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
     const stockAsset = {
       ...newStock,
       type: 'stock' as AssetType,
+      ticker: newStock.ticker || newStock.name,
     };
     
     if (typeof stockAsset.quantity === 'number' && typeof stockAsset.purchasePrice === 'number') {
@@ -693,11 +694,15 @@ const StocksPage: React.FC<StocksPageProps> = ({
                 <Table>
                   <TableBody>
                     <TableRow>
+                      <TableCell className="font-medium">Ticker</TableCell>
+                      <TableCell className="text-right">{selectedStock.ticker || selectedStock.name}</TableCell>
+                    </TableRow>
+                    <TableRow>
                       <TableCell className="font-medium">Quantité totale</TableCell>
                       <TableCell className="text-right">{selectedStock.quantity || '0'}</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">Prix d'achat</TableCell>
+                      <TableCell className="font-medium">Prix d'achat moyen</TableCell>
                       <TableCell className="text-right">{formatCurrency(selectedStock.purchasePrice || 0)}</TableCell>
                     </TableRow>
                     <TableRow>
@@ -726,24 +731,34 @@ const StocksPage: React.FC<StocksPageProps> = ({
               </div>
               
               <div>
-                <h4 className="font-medium mb-2">Transactions</h4>
+                <h4 className="font-medium mb-2">Historique des transactions</h4>
                 <div className="border rounded-md overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
                         <TableHead>Quantité</TableHead>
-                        <TableHead>Prix</TableHead>
+                        <TableHead>Prix unitaire</TableHead>
                         <TableHead className="text-right">Montant</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      <TableRow>
-                        <TableCell>{selectedStock.purchaseDate || "Non spécifiée"}</TableCell>
-                        <TableCell>{selectedStock.quantity || '0'}</TableCell>
-                        <TableCell>{formatCurrency(selectedStock.purchasePrice || 0)}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(selectedStock.value)}</TableCell>
-                      </TableRow>
+                      {selectedStock.transactions && selectedStock.transactions.length > 0 ? (
+                        selectedStock.transactions.map((transaction) => (
+                          <TableRow key={transaction.id}>
+                            <TableCell>{new Date(transaction.date).toLocaleDateString('fr-FR')}</TableCell>
+                            <TableCell>{transaction.quantity}</TableCell>
+                            <TableCell>{formatCurrency(transaction.price)}</TableCell>
+                            <TableCell className="text-right">{formatCurrency(transaction.total)}</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
+                            Aucune transaction enregistrée
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </div>
@@ -785,3 +800,4 @@ const StocksPage: React.FC<StocksPageProps> = ({
 };
 
 export default StocksPage;
+
