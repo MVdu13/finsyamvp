@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { FinancialGoal, ProjectPlan } from '@/types/goals';
 import { mockBudget, mockAssets, mockGoals } from '@/lib/mockData';
@@ -8,8 +9,6 @@ import { toast } from '@/hooks/use-toast';
 import { Asset } from '@/types/assets';
 import ProjectsOverview from '@/components/projects/ProjectsOverview';
 import ProjectsList from '@/components/projects/ProjectsList';
-import ProjectDetails from '@/components/projects/ProjectDetails';
-import SavingsCapacity from '@/components/projects/SavingsCapacity';
 import ProjectDeleteDialog from '@/components/projects/ProjectDeleteDialog';
 import SecurityCushion from '@/components/budget/SecurityCushion';
 import SecurityCushionForm from '@/components/budget/SecurityCushionForm';
@@ -145,26 +144,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
     setDeleteDialogOpen(true);
   };
   
-  const handleSelectPlan = (plan: ProjectPlan) => {
-    if (!selectedProject) return;
-    
-    const updatedProject: FinancialGoal = {
-      ...selectedProject,
-      monthlyContribution: plan.monthlyContribution
-    };
-    
-    setProjects(prevProjects => 
-      prevProjects.map(p => p.id === selectedProject.id ? updatedProject : p)
-    );
-    
-    setSelectedProject(updatedProject);
-    
-    toast({
-      title: "Plan appliqué",
-      description: `Le plan de financement sur ${plan.timeToTarget} mois a été appliqué au projet.`,
-    });
-  };
-  
   const handleSaveCushion = (data: {currentAmount: number, riskProfile: 'high' | 'medium' | 'low'}) => {
     setRiskProfile(data.riskProfile);
     
@@ -201,6 +180,14 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
           </Button>
         </div>
       </div>
+      
+      {/* Projects Overview blocks moved to the top */}
+      <ProjectsOverview 
+        projects={projects}
+        projectsInProgress={projectsInProgress}
+        projectsCompleted={projectsCompleted}
+        totalAllocation={totalAllocation}
+      />
       
       <Card className="p-6">
         <CardHeader className="p-0 pb-4">
@@ -265,31 +252,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
           />
         </CardContent>
       </Card>
-      
-      <ProjectsOverview 
-        projects={projects}
-        projectsInProgress={projectsInProgress}
-        projectsCompleted={projectsCompleted}
-        totalAllocation={totalAllocation}
-      />
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-        </div>
-        
-        <div className="space-y-6">
-          <ProjectDetails 
-            selectedProject={selectedProject}
-            monthlySavings={monthlySavings}
-            onSelectPlan={handleSelectPlan}
-          />
-          
-          <SavingsCapacity 
-            budget={mockBudget}
-            totalAllocation={totalAllocation}
-          />
-        </div>
-      </div>
       
       <ProjectForm
         isOpen={isFormOpen}
