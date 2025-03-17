@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { mockBudget, mockAssets } from '@/lib/mockData';
 import BudgetHeader from '@/components/budget/BudgetHeader';
@@ -249,6 +250,16 @@ const BudgetPage = () => {
         savingsRate={savingsRate}
       />
       
+      {/* Analyse financière */}
+      <FinancialRecommendations 
+        totalIncome={budget.totalIncome}
+        totalExpenses={budget.totalExpenses}
+        availableAfterExpenses={availableAfterExpenses}
+        monthlyProjectsContribution={monthlyProjectsContribution}
+        availableForInvestment={availableForInvestment}
+        needsSecurityCushion={needsSecurityCushion}
+      />
+      
       {/* Graphique de flux de trésorerie */}
       <CashflowChart 
         incomes={budget.incomes}
@@ -293,23 +304,14 @@ const BudgetPage = () => {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <FinancialRecommendations 
-            totalIncome={budget.totalIncome}
-            totalExpenses={budget.totalExpenses}
-            availableAfterExpenses={availableAfterExpenses}
-            monthlyProjectsContribution={monthlyProjectsContribution}
-            availableForInvestment={availableForInvestment}
-            needsSecurityCushion={needsSecurityCushion}
+          <SecurityCushion 
+            currentAmount={savingsAccountsTotal}
+            targetAmount={targetAmount}
+            expenseAmount={monthlyExpenses}
+            riskProfile={riskProfile}
+            onEditClick={() => setCushionFormOpen(true)}
           />
         </div>
-        
-        <SecurityCushion 
-          currentAmount={savingsAccountsTotal}
-          targetAmount={targetAmount}
-          expenseAmount={monthlyExpenses}
-          riskProfile={riskProfile}
-          onEditClick={() => setCushionFormOpen(true)}
-        />
       </div>
       
       {/* Modals */}
@@ -351,6 +353,115 @@ const BudgetPage = () => {
       />
     </div>
   );
+  
+  function handleSaveIncome(income: Income) {
+    const isEditing = budget.incomes.some(item => item.id === income.id);
+    let newIncomes: Income[];
+    
+    if (isEditing) {
+      newIncomes = budget.incomes.map(item => 
+        item.id === income.id ? income : item
+      );
+    } else {
+      newIncomes = [...budget.incomes, income];
+    }
+    
+    const totalIncome = newIncomes.reduce((sum, inc) => sum + inc.amount, 0);
+    
+    setBudget({
+      ...budget,
+      incomes: newIncomes,
+      totalIncome
+    });
+  }
+
+  function handleSaveExpense(expense: Expense) {
+    const isEditing = budget.expenses.some(item => item.id === expense.id);
+    let newExpenses: Expense[];
+    
+    if (isEditing) {
+      newExpenses = budget.expenses.map(item => 
+        item.id === expense.id ? expense : item
+      );
+    } else {
+      newExpenses = [...budget.expenses, expense];
+    }
+    
+    const totalExpenses = newExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+    
+    setBudget({
+      ...budget,
+      expenses: newExpenses,
+      totalExpenses
+    });
+  }
+
+  function handleDelete() {
+    if (!itemToDelete) return;
+    
+    if (itemToDelete.type === 'income') {
+      const newIncomes = budget.incomes.filter(item => item.id !== itemToDelete.id);
+      const totalIncome = newIncomes.reduce((sum, inc) => sum + inc.amount, 0);
+      
+      setBudget({
+        ...budget,
+        incomes: newIncomes,
+        totalIncome
+      });
+    } else {
+      const newExpenses = budget.expenses.filter(item => item.id !== itemToDelete.id);
+      const totalExpenses = newExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      
+      setBudget({
+        ...budget,
+        expenses: newExpenses,
+        totalExpenses
+      });
+    }
+    
+    setDeleteDialogOpen(false);
+    setItemToDelete(null);
+    
+    toast({
+      title: "Suppression réussie",
+      description: "L'élément a été supprimé avec succès.",
+    });
+  }
+
+  function handleSaveCushion(data: {currentAmount: number, riskProfile: 'high' | 'medium' | 'low'}) {
+    // We only update the risk profile, as the current amount is now calculated dynamically
+    setRiskProfile(data.riskProfile);
+    
+    // Save the updated risk profile to localStorage
+    localStorage.setItem('security-cushion-risk-profile', data.riskProfile);
+    
+    toast({
+      title: "Profil de risque mis à jour",
+      description: "Votre profil de risque pour le matelas de sécurité a été mis à jour avec succès.",
+    });
+  }
+
+  function handleEditIncome(income: Income) {
+    setItemToEdit(income);
+    setIncomeFormOpen(true);
+  }
+
+  function handleEditExpense(expense: Expense) {
+    setItemToEdit(expense);
+    setExpenseType(expense.type);
+    setExpenseFormOpen(true);
+  }
+
+  function confirmDelete(id: string, type: 'income' | 'expense') {
+    setItemToDelete({ id, type });
+    setDeleteDialogOpen(true);
+  }
+
+  function handleAddExpense(type: 'fixed' | 'variable') {
+    setItemToEdit(null);
+    setExpenseType(type);
+    setExpenseFormOpen(true);
+  }
 };
 
 export default BudgetPage;

@@ -25,7 +25,7 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full mb-6">
       <CardHeader>
         <CardTitle className="text-lg font-medium">Flux de trésorerie</CardTitle>
       </CardHeader>
