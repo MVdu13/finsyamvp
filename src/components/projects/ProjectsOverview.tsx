@@ -20,25 +20,6 @@ const ProjectsOverview: React.FC<ProjectsOverviewProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <Card className="bg-green-50 border border-green-200 mb-5">
-        <CardContent className="pt-5">
-          <div className="flex items-start gap-2">
-            <TrendingUp className="h-5 w-5 text-green-600 mt-0.5" />
-            <div>
-              <h4 className="font-medium text-green-800 mb-1">Analyse financière</h4>
-              <p className="text-sm text-green-700">
-                Vous avez actuellement {projectsInProgress} projet(s) en cours avec une allocation mensuelle totale de <strong>{formatCurrency(totalAllocation)}</strong>. 
-                Cette somme est automatiquement réservée dans votre budget pour atteindre vos objectifs financiers.
-              </p>
-              <p className="text-sm text-green-700 mt-1">
-                Vérifiez que votre matelas de sécurité est suffisant avant d'augmenter vos allocations à ces projets. Une bonne gestion financière commence par 
-                un fonds d'urgence solide.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-wealth-primary/10">
           <CardHeader className="pb-2">
