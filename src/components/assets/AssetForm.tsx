@@ -378,7 +378,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
             setPurchasePrice={setPurchasePrice}
             setInvestmentAccountId={setInvestmentAccountId}
             investmentAccounts={filteredAccounts}
-            onAddAccount={handleAddAccount}
+            onAddAccount={onAddAccount}
           />
         );
       case 'crypto':
@@ -400,7 +400,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
             setCryptoAccountId={setCryptoAccountId}
             onCryptoSelect={handleCryptoSelect}
             cryptoAccounts={filteredAccounts}
-            onAddAccount={handleAddAccount}
+            onAddAccount={onAddAccount}
           />
         );
       case 'real-estate':

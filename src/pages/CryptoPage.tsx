@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
 import CryptoTransactionsList from '@/components/assets/CryptoTransactionsList';
+import { Button } from '@/components/ui/button';
 
 interface CryptoPageProps {
   assets: Asset[];
