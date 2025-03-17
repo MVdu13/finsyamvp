@@ -468,19 +468,19 @@ const StocksPage: React.FC<StocksPageProps> = ({
           <CardContent>
             <div className={cn(
               "text-2xl font-bold",
-              avgPerformance >= 0 ? "text-green-600" : "text-red-600"
-            )}>
-              {avgPerformance > 0 ? "+" : ""}{avgPerformance.toFixed(1)}%
-            </div>
-            <div className={cn(
-              "text-xs",
               absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
             )}>
               {absoluteGrowth >= 0 ? (
                 <>Vous avez gagné {formatCurrency(Math.abs(absoluteGrowth))}</>
               ) : (
                 <>Vous avez perdu {formatCurrency(Math.abs(absoluteGrowth))}</>
-              )} sur les 12 derniers mois ({percentageGrowth > 0 ? "+" : ""}{percentageGrowth}%)
+              )}
+            </div>
+            <div className={cn(
+              "text-xs",
+              absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
+            )}>
+              sur les 12 derniers mois ({percentageGrowth > 0 ? "+" : ""}{percentageGrowth}%)
             </div>
           </CardContent>
         </Card>
