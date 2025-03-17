@@ -459,7 +459,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Performance moyenne de toutes vos actions sur l'année en cours</p>
+                    <p>Performance moyenne de toutes vos actions {getTimePeriodText()}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -480,7 +480,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
               "text-xs",
               absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
             )}>
-              sur les 12 derniers mois ({percentageGrowth > 0 ? "+" : ""}{percentageGrowth}%)
+              {getTimePeriodText()} ({percentageGrowth > 0 ? "+" : ""}{percentageGrowth}%)
             </div>
           </CardContent>
         </Card>
