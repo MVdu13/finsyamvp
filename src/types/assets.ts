@@ -8,7 +8,8 @@ export type AssetType =
   | 'commodities' 
   | 'other'
   | 'bank-account'
-  | 'savings-account';
+  | 'savings-account'
+  | 'investment-account';
 
 export interface Asset {
   id: string;
@@ -27,6 +28,12 @@ export interface Asset {
   description?: string;
   createdAt?: string;
   updatedAt?: string;
+  
+  // Investment account specific
+  accountType?: 'PEA' | 'CTO' | 'Assurance Vie' | 'PER' | 'Autre';
+  
+  // Stock specific
+  investmentAccountId?: string;
   
   // Real estate specific properties
   propertyType?: 'apartment' | 'house' | 'building' | 'commercial' | 'land' | 'other';

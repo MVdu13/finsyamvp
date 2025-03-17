@@ -61,12 +61,14 @@ const Index = () => {
       createdAt: new Date().toISOString(),
     };
     
-    setAssets(prevAssets => [...prevAssets, asset]);
+    setAssets(prevAssets => [...prevAssets, asset as Asset]);
     
     toast({
       title: "Actif ajouté",
       description: `${newAsset.name} a été ajouté avec succès.`
     });
+    
+    return asset;
   };
   
   const updateAsset = (idOrAsset: string | Asset, maybeAsset?: Partial<Asset>) => {
@@ -139,7 +141,7 @@ const Index = () => {
                />;
       case 'stocks':
         return <StocksPage 
-                assets={assets.filter(asset => asset.type === 'stock')} 
+                assets={assets.filter(asset => asset.type === 'stock' || asset.type === 'investment-account')} 
                 onAddAsset={addAsset}
                 onUpdateAsset={updateAsset}
                 onDeleteAsset={deleteAsset}

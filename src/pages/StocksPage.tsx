@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Briefcase, TrendingUp, TrendingDown, Plus, Filter } from 'lucide-react';
+import { Briefcase, TrendingUp, TrendingDown, Plus, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
 import { Asset, AssetType } from '@/types/assets';
@@ -10,12 +11,23 @@ import LineChartComponent from '@/components/charts/LineChart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface StocksPageProps {
   assets: Asset[];
   onAddAsset: (asset: Omit<Asset, 'id'>) => void;
   onDeleteAsset?: (id: string) => void;
   onUpdateAsset?: (id: string, asset: Partial<Asset>) => void;
+}
+
+interface GroupedStocks {
+  [accountId: string]: {
+    account: Asset;
+    stocks: Asset[];
+    totalValue: number;
+    avgPerformance: number;
+  };
 }
 
 const StocksPage: React.FC<StocksPageProps> = ({ 
@@ -29,12 +41,47 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
+  const [expandedAccounts, setExpandedAccounts] = useState<Record<string, boolean>>({});
   
-  // Calculate metrics
-  const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
-  const avgPerformance = assets.length > 0 
-    ? assets.reduce((sum, asset) => sum + asset.performance, 0) / assets.length
+  // Filter investment accounts and stocks
+  const investmentAccounts = assets.filter(asset => asset.type === 'investment-account');
+  const stocks = assets.filter(asset => asset.type === 'stock');
+  
+  // Group stocks by investment account
+  const groupedStocks: GroupedStocks = investmentAccounts.reduce((acc, account) => {
+    const accountStocks = stocks.filter(stock => stock.investmentAccountId === account.id);
+    const totalValue = accountStocks.reduce((sum, stock) => sum + stock.value, 0);
+    const avgPerformance = accountStocks.length > 0 
+      ? accountStocks.reduce((sum, stock) => sum + (stock.performance || 0), 0) / accountStocks.length
+      : 0;
+    
+    acc[account.id] = {
+      account,
+      stocks: accountStocks,
+      totalValue,
+      avgPerformance
+    };
+    
+    return acc;
+  }, {} as GroupedStocks);
+  
+  // Handle stocks without an account
+  const unassignedStocks = stocks.filter(stock => !stock.investmentAccountId || 
+    !investmentAccounts.some(account => account.id === stock.investmentAccountId));
+  
+  // Calculate total value for all stocks
+  const totalValue = stocks.reduce((sum, asset) => sum + asset.value, 0);
+  
+  // Calculate average performance across all stocks
+  const avgPerformance = stocks.length > 0 
+    ? stocks.reduce((sum, asset) => sum + (asset.performance || 0), 0) / stocks.length
     : 0;
+  
+  useEffect(() => {
+    // Log investment accounts
+    console.info('StocksPage - Investment Accounts:', investmentAccounts);
+  }, [investmentAccounts]);
   
   // Générer un historique cohérent basé sur la valeur totale actuelle et la timeframe
   const generateChartData = () => {
@@ -191,15 +238,49 @@ const StocksPage: React.FC<StocksPageProps> = ({
       type: 'stock' as AssetType
     };
     
+    // Calculate the stock's value
+    if (typeof stockAsset.quantity === 'number' && typeof stockAsset.purchasePrice === 'number') {
+      stockAsset.value = stockAsset.quantity * stockAsset.purchasePrice;
+    }
+    
     // Call the parent's onAddAsset function
     onAddAsset(stockAsset);
     setDialogOpen(false);
+    
+    // If this stock was added to an investment account, update the account's value
+    if (stockAsset.investmentAccountId && onUpdateAsset) {
+      const account = investmentAccounts.find(a => a.id === stockAsset.investmentAccountId);
+      if (account) {
+        const accountStocks = [...stocks.filter(s => s.investmentAccountId === account.id), stockAsset as Asset];
+        const newTotalValue = accountStocks.reduce((sum, stock) => sum + stock.value, 0);
+        onUpdateAsset(account.id, { value: newTotalValue });
+      }
+    }
     
     // Show success toast
     toast({
       title: "Action ajoutée",
       description: `${newStock.name} a été ajouté à votre portefeuille`,
     });
+  };
+  
+  const handleAddAccount = (newAccount: Omit<Asset, 'id'>) => {
+    // Make sure we're adding an investment account
+    const accountAsset = {
+      ...newAccount,
+      type: 'investment-account' as AssetType,
+      value: 0
+    };
+    
+    onAddAsset(accountAsset);
+    
+    toast({
+      title: "Compte d'investissement ajouté",
+      description: `${newAccount.name} a été ajouté`,
+    });
+    
+    // After adding account, we need to refresh the state to see the new account
+    // This is handled by the parent component through assets state update
   };
   
   const handleEditAsset = (asset: Asset) => {
@@ -209,7 +290,26 @@ const StocksPage: React.FC<StocksPageProps> = ({
 
   const handleUpdateAsset = (updatedAsset: Omit<Asset, 'id'>) => {
     if (editingAsset && onUpdateAsset) {
+      // Calculate value for stocks
+      if (updatedAsset.type === 'stock' && typeof updatedAsset.quantity === 'number' && typeof updatedAsset.purchasePrice === 'number') {
+        updatedAsset.value = updatedAsset.quantity * updatedAsset.purchasePrice;
+      }
+      
       onUpdateAsset(editingAsset.id, updatedAsset);
+      
+      // If this is a stock, update the parent account's value
+      if (updatedAsset.type === 'stock' && updatedAsset.investmentAccountId && onUpdateAsset) {
+        const account = investmentAccounts.find(a => a.id === updatedAsset.investmentAccountId);
+        if (account) {
+          const accountStocks = stocks.map(s => 
+            s.id === editingAsset.id ? { ...s, ...updatedAsset } : s
+          ).filter(s => s.investmentAccountId === account.id);
+          
+          const newTotalValue = accountStocks.reduce((sum, stock) => sum + stock.value, 0);
+          onUpdateAsset(account.id, { value: newTotalValue });
+        }
+      }
+      
       toast({
         title: "Action modifiée",
         description: `${updatedAsset.name} a été mise à jour`,
@@ -221,12 +321,37 @@ const StocksPage: React.FC<StocksPageProps> = ({
 
   const handleDeleteAsset = (id: string) => {
     if (onDeleteAsset) {
-      onDeleteAsset(id);
-      toast({
-        title: "Action supprimée",
-        description: "L'action a été supprimée de votre portefeuille",
-      });
+      const assetToDelete = stocks.find(asset => asset.id === id);
+      
+      if (assetToDelete) {
+        // If this is a stock attached to an account, update the account's value
+        if (assetToDelete.investmentAccountId && onUpdateAsset) {
+          const account = investmentAccounts.find(a => a.id === assetToDelete.investmentAccountId);
+          if (account) {
+            const remainingStocks = stocks
+              .filter(s => s.id !== id)
+              .filter(s => s.investmentAccountId === account.id);
+            
+            const newTotalValue = remainingStocks.reduce((sum, stock) => sum + stock.value, 0);
+            onUpdateAsset(account.id, { value: newTotalValue });
+          }
+        }
+        
+        onDeleteAsset(id);
+        
+        toast({
+          title: "Action supprimée",
+          description: "L'action a été supprimée de votre portefeuille",
+        });
+      }
     }
+  };
+  
+  const toggleAccountExpand = (accountId: string) => {
+    setExpandedAccounts(prev => ({
+      ...prev,
+      [accountId]: !prev[accountId]
+    }));
   };
 
   return (
@@ -252,6 +377,8 @@ const StocksPage: React.FC<StocksPageProps> = ({
               onCancel={() => setDialogOpen(false)} 
               defaultType="stock" 
               showTypeSelector={false}
+              investmentAccounts={investmentAccounts}
+              onAddAccount={handleAddAccount}
             />
           </DialogContent>
         </Dialog>
@@ -273,6 +400,8 @@ const StocksPage: React.FC<StocksPageProps> = ({
                 initialValues={editingAsset}
                 isEditing={true}
                 showTypeSelector={false}
+                investmentAccounts={investmentAccounts}
+                onAddAccount={handleAddAccount}
               />
             )}
           </DialogContent>
@@ -301,7 +430,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
             <CardTitle className="text-sm font-medium text-muted-foreground">Nombre d'Actions/ETF</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{assets.length}</div>
+            <div className="text-2xl font-bold">{stocks.length}</div>
             <div className="text-xs text-muted-foreground mt-1">
               Titres en portefeuille
             </div>
@@ -358,26 +487,159 @@ const StocksPage: React.FC<StocksPageProps> = ({
         </CardContent>
       </Card>
 
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Vos Actions et ETF</h2>
-        {assets.length > 0 ? (
-          <AssetsList 
-            assets={assets} 
-            title="Actions et ETF" 
-            onEdit={handleEditAsset}
-            onDelete={handleDeleteAsset}
-          />
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold">Vos Comptes d'Investissement</h2>
+        
+        {Object.keys(groupedStocks).length > 0 ? (
+          <div className="space-y-4">
+            {Object.entries(groupedStocks).map(([accountId, { account, stocks, totalValue, avgPerformance }]) => (
+              <Card key={accountId} className="overflow-hidden">
+                <Collapsible
+                  open={expandedAccounts[accountId]}
+                  onOpenChange={() => toggleAccountExpand(accountId)}
+                >
+                  <CollapsibleTrigger className="w-full">
+                    <div className="p-4 flex items-center justify-between hover:bg-muted/50 cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <Briefcase className="text-primary" size={20} />
+                        <div>
+                          <div className="font-medium">{account.name}</div>
+                          <div className="text-sm text-muted-foreground">{account.accountType}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div>
+                          <div className="font-medium text-right">{formatCurrency(totalValue)}</div>
+                          <div className={cn(
+                            "text-xs flex items-center justify-end",
+                            avgPerformance >= 0 ? "text-green-600" : "text-red-600"
+                          )}>
+                            {avgPerformance >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                            <span className="ml-1">{avgPerformance > 0 ? "+" : ""}{avgPerformance.toFixed(1)}%</span>
+                          </div>
+                        </div>
+                        {expandedAccounts[accountId] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </div>
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 pb-4">
+                      {stocks.length > 0 ? (
+                        <div className="border rounded-md divide-y">
+                          {stocks.map((stock) => (
+                            <div key={stock.id} className="p-3 flex items-center justify-between hover:bg-muted/50">
+                              <div>
+                                <div className="font-medium">{stock.name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {stock.quantity} × {formatCurrency(stock.purchasePrice || 0)}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <div className="text-right">
+                                  <div>{formatCurrency(stock.value)}</div>
+                                  <div className={cn(
+                                    "text-xs flex items-center justify-end",
+                                    (stock.performance || 0) >= 0 ? "text-green-600" : "text-red-600"
+                                  )}>
+                                    {(stock.performance || 0) >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                                    <span className="ml-1">{(stock.performance || 0) > 0 ? "+" : ""}{(stock.performance || 0).toFixed(1)}%</span>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditAsset(stock);
+                                    }}
+                                    className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded"
+                                  >
+                                    Modifier
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteAsset(stock.id);
+                                    }}
+                                    className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
+                                  >
+                                    Supprimer
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 bg-muted/50 rounded">
+                          <p className="text-muted-foreground">Aucune action dans ce compte</p>
+                          <button
+                            onClick={() => setDialogOpen(true)}
+                            className="mt-2 wealth-btn wealth-btn-sm"
+                          >
+                            Ajouter une action
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </Card>
+            ))}
+          </div>
         ) : (
-          <div className="text-center py-12 bg-muted rounded-lg">
-            <p className="text-lg text-muted-foreground mb-4">
-              Aucune action ou ETF dans votre portefeuille
-            </p>
-            <button 
-              className="wealth-btn wealth-btn-primary"
+          <Card className="p-6 text-center">
+            <p className="text-muted-foreground mb-4">Vous n'avez pas encore de compte d'investissement</p>
+            <button
               onClick={() => setDialogOpen(true)}
+              className="wealth-btn wealth-btn-primary"
             >
-              Ajouter votre première action/ETF
+              Ajouter votre première action
             </button>
+          </Card>
+        )}
+        
+        {/* Unassigned stocks */}
+        {unassignedStocks.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-medium mb-3">Actions sans compte assigné</h3>
+            <div className="border rounded-md divide-y">
+              {unassignedStocks.map((stock) => (
+                <div key={stock.id} className="p-3 flex items-center justify-between hover:bg-muted/50">
+                  <div>
+                    <div className="font-medium">{stock.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {stock.quantity} × {formatCurrency(stock.purchasePrice || 0)}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <div>{formatCurrency(stock.value)}</div>
+                      <div className={cn(
+                        "text-xs flex items-center justify-end",
+                        (stock.performance || 0) >= 0 ? "text-green-600" : "text-red-600"
+                      )}>
+                        {(stock.performance || 0) >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                        <span className="ml-1">{(stock.performance || 0) > 0 ? "+" : ""}{(stock.performance || 0).toFixed(1)}%</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEditAsset(stock)}
+                        className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded"
+                      >
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAsset(stock.id)}
+                        className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
