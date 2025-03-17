@@ -1,14 +1,13 @@
 
 import React, { useState } from 'react';
-import CryptoSearch from '../CryptoSearch';
-import { CryptoInfo } from '@/services/cryptoService';
-import { Button } from '@/components/ui/button';
-import { Search, Plus } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Asset } from '@/types/assets';
+import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import CryptoAccountFormFields from './CryptoAccountFormFields';
+import { CryptoInfo } from '@/services/cryptoService';
+import CryptoSearch from '@/components/assets/CryptoSearch';
 
 interface CryptoFormFieldsProps {
   cryptoQty: string;
@@ -19,8 +18,8 @@ interface CryptoFormFieldsProps {
   setCryptoPrice: (value: string) => void;
   setPurchasePrice: (value: string) => void;
   setCryptoAccountId: (value: string) => void;
-  onCryptoSelect: (crypto: CryptoInfo) => void;
   cryptoAccounts: Asset[];
+  onCryptoSelect?: (crypto: CryptoInfo) => void;
   onAddAccount?: (account: Omit<Asset, 'id'>) => Asset | null | undefined;
 }
 
@@ -33,11 +32,10 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
   setCryptoPrice,
   setPurchasePrice,
   setCryptoAccountId,
-  onCryptoSelect,
   cryptoAccounts,
+  onCryptoSelect,
   onAddAccount
 }) => {
-  const [showCryptoSearch, setShowCryptoSearch] = useState(true);
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [newAccountName, setNewAccountName] = useState('');
   const [newAccountType, setNewAccountType] = useState<'Binance' | 'BitGet' | 'KuCoin' | 'MetaMask' | 'Phantom' | 'Autre'>('Binance');
@@ -151,76 +149,49 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
       </div>
 
       <div className="mb-4">
-        <div className="flex items-center justify-between mb-1">
-          <Label className="block text-sm font-medium">
-            Rechercher une cryptomonnaie
-          </Label>
-          <Button 
-            type="button" 
-            onClick={() => setShowCryptoSearch(!showCryptoSearch)}
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2 text-xs"
-          >
-            {showCryptoSearch ? 'Masquer' : <Search className="h-4 w-4 mr-1" />}
-            {!showCryptoSearch && 'Rechercher'}
-          </Button>
-        </div>
-        
-        {showCryptoSearch && (
-          <div className="mb-2">
-            <CryptoSearch onSelect={(crypto) => {
-              onCryptoSelect(crypto);
-              // Laissons la recherche visible pour que l'utilisateur puisse chercher une autre crypto s'il le souhaite
-            }} />
-          </div>
-        )}
+        <Label htmlFor="cryptoSearch" className="block text-sm font-medium mb-1">
+          Rechercher une crypto
+        </Label>
+        <CryptoSearch onSelect={onCryptoSelect} />
       </div>
+
       <div>
         <Label htmlFor="cryptoQty" className="block text-sm font-medium mb-1">
-          Quantité
+          Quantité <span className="text-red-500">*</span>
         </Label>
         <Input
           id="cryptoQty"
           type="number"
           value={cryptoQty}
-          onChange={(e) => {
-            const newQty = e.target.value;
-            setCryptoQty(newQty);
-            if (cryptoPrice && newQty) {
-              // La logique est gérée par le parent
-            }
-          }}
+          onChange={(e) => setCryptoQty(e.target.value)}
           className="wealth-input w-full"
           placeholder="Ex: 0.5"
           min="0"
           step="0.000001"
+          required
         />
       </div>
+      
       <div>
         <Label htmlFor="cryptoPrice" className="block text-sm font-medium mb-1">
-          Prix unitaire actuel (€)
+          Prix actuel par unité (€) <span className="text-red-500">*</span>
         </Label>
         <Input
           id="cryptoPrice"
           type="number"
           value={cryptoPrice}
-          onChange={(e) => {
-            const newPrice = e.target.value;
-            setCryptoPrice(newPrice);
-            if (cryptoQty && newPrice) {
-              // La logique est gérée par le parent
-            }
-          }}
+          onChange={(e) => setCryptoPrice(e.target.value)}
           className="wealth-input w-full"
           placeholder="Ex: 30000"
           min="0"
           step="0.01"
+          required
         />
       </div>
+      
       <div>
         <Label htmlFor="purchasePrice" className="block text-sm font-medium mb-1">
-          Prix d'achat unitaire (€)
+          Prix d'achat par unité (€) <span className="text-red-500">*</span>
         </Label>
         <Input
           id="purchasePrice"
@@ -228,9 +199,10 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
           value={purchasePrice}
           onChange={(e) => setPurchasePrice(e.target.value)}
           className="wealth-input w-full"
-          placeholder="Ex: 25000"
+          placeholder="Ex: 28000"
           min="0"
           step="0.01"
+          required
         />
       </div>
     </>

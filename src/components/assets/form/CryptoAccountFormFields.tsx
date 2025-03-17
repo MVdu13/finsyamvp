@@ -29,7 +29,7 @@ const CryptoAccountFormFields: React.FC<CryptoAccountFormFieldsProps> = ({
           value={accountName}
           onChange={(e) => setAccountName(e.target.value)}
           className="wealth-input w-full"
-          placeholder="Ex: Mon wallet Binance"
+          placeholder="Ex: Mon compte Binance"
         />
       </div>
       <div>

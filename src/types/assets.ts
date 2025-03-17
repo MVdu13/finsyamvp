@@ -48,10 +48,11 @@ export interface Asset {
   
   // Stock specific
   investmentAccountId?: string;
-  transactions?: Transaction[];
   
   // Crypto specific
   cryptoAccountId?: string;
+  
+  transactions?: Transaction[];
   
   // Real estate specific properties
   propertyType?: 'apartment' | 'house' | 'building' | 'commercial' | 'land' | 'other';

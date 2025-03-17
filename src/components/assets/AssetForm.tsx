@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Asset, AssetType } from '@/types/assets';
-import { X, Banknote, Wallet, BookText, Home } from 'lucide-react';
+import { X, Banknote, Wallet, BookText, Home, Bitcoin } from 'lucide-react';
 import { CryptoInfo } from '@/services/cryptoService';
 import TypeSelector from './form/TypeSelector';
 import CommonFormFields from './form/CommonFormFields';
@@ -192,6 +192,12 @@ const AssetForm: React.FC<AssetFormProps> = ({
       setValue((parseFloat(shares) * parseFloat(purchasePrice)).toString());
     }
   }, [type, shares, purchasePrice]);
+  
+  useEffect(() => {
+    if (type === 'crypto' && cryptoQty && cryptoPrice) {
+      setValue((parseFloat(cryptoQty) * parseFloat(cryptoPrice)).toString());
+    }
+  }, [type, cryptoQty, cryptoPrice]);
 
   const validateForm = (): boolean => {
     if (type === 'stock' && !investmentAccountId) {
@@ -202,7 +208,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
       });
       return false;
     }
-
+    
     if (type === 'crypto' && !cryptoAccountId) {
       toast({
         title: "Attention",
@@ -211,6 +217,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
       });
       return false;
     }
+    
     return true;
   };
 
@@ -277,11 +284,11 @@ const AssetForm: React.FC<AssetFormProps> = ({
       ...(initialValues?.createdAt && { createdAt: initialValues.createdAt }),
       updatedAt: new Date().toISOString(),
       ...(type === 'stock' && investmentAccountId && { investmentAccountId }),
-      ...(type === 'stock' && { quantity: parseFloat(shares) || 0 }),
-      ...(type === 'stock' && { purchasePrice: parseFloat(purchasePrice) || 0 }),
       ...(type === 'crypto' && cryptoAccountId && { cryptoAccountId }),
-      ...(type === 'crypto' && { quantity: parseFloat(cryptoQty) || 0 }),
-      ...(type === 'crypto' && { purchasePrice: parseFloat(cryptoPurchasePrice) || 0 }),
+      ...((type === 'stock' || type === 'crypto') && { 
+        quantity: type === 'stock' ? parseFloat(shares) || 0 : parseFloat(cryptoQty) || 0,
+        purchasePrice: type === 'stock' ? parseFloat(purchasePrice) || 0 : parseFloat(cryptoPurchasePrice) || 0
+      }),
     };
     
     onSubmit(asset);
@@ -336,13 +343,13 @@ const AssetForm: React.FC<AssetFormProps> = ({
       case 'bank-account': return <Wallet size={24} className="text-[#FA5003]" />;
       case 'savings-account': return <BookText size={24} className="text-[#FA5003]" />;
       case 'real-estate': return <Home size={24} className="text-[#FA5003]" />;
+      case 'crypto': return <Bitcoin size={24} className="text-amber-500" />;
       default: return null;
     }
   };
 
   const handleCryptoSelect = (crypto: CryptoInfo) => {
     setName(crypto.name);
-    setTicker(crypto.symbol.toUpperCase());
     setCryptoPrice(crypto.current_price.toString());
     setCryptoPurchasePrice(crypto.current_price.toString());
     setPerformance(crypto.price_change_percentage_24h.toString());
@@ -394,8 +401,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
             }}
             setPurchasePrice={setCryptoPurchasePrice}
             setCryptoAccountId={setCryptoAccountId}
-            onCryptoSelect={handleCryptoSelect}
             cryptoAccounts={cryptoAccounts || []}
+            onCryptoSelect={handleCryptoSelect}
             onAddAccount={handleAddAccount}
           />
         );
@@ -526,3 +533,4 @@ const AssetForm: React.FC<AssetFormProps> = ({
 };
 
 export default AssetForm;
+
