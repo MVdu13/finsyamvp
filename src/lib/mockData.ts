@@ -1,4 +1,3 @@
-
 import { Asset, AssetAllocation, NetWorthHistory } from '@/types/assets';
 import { Budget } from '@/types/budget';
 import { FinancialGoal } from '@/types/goals';
@@ -20,7 +19,8 @@ export const mockAssetAllocation: AssetAllocation = {
   stocks: 0,
   realEstate: 0,
   crypto: 0,
-  cash: 0,
+  bankAccounts: 0,
+  savingsAccounts: 0,
   bonds: 0,
   commodities: 0,
   other: 0,

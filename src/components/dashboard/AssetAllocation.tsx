@@ -98,7 +98,11 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({
           {Object.entries(filteredAllocation).map(([key, value]) => {
             if (value === 0) return null;
             
-            const percent = totalValue > 0 ? ((value / totalValue) * 100).toFixed(1) : '0.0';
+            // Ensure value is treated as a number
+            const numericValue = Number(value);
+            // Calculate percentage only if totalValue is greater than 0
+            const percent = totalValue > 0 ? ((numericValue / totalValue) * 100).toFixed(1) : '0.0';
+            
             let label;
             switch(key) {
               case 'stocks': label = 'Actions'; break;
