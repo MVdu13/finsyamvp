@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, Plus, Filter } from 'lucide-react';
@@ -39,39 +38,32 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const [editingAccount, setEditingAccount] = useState<Asset | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
   const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
-  const [forceRefresh, setForceRefresh] = useState(0); // New state for forcing refresh
-  
-  // Filter stocks and investment accounts
+  const [forceRefresh, setForceRefresh] = useState(0);
+
   const stocks = assets.filter(asset => asset.type === 'stock');
   const investmentAccounts = assets.filter(asset => asset.type === 'investment-account');
   
-  // Log when accounts change to debug
   useEffect(() => {
     console.log('StocksPage - Investment Accounts:', investmentAccounts);
   }, [investmentAccounts]);
 
-  // Calculate metrics
   const stocksWithoutAccounts = stocks.filter(stock => !stock.parentAccountId);
   const totalValue = stocks.reduce((sum, asset) => sum + asset.value, 0);
   const avgPerformance = stocks.length > 0 
     ? stocks.reduce((sum, asset) => sum + (asset.performance || 0), 0) / stocks.length
     : 0;
-  
-  // Générer un historique cohérent basé sur la valeur totale actuelle et la timeframe
+
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
     
-    // Déterminer le nombre de points de données selon la timeframe
     let numDataPoints;
     let labels;
     
-    // Créer des dates basées sur la timeframe sélectionnée
     const currentDate = new Date();
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
     
     switch (timeFrame) {
       case '1M':
-        // Jours du mois
         numDataPoints = 30;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -80,7 +72,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         });
         break;
       case '3M':
-        // Points hebdomadaires sur 3 mois
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -89,7 +80,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         });
         break;
       case '6M':
-        // Bi-hebdomadaire sur 6 mois
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -98,7 +88,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         });
         break;
       case '5Y':
-        // Mensuel sur 5 ans
         numDataPoints = 60;
         labels = Array.from({ length: Math.min(numDataPoints, 24) }, (_, i) => {
           const date = new Date();
@@ -107,7 +96,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         });
         break;
       case 'ALL':
-        // Annuel
         numDataPoints = 5;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -117,7 +105,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         break;
       case '1Y':
       default:
-        // Mensuel sur 1 an
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -127,7 +114,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         break;
     }
     
-    // Si aucune action, retourner des valeurs à zéro
     if (baseValue === 0) {
       return {
         labels,
@@ -142,29 +128,24 @@ const StocksPage: React.FC<StocksPageProps> = ({
       };
     }
     
-    // Générer des données variables selon la timeframe
     const volatilityFactor = timeFrame === '1M' ? 0.05 : 
                              timeFrame === '3M' ? 0.08 : 
                              timeFrame === '6M' ? 0.12 : 
                              timeFrame === '5Y' ? 0.25 : 
-                             timeFrame === 'ALL' ? 0.35 : 0.15; // 1Y
+                             timeFrame === 'ALL' ? 0.35 : 0.15;
     
     const generateRandomWalk = (steps: number, finalValue: number, volatility: number) => {
-      // Commencer avec une valeur initiale inférieure à la valeur finale pour simuler une croissance
       let initialValue = finalValue * (1 - Math.random() * volatility);
       const result = [initialValue];
       
       for (let i = 1; i < steps - 1; i++) {
-        // Calculer la prochaine valeur avec une tendance vers la valeur finale
         const progress = i / (steps - 1);
         const trend = initialValue + progress * (finalValue - initialValue);
         
-        // Ajouter une variation aléatoire autour de la tendance
         const randomFactor = 1 + (Math.random() * 2 - 1) * volatility * (1 - progress);
         result.push(trend * randomFactor);
       }
       
-      // Ajouter la valeur finale
       result.push(finalValue);
       
       return result.map(val => Math.round(val));
@@ -187,12 +168,10 @@ const StocksPage: React.FC<StocksPageProps> = ({
 
   const chartData = generateChartData();
   
-  // Calculate absolute performance change in currency
   const firstValue = chartData.datasets[0].data[0] || 0;
   const lastValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1] || 0;
   const absoluteGrowth = lastValue - firstValue;
-  
-  // Get time period text based on selected timeframe
+
   const getTimePeriodText = () => {
     switch (timeFrame) {
       case '1M': return 'sur le dernier mois';
@@ -206,11 +185,9 @@ const StocksPage: React.FC<StocksPageProps> = ({
   };
 
   const handleAddStock = (newStock: Omit<Asset, 'id'>) => {
-    // Call the parent's onAddAsset function
     onAddAsset(newStock);
     setStockDialogOpen(false);
     
-    // Show success toast
     toast({
       title: "Action ajoutée",
       description: `${newStock.name} a été ajouté à votre portefeuille`,
@@ -220,10 +197,11 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const handleAddAccount = (newAccount: Omit<Asset, 'id'>) => {
     const addedAccount = {
       ...newAccount,
-      id: Date.now().toString(), // Temporary ID to use before it's officially added
+      id: Date.now().toString(),
+      type: 'investment-account',
     };
     
-    onAddAsset(newAccount);
+    onAddAsset(addedAccount);
     setAccountDialogOpen(false);
     
     toast({
@@ -231,15 +209,10 @@ const StocksPage: React.FC<StocksPageProps> = ({
       description: `${newAccount.name} a été ajouté à vos comptes d'investissement`,
     });
 
-    // Force refresh to update the accounts list
     setForceRefresh(prev => prev + 1);
 
-    // If we're creating an account before adding a stock, open the stock dialog with this account selected
     if (selectedAccountId === 'new') {
-      // Set the selected account ID to the new account's ID
       setSelectedAccountId(addedAccount.id);
-      
-      // Wait for the state to update with the new account
       setTimeout(() => {
         setStockDialogOpen(true);
       }, 100);
@@ -282,19 +255,14 @@ const StocksPage: React.FC<StocksPageProps> = ({
 
   const handleDeleteAsset = () => {
     if (assetToDelete && onDeleteAsset) {
-      // Check if this is an account with stocks
       const isAccount = assetToDelete.type === 'investment-account';
       if (isAccount) {
-        // Find all stocks in this account
         const stocksInAccount = stocks.filter(stock => stock.parentAccountId === assetToDelete.id);
-        
-        // Delete all stocks in this account first
         stocksInAccount.forEach(stock => {
           onDeleteAsset(stock.id);
         });
       }
       
-      // Delete the asset
       onDeleteAsset(assetToDelete.id);
       
       toast({
@@ -368,7 +336,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
           </Dialog>
         </div>
         
-        {/* Edit Stock Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
@@ -391,7 +358,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
           </DialogContent>
         </Dialog>
         
-        {/* Edit Account Dialog */}
         <Dialog open={editAccountDialogOpen} onOpenChange={setEditAccountDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>

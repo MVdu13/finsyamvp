@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import Dashboard from './Dashboard';
@@ -55,8 +54,14 @@ const Index = () => {
   const totalWealth = assets.reduce((sum, asset) => sum + asset.value, 0);
 
   const addAsset = (newAsset: Omit<Asset, 'id'>) => {
-    const asset = {
+    // Make sure the type property is not lost
+    const assetWithType = {
       ...newAsset,
+      type: newAsset.type || 'other', // Default to 'other' if type is not provided
+    };
+    
+    const asset = {
+      ...assetWithType,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
     };

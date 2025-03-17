@@ -31,6 +31,7 @@ const StockForm: React.FC<StockFormProps> = ({
   const [quantity, setQuantity] = useState(initialValues?.quantity ? initialValues.quantity.toString() : '');
   const [purchasePrice, setPurchasePrice] = useState(initialValues?.purchasePrice ? initialValues.purchasePrice.toString() : '');
   const [accountId, setAccountId] = useState(initialValues?.parentAccountId || selectedAccountId || '');
+  const [description, setDescription] = useState(initialValues?.description || '');
 
   // Reset account ID when forceRefresh changes or when selected account ID changes
   useEffect(() => {
@@ -78,8 +79,6 @@ const StockForm: React.FC<StockFormProps> = ({
     
     onSubmit(asset);
   };
-
-  const [description, setDescription] = useState(initialValues?.description || '');
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -186,6 +185,20 @@ const StockForm: React.FC<StockFormProps> = ({
             required
           />
         </div>
+      </div>
+
+      <div>
+        <Label htmlFor="description" className="block text-sm font-medium mb-1">
+          Description (optionnel)
+        </Label>
+        <Input
+          id="description"
+          type="text"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="wealth-input w-full"
+          placeholder="Description de l'investissement"
+        />
       </div>
 
       <div className="flex gap-3 pt-2">
