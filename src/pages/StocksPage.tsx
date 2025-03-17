@@ -504,7 +504,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(estimatedAnnualFees)}</div>
+            <div className="text-2xl font-bold text-red-600">{formatCurrency(estimatedAnnualFees)}</div>
             <div className="text-xs text-muted-foreground mt-1">
               {estimatedAnnualFeePercentage}% de frais de gestion estimés
             </div>
