@@ -30,13 +30,10 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
   const [riskProfile, setRiskProfile] = useState<'high' | 'medium' | 'low'>('medium');
   const [cushionFormOpen, setCushionFormOpen] = useState(false);
   
-  // Monthly savings from budget
   const monthlySavings = mockBudget.totalIncome - mockBudget.totalExpenses;
   
-  // Dialog states
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // Calculate total from savings accounts
   const calculateSavingsTotal = () => {
     return assets
       .filter(asset => asset.type === 'savings-account')
@@ -45,14 +42,12 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
 
   const savingsAccountsTotal = calculateSavingsTotal();
   
-  // Calculate security cushion target
   const monthlyExpenses = mockBudget.totalExpenses;
   const recommendedMonths = 
     riskProfile === 'high' ? 3 :
     riskProfile === 'medium' ? 6 : 9;
   const targetAmount = monthlyExpenses * recommendedMonths;
 
-  // Load projects from localStorage on initial render
   useEffect(() => {
     const savedProjects = localStorage.getItem('financial-projects');
     if (savedProjects) {
@@ -88,7 +83,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
     };
   }, []);
 
-  // Save projects to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('financial-projects', JSON.stringify(projects));
   }, [projects]);
@@ -98,7 +92,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
   };
   
   const handleAddProject = () => {
-    setSelectedProject(null); // Ensure we're adding, not editing
+    setSelectedProject(null);
     setIsFormOpen(true);
   };
   
@@ -109,7 +103,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
   
   const handleSaveProject = (projectData: Omit<FinancialGoal, 'id'> & { id?: string }) => {
     if (projectData.id) {
-      // Update existing project
       setProjects(prevProjects => 
         prevProjects.map(p => p.id === projectData.id ? {...projectData as FinancialGoal} : p)
       );
@@ -118,10 +111,9 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
         description: "Votre projet a été mis à jour avec succès.",
       });
     } else {
-      // Add new project
       const newProject: FinancialGoal = {
         ...projectData,
-        id: Math.random().toString(36).substr(2, 9), // Simple ID generation
+        id: Math.random().toString(36).substr(2, 9),
       };
       setProjects(prevProjects => [...prevProjects, newProject]);
       
@@ -156,7 +148,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
   const handleSelectPlan = (plan: ProjectPlan) => {
     if (!selectedProject) return;
     
-    // Update the project with the selected plan
     const updatedProject: FinancialGoal = {
       ...selectedProject,
       monthlyContribution: plan.monthlyContribution
@@ -189,7 +180,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
   const projectsInProgress = projects.filter(p => p.currentAmount < p.targetAmount).length;
   const projectsCompleted = projects.filter(p => p.currentAmount >= p.targetAmount).length;
   
-  // Calculate total for projects allocation
   const projectsAllocation = projects.reduce((total, project) => total + project.currentAmount, 0);
   
   return (
@@ -212,7 +202,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
         </div>
       </div>
       
-      {/* Savings Section */}
       <Card className="p-6">
         <CardHeader className="p-0 pb-4">
           <div className="flex items-center gap-2">
@@ -223,7 +212,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
         </CardHeader>
         <CardContent className="p-0">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            {/* Savings accounts total */}
             <Card className="col-span-1 p-4">
               <CardHeader className="p-0 pb-2">
                 <CardTitle className="text-lg">Total des livrets</CardTitle>
@@ -248,16 +236,14 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
               </CardContent>
             </Card>
             
-            {/* Savings Allocation Chart */}
             <Card className="col-span-1 p-4">
               <SavingsAllocationChart 
                 savingsTotal={savingsAccountsTotal}
                 securityCushionAmount={Math.min(savingsAccountsTotal, targetAmount)}
-                projectsAllocation={projectsAllocation}
+                projects={projects}
               />
             </Card>
             
-            {/* Security Cushion */}
             <div className="lg:col-span-1">
               <SecurityCushion 
                 currentAmount={savingsAccountsTotal}
@@ -289,7 +275,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          {/* ProjectsList has been moved to the Savings section */}
         </div>
         
         <div className="space-y-6">
@@ -306,7 +291,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
         </div>
       </div>
       
-      {/* Project Form */}
       <ProjectForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
@@ -315,14 +299,12 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
         monthlySavings={monthlySavings}
       />
       
-      {/* Delete Confirmation Dialog */}
       <ProjectDeleteDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirmDelete={handleDeleteProject}
       />
       
-      {/* Security Cushion Form */}
       <SecurityCushionForm
         isOpen={cushionFormOpen}
         onClose={() => setCushionFormOpen(false)}
