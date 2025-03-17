@@ -1,4 +1,3 @@
-
 export type AssetType = 
   | 'stock' 
   | 'crypto' 
@@ -9,8 +8,7 @@ export type AssetType =
   | 'other'
   | 'bank-account'
   | 'savings-account'
-  | 'investment-account'
-  | 'crypto-account';
+  | 'investment-account';
 
 export interface Transaction {
   id: string;
@@ -43,15 +41,8 @@ export interface Asset {
   // Investment account specific
   accountType?: 'PEA' | 'CTO' | 'Assurance Vie' | 'PER' | 'Autre';
   
-  // Crypto account specific
-  cryptoAccountType?: 'Binance' | 'BitGet' | 'KuCoin' | 'MetaMask' | 'Phantom' | 'Autre';
-  
   // Stock specific
   investmentAccountId?: string;
-  
-  // Crypto specific
-  cryptoAccountId?: string;
-  
   transactions?: Transaction[];
   
   // Real estate specific properties
