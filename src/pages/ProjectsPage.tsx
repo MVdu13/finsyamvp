@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FinancialGoal, ProjectPlan } from '@/types/goals';
 import { mockBudget, mockAssets, mockGoals } from '@/lib/mockData';
@@ -14,6 +13,7 @@ import SavingsCapacity from '@/components/projects/SavingsCapacity';
 import ProjectDeleteDialog from '@/components/projects/ProjectDeleteDialog';
 import SecurityCushion from '@/components/budget/SecurityCushion';
 import SecurityCushionForm from '@/components/budget/SecurityCushionForm';
+import SavingsAllocationChart from '@/components/projects/SavingsAllocationChart';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/formatters';
 
@@ -189,6 +189,9 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
   const projectsInProgress = projects.filter(p => p.currentAmount < p.targetAmount).length;
   const projectsCompleted = projects.filter(p => p.currentAmount >= p.targetAmount).length;
   
+  // Calculate total for projects allocation
+  const projectsAllocation = projects.reduce((total, project) => total + project.currentAmount, 0);
+  
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -209,7 +212,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
         </div>
       </div>
       
-      {/* New Savings Section */}
+      {/* Savings Section */}
       <Card className="p-6">
         <CardHeader className="p-0 pb-4">
           <div className="flex items-center gap-2">
@@ -220,6 +223,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
         </CardHeader>
         <CardContent className="p-0">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            {/* Savings accounts total */}
             <Card className="col-span-1 p-4">
               <CardHeader className="p-0 pb-2">
                 <CardTitle className="text-lg">Total des livrets</CardTitle>
@@ -244,7 +248,17 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
               </CardContent>
             </Card>
             
-            <div className="lg:col-span-2">
+            {/* Savings Allocation Chart */}
+            <Card className="col-span-1 p-4">
+              <SavingsAllocationChart 
+                savingsTotal={savingsAccountsTotal}
+                securityCushionAmount={Math.min(savingsAccountsTotal, targetAmount)}
+                projectsAllocation={projectsAllocation}
+              />
+            </Card>
+            
+            {/* Security Cushion */}
+            <div className="lg:col-span-1">
               <SecurityCushion 
                 currentAmount={savingsAccountsTotal}
                 targetAmount={targetAmount}
