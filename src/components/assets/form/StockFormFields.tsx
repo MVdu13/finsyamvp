@@ -35,6 +35,7 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [newAccountName, setNewAccountName] = useState('');
   const [newAccountType, setNewAccountType] = useState<'PEA' | 'CTO' | 'Assurance Vie' | 'PER' | 'Autre'>('PEA');
+  const [lastAddedAccountId, setLastAddedAccountId] = useState<string | null>(null);
 
   const handleAddAccount = () => {
     if (onAddAccount && newAccountName.trim()) {
@@ -45,11 +46,28 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
         value: 0,
         performance: 0,
       };
+      
+      // On capture une référence au timestamp actuel pour pouvoir identifier le nouveau compte après son ajout
+      const timestamp = new Date().getTime();
+      setLastAddedAccountId(`temp-${timestamp}`);
+      
       onAddAccount(newAccount);
       setAccountDialogOpen(false);
       setNewAccountName('');
     }
   };
+
+  // Effet pour sélectionner automatiquement le compte nouvellement ajouté
+  React.useEffect(() => {
+    if (lastAddedAccountId && investmentAccounts.length > 0) {
+      // On cherche le compte le plus récemment ajouté (qui aura l'ID le plus récent)
+      const mostRecentAccount = investmentAccounts[investmentAccounts.length - 1];
+      if (mostRecentAccount) {
+        setInvestmentAccountId(mostRecentAccount.id);
+        setLastAddedAccountId(null); // On réinitialise pour ne pas refaire la sélection
+      }
+    }
+  }, [investmentAccounts, lastAddedAccountId, setInvestmentAccountId]);
 
   return (
     <>
