@@ -220,8 +220,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
     const stockAsset = {
       ...newStock,
       type: 'stock' as AssetType,
-      quantity: parseFloat(shares) || 0,
-      purchasePrice: parseFloat(purchasePrice) || 0
     };
     
     if (typeof stockAsset.quantity === 'number' && typeof stockAsset.purchasePrice === 'number') {
