@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Briefcase, TrendingUp, TrendingDown, Plus, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { Briefcase, TrendingUp, TrendingDown, Plus, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
 import { Asset, AssetType } from '@/types/assets';
@@ -11,8 +10,8 @@ import LineChartComponent from '@/components/charts/LineChart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
 
 interface StocksPageProps {
   assets: Asset[];
@@ -30,6 +29,23 @@ interface GroupedStocks {
   };
 }
 
+interface TransactionRecord {
+  quantity: number;
+  purchasePrice: number;
+  purchaseDate: string;
+  id: string;
+}
+
+interface StackedStockInterface {
+  name: string;
+  transactions: TransactionRecord[];
+  totalQuantity: number;
+  averagePrice: number;
+  totalValue: number;
+  performance?: number;
+  symbol?: string;
+}
+
 const StocksPage: React.FC<StocksPageProps> = ({ 
   assets, 
   onAddAsset,
@@ -43,10 +59,51 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
   const [expandedAccounts, setExpandedAccounts] = useState<Record<string, boolean>>({});
+  const [expandedStocks, setExpandedStocks] = useState<Record<string, boolean>>({});
   
   // Filter investment accounts and stocks
   const investmentAccounts = assets.filter(asset => asset.type === 'investment-account');
   const stocks = assets.filter(asset => asset.type === 'stock');
+  
+  // Stack similar stocks within each account
+  const stackStocksByName = (accountStocks: Asset[]): StackedStockInterface[] => {
+    const stocksMap: Record<string, StackedStockInterface> = {};
+    
+    accountStocks.forEach(stock => {
+      const stockName = stock.name;
+      const quantity = stock.quantity || 0;
+      const purchasePrice = stock.purchasePrice || 0;
+      
+      if (!stocksMap[stockName]) {
+        stocksMap[stockName] = {
+          name: stockName,
+          transactions: [],
+          totalQuantity: 0,
+          averagePrice: 0,
+          totalValue: 0,
+          performance: stock.performance,
+          symbol: stock.symbol
+        };
+      }
+      
+      stocksMap[stockName].transactions.push({
+        quantity,
+        purchasePrice,
+        purchaseDate: stock.purchaseDate || new Date().toISOString(),
+        id: stock.id
+      });
+      
+      stocksMap[stockName].totalQuantity += quantity;
+      stocksMap[stockName].totalValue += stock.value;
+    });
+    
+    // Calculate average price for each stacked stock
+    Object.values(stocksMap).forEach(stock => {
+      stock.averagePrice = stock.totalQuantity > 0 ? stock.totalValue / stock.totalQuantity : 0;
+    });
+    
+    return Object.values(stocksMap);
+  };
   
   // Group stocks by investment account
   const groupedStocks: GroupedStocks = investmentAccounts.reduce((acc, account) => {
@@ -78,11 +135,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
     ? stocks.reduce((sum, asset) => sum + (asset.performance || 0), 0) / stocks.length
     : 0;
   
-  useEffect(() => {
-    // Log investment accounts
-    console.info('StocksPage - Investment Accounts:', investmentAccounts);
-  }, [investmentAccounts]);
-  
   // Générer un historique cohérent basé sur la valeur totale actuelle et la timeframe
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
@@ -91,7 +143,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
     let numDataPoints;
     let labels;
     
-    // Créer des dates basées sur la timeframe sélectionnée
+    // Créer des dates basées sur la timeframe s��lectionnée
     const currentDate = new Date();
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
     
@@ -238,9 +290,40 @@ const StocksPage: React.FC<StocksPageProps> = ({
       type: 'stock' as AssetType
     };
     
+    // Check if a similar stock already exists in the same account
+    if (stockAsset.investmentAccountId && stockAsset.name) {
+      const similarStocks = stocks.filter(s => 
+        s.investmentAccountId === stockAsset.investmentAccountId && 
+        s.name.toLowerCase() === stockAsset.name.toLowerCase()
+      );
+      
+      // If similar stock exists, show a more specific toast message
+      if (similarStocks.length > 0) {
+        toast({
+          title: "Action ajoutée au groupe existant",
+          description: `${newStock.name} a été ajouté à vos transactions existantes`,
+        });
+      } else {
+        toast({
+          title: "Action ajoutée",
+          description: `${newStock.name} a été ajouté à votre portefeuille`,
+        });
+      }
+    } else {
+      toast({
+        title: "Action ajoutée",
+        description: `${newStock.name} a été ajouté à votre portefeuille`,
+      });
+    }
+    
     // Calculate the stock's value
     if (typeof stockAsset.quantity === 'number' && typeof stockAsset.purchasePrice === 'number') {
       stockAsset.value = stockAsset.quantity * stockAsset.purchasePrice;
+    }
+    
+    // Add purchase date if not provided
+    if (!stockAsset.purchaseDate) {
+      stockAsset.purchaseDate = new Date().toISOString();
     }
     
     // Call the parent's onAddAsset function
@@ -256,12 +339,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         onUpdateAsset(account.id, { value: newTotalValue });
       }
     }
-    
-    // Show success toast
-    toast({
-      title: "Action ajoutée",
-      description: `${newStock.name} a été ajouté à votre portefeuille`,
-    });
   };
   
   const handleAddAccount = (newAccount: Omit<Asset, 'id'>) => {
@@ -351,6 +428,13 @@ const StocksPage: React.FC<StocksPageProps> = ({
     setExpandedAccounts(prev => ({
       ...prev,
       [accountId]: !prev[accountId]
+    }));
+  };
+
+  const toggleStockExpand = (stockName: string) => {
+    setExpandedStocks(prev => ({
+      ...prev,
+      [stockName]: !prev[stockName]
     }));
   };
 
@@ -526,47 +610,90 @@ const StocksPage: React.FC<StocksPageProps> = ({
                     <div className="px-4 pb-4">
                       {stocks.length > 0 ? (
                         <div className="border rounded-md divide-y">
-                          {stocks.map((stock) => (
-                            <div key={stock.id} className="p-3 flex items-center justify-between hover:bg-muted/50">
-                              <div>
-                                <div className="font-medium">{stock.name}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {stock.quantity} × {formatCurrency(stock.purchasePrice || 0)}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <div className="text-right">
-                                  <div>{formatCurrency(stock.value)}</div>
-                                  <div className={cn(
-                                    "text-xs flex items-center justify-end",
-                                    (stock.performance || 0) >= 0 ? "text-green-600" : "text-red-600"
-                                  )}>
-                                    {(stock.performance || 0) >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                                    <span className="ml-1">{(stock.performance || 0) > 0 ? "+" : ""}{(stock.performance || 0).toFixed(1)}%</span>
+                          {stackStocksByName(stocks).map((stackedStock) => (
+                            <Collapsible 
+                              key={stackedStock.name} 
+                              open={expandedStocks[stackedStock.name]}
+                              onOpenChange={() => toggleStockExpand(stackedStock.name)}
+                              className="w-full"
+                            >
+                              <CollapsibleTrigger className="w-full text-left">
+                                <div className="p-3 flex items-center justify-between hover:bg-muted/50">
+                                  <div>
+                                    <div className="font-medium">{stackedStock.name}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {stackedStock.totalQuantity} × {formatCurrency(stackedStock.averagePrice)}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-4">
+                                    <div className="text-right">
+                                      <div>{formatCurrency(stackedStock.totalValue)}</div>
+                                      <div className={cn(
+                                        "text-xs flex items-center justify-end",
+                                        (stackedStock.performance || 0) >= 0 ? "text-green-600" : "text-red-600"
+                                      )}>
+                                        {(stackedStock.performance || 0) >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                                        <span className="ml-1">{(stackedStock.performance || 0) > 0 ? "+" : ""}{(stackedStock.performance || 0).toFixed(1)}%</span>
+                                      </div>
+                                    </div>
+                                    {expandedStocks[stackedStock.name] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                   </div>
                                 </div>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditAsset(stock);
-                                    }}
-                                    className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded"
-                                  >
-                                    Modifier
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteAsset(stock.id);
-                                    }}
-                                    className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
-                                  >
-                                    Supprimer
-                                  </button>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent>
+                                <div className="px-3 pb-2 bg-muted/30">
+                                  <div className="text-sm font-medium pt-2 pb-1 border-b">Transactions</div>
+                                  {stackedStock.transactions.map((transaction) => {
+                                    const stock = stocks.find(s => s.id === transaction.id);
+                                    if (!stock) return null;
+                                    
+                                    const date = new Date(transaction.purchaseDate);
+                                    const formattedDate = date.toLocaleDateString('fr-FR', {
+                                      day: '2-digit',
+                                      month: '2-digit',
+                                      year: 'numeric'
+                                    });
+                                    
+                                    return (
+                                      <ContextMenu key={transaction.id}>
+                                        <ContextMenuTrigger>
+                                          <div className="py-2 border-b border-border/50 last:border-0 flex items-center justify-between">
+                                            <div className="flex items-center">
+                                              <Clock size={14} className="mr-2 text-muted-foreground" />
+                                              <div>
+                                                <div className="text-sm">{formattedDate}</div>
+                                                <div className="text-xs text-muted-foreground">
+                                                  {transaction.quantity} × {formatCurrency(transaction.purchasePrice)}
+                                                </div>
+                                              </div>
+                                            </div>
+                                            <div className="text-sm font-medium">
+                                              {formatCurrency(transaction.quantity * transaction.purchasePrice)}
+                                            </div>
+                                          </div>
+                                        </ContextMenuTrigger>
+                                        <ContextMenuContent>
+                                          <ContextMenuItem onClick={() => handleEditAsset(stock)}>
+                                            Modifier
+                                          </ContextMenuItem>
+                                          <ContextMenuItem onClick={() => handleDeleteAsset(stock.id)} className="text-red-600">
+                                            Supprimer
+                                          </ContextMenuItem>
+                                        </ContextMenuContent>
+                                      </ContextMenu>
+                                    );
+                                  })}
+                                  <div className="flex justify-end mt-2">
+                                    <button
+                                      onClick={() => setDialogOpen(true)}
+                                      className="text-xs px-2 py-1 bg-primary/10 hover:bg-primary/20 text-primary rounded"
+                                    >
+                                      + Ajouter une transaction
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            </div>
+                              </CollapsibleContent>
+                            </Collapsible>
                           ))}
                         </div>
                       ) : (
@@ -598,46 +725,94 @@ const StocksPage: React.FC<StocksPageProps> = ({
           </Card>
         )}
         
-        {/* Unassigned stocks */}
         {unassignedStocks.length > 0 && (
           <div className="mt-6">
             <h3 className="text-lg font-medium mb-3">Actions sans compte assigné</h3>
             <div className="border rounded-md divide-y">
-              {unassignedStocks.map((stock) => (
-                <div key={stock.id} className="p-3 flex items-center justify-between hover:bg-muted/50">
-                  <div>
-                    <div className="font-medium">{stock.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {stock.quantity} × {formatCurrency(stock.purchasePrice || 0)}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div>{formatCurrency(stock.value)}</div>
-                      <div className={cn(
-                        "text-xs flex items-center justify-end",
-                        (stock.performance || 0) >= 0 ? "text-green-600" : "text-red-600"
-                      )}>
-                        {(stock.performance || 0) >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                        <span className="ml-1">{(stock.performance || 0) > 0 ? "+" : ""}{(stock.performance || 0).toFixed(1)}%</span>
+              {stackStocksByName(unassignedStocks).map((stackedStock) => (
+                <Collapsible 
+                  key={stackedStock.name} 
+                  open={expandedStocks[stackedStock.name]}
+                  onOpenChange={() => toggleStockExpand(stackedStock.name)}
+                  className="w-full"
+                >
+                  <CollapsibleTrigger className="w-full text-left">
+                    <div className="p-3 flex items-center justify-between hover:bg-muted/50">
+                      <div>
+                        <div className="font-medium">{stackedStock.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {stackedStock.totalQuantity} × {formatCurrency(stackedStock.averagePrice)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div>{formatCurrency(stackedStock.totalValue)}</div>
+                          <div className={cn(
+                            "text-xs flex items-center justify-end",
+                            (stackedStock.performance || 0) >= 0 ? "text-green-600" : "text-red-600"
+                          )}>
+                            {(stackedStock.performance || 0) >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                            <span className="ml-1">{(stackedStock.performance || 0) > 0 ? "+" : ""}{(stackedStock.performance || 0).toFixed(1)}%</span>
+                          </div>
+                        </div>
+                        {expandedStocks[stackedStock.name] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEditAsset(stock)}
-                        className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded"
-                      >
-                        Modifier
-                      </button>
-                      <button
-                        onClick={() => handleDeleteAsset(stock.id)}
-                        className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
-                      >
-                        Supprimer
-                      </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-3 pb-2 bg-muted/30">
+                      <div className="text-sm font-medium pt-2 pb-1 border-b">Transactions</div>
+                      {stackedStock.transactions.map((transaction) => {
+                        const stock = unassignedStocks.find(s => s.id === transaction.id);
+                        if (!stock) return null;
+                        
+                        const date = new Date(transaction.purchaseDate);
+                        const formattedDate = date.toLocaleDateString('fr-FR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        });
+                        
+                        return (
+                          <ContextMenu key={transaction.id}>
+                            <ContextMenuTrigger>
+                              <div className="py-2 border-b border-border/50 last:border-0 flex items-center justify-between">
+                                <div className="flex items-center">
+                                  <Clock size={14} className="mr-2 text-muted-foreground" />
+                                  <div>
+                                    <div className="text-sm">{formattedDate}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {transaction.quantity} × {formatCurrency(transaction.purchasePrice)}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-sm font-medium">
+                                  {formatCurrency(transaction.quantity * transaction.purchasePrice)}
+                                </div>
+                              </div>
+                            </ContextMenuTrigger>
+                            <ContextMenuContent>
+                              <ContextMenuItem onClick={() => handleEditAsset(stock)}>
+                                Modifier
+                              </ContextMenuItem>
+                              <ContextMenuItem onClick={() => handleDeleteAsset(stock.id)} className="text-red-600">
+                                Supprimer
+                              </ContextMenuItem>
+                            </ContextMenuContent>
+                          </ContextMenu>
+                        );
+                      })}
+                      <div className="flex justify-end mt-2">
+                        <button
+                          onClick={() => setDialogOpen(true)}
+                          className="text-xs px-2 py-1 bg-primary/10 hover:bg-primary/20 text-primary rounded"
+                        >
+                          + Ajouter une transaction
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </CollapsibleContent>
+                </Collapsible>
               ))}
             </div>
           </div>

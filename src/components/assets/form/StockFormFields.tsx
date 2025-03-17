@@ -6,6 +6,7 @@ import { Asset } from '@/types/assets';
 import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import InvestmentAccountFormFields from './InvestmentAccountFormFields';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface StockFormFieldsProps {
   ticker: string;
@@ -58,19 +59,19 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
           Compte d'investissement
         </Label>
         <div className="flex gap-2">
-          <select
-            id="investmentAccount"
-            value={investmentAccountId}
-            onChange={(e) => setInvestmentAccountId(e.target.value)}
-            className="wealth-input flex-grow"
-          >
-            <option value="">-- Sélectionner un compte --</option>
-            {investmentAccounts.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.name} ({account.accountType})
-              </option>
-            ))}
-          </select>
+          <Select value={investmentAccountId} onValueChange={setInvestmentAccountId}>
+            <SelectTrigger className="wealth-input flex-grow">
+              <SelectValue placeholder="-- Sélectionner un compte --" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">-- Sélectionner un compte --</SelectItem>
+              {investmentAccounts.map((account) => (
+                <SelectItem key={account.id} value={account.id}>
+                  {account.name} ({account.accountType})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Dialog open={accountDialogOpen} onOpenChange={setAccountDialogOpen}>
             <DialogTrigger asChild>
               <button 
