@@ -13,11 +13,12 @@ import {
 } from "@/components/ui/table";
 import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown } from 'lucide-react';
 
-interface StockTransactionsListProps {
+interface TransactionsListProps {
   transactions: Transaction[];
+  title?: string;
 }
 
-const StockTransactionsList: React.FC<StockTransactionsListProps> = ({ transactions }) => {
+const TransactionsList: React.FC<TransactionsListProps> = ({ transactions, title = "Historique des transactions" }) => {
   if (!transactions || transactions.length === 0) {
     return (
       <div className="text-center py-4">
@@ -33,7 +34,7 @@ const StockTransactionsList: React.FC<StockTransactionsListProps> = ({ transacti
 
   return (
     <div className="mt-4">
-      <h4 className="font-medium mb-2">Historique des transactions</h4>
+      <h4 className="font-medium mb-2">{title}</h4>
       <div className="border rounded-md overflow-hidden">
         <Table>
           <TableHeader>
@@ -91,4 +92,4 @@ const StockTransactionsList: React.FC<StockTransactionsListProps> = ({ transacti
   );
 };
 
-export default StockTransactionsList;
+export default TransactionsList;
