@@ -47,19 +47,21 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
         performance: 0,
       };
       
-      // On capture une référence au timestamp actuel pour pouvoir identifier le nouveau compte après son ajout
-      const timestamp = new Date().getTime();
-      setLastAddedAccountId(`temp-${timestamp}`);
-      
+      // Ajouter le compte et marquer que nous venons d'ajouter un compte
       onAddAccount(newAccount);
+      
+      // Fermer la dialog et réinitialiser le formulaire
       setAccountDialogOpen(false);
       setNewAccountName('');
+      
+      // On va sélectionner automatiquement ce compte une fois qu'il aura été ajouté
+      setLastAddedAccountId('pending');
     }
   };
 
   // Effet pour sélectionner automatiquement le compte nouvellement ajouté
   React.useEffect(() => {
-    if (lastAddedAccountId && investmentAccounts.length > 0) {
+    if (lastAddedAccountId === 'pending' && investmentAccounts.length > 0) {
       // On cherche le compte le plus récemment ajouté (qui aura l'ID le plus récent)
       const mostRecentAccount = investmentAccounts[investmentAccounts.length - 1];
       if (mostRecentAccount) {
