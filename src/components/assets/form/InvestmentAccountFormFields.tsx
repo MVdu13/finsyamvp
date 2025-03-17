@@ -36,18 +36,18 @@ const InvestmentAccountFormFields: React.FC<InvestmentAccountFormFieldsProps> = 
         <Label htmlFor="accountType" className="block text-sm font-medium mb-1">
           Type de compte
         </Label>
-        <Select value={accountType} onValueChange={(value) => setAccountType(value as 'PEA' | 'CTO' | 'Assurance Vie' | 'PER' | 'Autre')}>
-          <SelectTrigger className="wealth-input w-full">
-            <SelectValue placeholder="Sélectionner un type de compte" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="PEA">PEA</SelectItem>
-            <SelectItem value="CTO">CTO</SelectItem>
-            <SelectItem value="Assurance Vie">Assurance Vie</SelectItem>
-            <SelectItem value="PER">PER</SelectItem>
-            <SelectItem value="Autre">Autre</SelectItem>
-          </SelectContent>
-        </Select>
+        <select
+          id="accountType"
+          value={accountType}
+          onChange={(e) => setAccountType(e.target.value as 'PEA' | 'CTO' | 'Assurance Vie' | 'PER' | 'Autre')}
+          className="wealth-input w-full"
+        >
+          <option value="PEA">PEA</option>
+          <option value="CTO">CTO</option>
+          <option value="Assurance Vie">Assurance Vie</option>
+          <option value="PER">PER</option>
+          <option value="Autre">Autre</option>
+        </select>
       </div>
     </>
   );
