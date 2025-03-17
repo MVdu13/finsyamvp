@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import CryptoSearch from '../CryptoSearch';
 import { CryptoInfo } from '@/services/cryptoService';
@@ -8,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Asset } from '@/types/assets';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import CryptoAccountFormFields from './CryptoAccountFormFields';
+import { useToast } from '@/hooks/use-toast';
 
 interface CryptoFormFieldsProps {
   cryptoQty: string;
@@ -36,6 +38,7 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
   cryptoAccounts,
   onAddAccount
 }) => {
+  const { toast } = useToast();
   const [showCryptoSearch, setShowCryptoSearch] = useState(true);
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [newAccountName, setNewAccountName] = useState('');

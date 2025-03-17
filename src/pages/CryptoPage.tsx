@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Bitcoin, TrendingUp, TrendingDown, Wallet, Plus, Filter, ChevronDown, ChevronRight } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -38,6 +39,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   const cryptoAssets = assets.filter(asset => asset.type === 'crypto');
   const cryptoAccounts = assets.filter(asset => asset.type === 'crypto-account');
   
+  // Calculer les valeurs totales et moyennes
   const totalValue = cryptoAssets.reduce((sum, asset) => sum + asset.value, 0);
   const avgPerformance = cryptoAssets.length > 0 
     ? cryptoAssets.reduce((sum, asset) => sum + (asset.performance || 0), 0) / cryptoAssets.length
@@ -179,14 +181,14 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       type: 'crypto-account' as AssetType
     };
     
-    onAddAsset(account);
+    const addedAccount = onAddAsset(account);
     
     toast({
       title: "Compte crypto ajouté",
       description: `${newAccount.name} a été ajouté`,
     });
     
-    return null;
+    return addedAccount;
   };
   
   const handleEditAsset = (asset: Asset) => {
@@ -309,10 +311,10 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         <div className="flex gap-2">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <button className="wealth-btn wealth-btn-primary flex items-center gap-2">
+              <Button className="wealth-btn wealth-btn-primary flex items-center gap-2">
                 <Plus size={16} />
                 <span>Ajouter une crypto</span>
-              </button>
+              </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
@@ -566,12 +568,12 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
                       ) : (
                         <div className="text-center py-8">
                           <p className="text-muted-foreground mb-4">Aucune cryptomonnaie dans ce compte</p>
-                          <button
+                          <Button
                             className="wealth-btn wealth-btn-primary"
                             onClick={() => setDialogOpen(true)}
                           >
                             Ajouter une cryptomonnaie
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -623,7 +625,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
             <p className="text-lg text-muted-foreground mb-4">
               Aucun compte crypto dans votre portefeuille
             </p>
-            <button 
+            <Button 
               className="wealth-btn wealth-btn-primary"
               onClick={() => {
                 handleAddCryptoAccount({
@@ -636,7 +638,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
               }}
             >
               Ajouter votre premier compte crypto
-            </button>
+            </Button>
           </div>
         )}
       </div>
