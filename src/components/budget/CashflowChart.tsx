@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Income, Expense } from '@/types/budget';
 import { formatCurrency } from '@/lib/formatters';
@@ -33,24 +32,20 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
   totalIncome,
   totalExpenses
 }) => {
-  // Prepare data for Sankey diagram
   const prepareData = () => {
     const nodes: SankeyNode[] = [];
     const links: SankeyLink[] = [];
 
-    // Income source node
     nodes.push({ 
       name: `Revenus: ${formatCurrency(totalIncome)}`, 
       fill: '#a5b4fc' // Light blue
     });
 
-    // Budget allocation node
     nodes.push({ 
       name: `Budget: ${formatCurrency(totalIncome)}`,
       fill: '#fdba74' // Light orange
     });
 
-    // Add the main link between income and budget
     links.push({
       source: 0,
       target: 1,
@@ -58,14 +53,11 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
       fill: '#a5b4fc80', // Transparent light blue
     });
 
-    // Add fixed expenses category
     const fixedExpenses = expenses.filter(expense => expense.type === 'fixed');
     const variableExpenses = expenses.filter(expense => expense.type === 'variable');
     
-    // Group fixed and variable expenses by category
     const expenseCategories: Record<string, { fixed: Expense[], variable: Expense[] }> = {};
     
-    // Initialize categories
     expenses.forEach(expense => {
       if (!expenseCategories[expense.category]) {
         expenseCategories[expense.category] = {
@@ -81,22 +73,18 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
       }
     });
 
-    // Starting index for category nodes
     let nodeIndex = 2;
     
-    // Process expense categories
     Object.entries(expenseCategories).forEach(([category, { fixed, variable }]) => {
       const categoryExpenses = [...fixed, ...variable];
       const categoryTotal = categoryExpenses.reduce((sum, exp) => sum + exp.amount, 0);
       
       if (categoryTotal > 0) {
-        // Add category node
         nodes.push({
           name: `${category}: ${formatCurrency(categoryTotal)}`,
           fill: getCategoryColor(category)
         });
         
-        // Link from budget to this category
         links.push({
           source: 1,
           target: nodeIndex,
@@ -105,15 +93,12 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
           fill: getCategoryColorTransparent(category)
         });
         
-        // For each expense in this category
         categoryExpenses.forEach(expense => {
-          // Add expense node
           nodes.push({
             name: `${expense.name}: ${formatCurrency(expense.amount)}`,
             fill: getCategoryColor(category, true)
           });
           
-          // Link from category to this expense
           links.push({
             source: nodeIndex,
             target: nodeIndex + 1,
@@ -132,7 +117,6 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
     return { nodes, links };
   };
 
-  // Get color for a specific category
   const getCategoryColor = (category: string, isExpense = false) => {
     const opacity = isExpense ? '80' : '';
     
@@ -166,7 +150,6 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
     }
   };
 
-  // Get transparent color for a specific category
   const getCategoryColorTransparent = (category: string, isExpense = false) => {
     return getCategoryColor(category, isExpense) + '80'; // 50% opacity
   };
@@ -188,12 +171,12 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
         <CardTitle className="text-lg font-medium">Flux de trésorerie</CardTitle>
       </CardHeader>
       <CardContent className="p-2">
-        <div className="h-[450px] w-full overflow-visible">
+        <div className="h-[420px] w-full overflow-hidden">
           <ChartContainer config={chartConfig}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={400}>
               <Sankey
                 data={{ nodes, links }}
-                nodePadding={10}
+                nodePadding={8}
                 nodeWidth={10}
                 link={{ stroke: '#d1d5db' }}
                 node={
@@ -202,7 +185,7 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
                     radius={[2, 2, 2, 2]}
                   />
                 }
-                margin={{ top: 15, right: 15, bottom: 15, left: 15 }}
+                margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
               >
                 <Tooltip
                   content={
