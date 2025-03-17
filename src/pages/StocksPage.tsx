@@ -52,11 +52,9 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
   const [expandedAccounts, setExpandedAccounts] = useState<Record<string, boolean>>({});
   
-  // Filter investment accounts and stocks
   const investmentAccounts = assets.filter(asset => asset.type === 'investment-account');
   const stocks = assets.filter(asset => asset.type === 'stock');
   
-  // Group stocks by investment account
   const groupedStocks: GroupedStocks = investmentAccounts.reduce((acc, account) => {
     const accountStocks = stocks.filter(stock => stock.investmentAccountId === account.id);
     const totalValue = accountStocks.reduce((sum, stock) => sum + stock.value, 0);
@@ -74,38 +72,30 @@ const StocksPage: React.FC<StocksPageProps> = ({
     return acc;
   }, {} as GroupedStocks);
   
-  // Handle stocks without an account
   const unassignedStocks = stocks.filter(stock => !stock.investmentAccountId || 
     !investmentAccounts.some(account => account.id === stock.investmentAccountId));
   
-  // Calculate total value for all stocks
   const totalValue = stocks.reduce((sum, asset) => sum + asset.value, 0);
   
-  // Calculate average performance across all stocks
   const avgPerformance = stocks.length > 0 
     ? stocks.reduce((sum, asset) => sum + (asset.performance || 0), 0) / stocks.length
     : 0;
   
   useEffect(() => {
-    // Log investment accounts
     console.info('StocksPage - Investment Accounts:', investmentAccounts);
   }, [investmentAccounts]);
   
-  // Générer un historique cohérent basé sur la valeur totale actuelle et la timeframe
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
     
-    // Déterminer le nombre de points de données selon la timeframe
     let numDataPoints;
     let labels;
     
-    // Créer des dates basées sur la timeframe sélectionnée
     const currentDate = new Date();
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
     
     switch (timeFrame) {
       case '1M':
-        // Jours du mois
         numDataPoints = 30;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -114,7 +104,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         });
         break;
       case '3M':
-        // Points hebdomadaires sur 3 mois
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -123,7 +112,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         });
         break;
       case '6M':
-        // Bi-hebdomadaire sur 6 mois
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -132,7 +120,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         });
         break;
       case '5Y':
-        // Mensuel sur 5 ans
         numDataPoints = 60;
         labels = Array.from({ length: Math.min(numDataPoints, 24) }, (_, i) => {
           const date = new Date();
@@ -141,7 +128,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         });
         break;
       case 'ALL':
-        // Annuel
         numDataPoints = 5;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -151,7 +137,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         break;
       case '1Y':
       default:
-        // Mensuel sur 1 an
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -161,7 +146,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         break;
     }
     
-    // Si aucune action, retourner des valeurs à zéro
     if (baseValue === 0) {
       return {
         labels,
@@ -176,29 +160,24 @@ const StocksPage: React.FC<StocksPageProps> = ({
       };
     }
     
-    // Générer des données variables selon la timeframe
     const volatilityFactor = timeFrame === '1M' ? 0.05 : 
                              timeFrame === '3M' ? 0.08 : 
                              timeFrame === '6M' ? 0.12 : 
                              timeFrame === '5Y' ? 0.25 : 
-                             timeFrame === 'ALL' ? 0.35 : 0.15; // 1Y
+                             timeFrame === 'ALL' ? 0.35 : 0.15;
     
     const generateRandomWalk = (steps: number, finalValue: number, volatility: number) => {
-      // Commencer avec une valeur initiale inférieure à la valeur finale pour simuler une croissance
       let initialValue = finalValue * (1 - Math.random() * volatility);
       const result = [initialValue];
       
       for (let i = 1; i < steps - 1; i++) {
-        // Calculer la prochaine valeur avec une tendance vers la valeur finale
         const progress = i / (steps - 1);
         const trend = initialValue + progress * (finalValue - initialValue);
         
-        // Ajouter une variation aléatoire autour de la tendance
         const randomFactor = 1 + (Math.random() * 2 - 1) * volatility * (1 - progress);
         result.push(trend * randomFactor);
       }
       
-      // Ajouter la valeur finale
       result.push(finalValue);
       
       return result.map(val => Math.round(val));
@@ -221,12 +200,10 @@ const StocksPage: React.FC<StocksPageProps> = ({
 
   const chartData = generateChartData();
   
-  // Calculate absolute performance change in currency
   const firstValue = chartData.datasets[0].data[0] || 0;
   const lastValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1] || 0;
   const absoluteGrowth = lastValue - firstValue;
   
-  // Get time period text based on selected timeframe
   const getTimePeriodText = () => {
     switch (timeFrame) {
       case '1M': return 'sur le dernier mois';
@@ -240,22 +217,18 @@ const StocksPage: React.FC<StocksPageProps> = ({
   };
 
   const handleAddStock = (newStock: Omit<Asset, 'id'>) => {
-    // Make sure we're adding a stock asset
     const stockAsset = {
       ...newStock,
       type: 'stock' as AssetType
     };
     
-    // Calculate the stock's value
     if (typeof stockAsset.quantity === 'number' && typeof stockAsset.purchasePrice === 'number') {
       stockAsset.value = stockAsset.quantity * stockAsset.purchasePrice;
     }
     
-    // Call the parent's onAddAsset function
     onAddAsset(stockAsset);
     setDialogOpen(false);
     
-    // If this stock was added to an investment account, update the account's value
     if (stockAsset.investmentAccountId && onUpdateAsset) {
       const account = investmentAccounts.find(a => a.id === stockAsset.investmentAccountId);
       if (account) {
@@ -265,7 +238,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
       }
     }
     
-    // Show success toast
     toast({
       title: "Action ajoutée",
       description: `${newStock.name} a été ajouté à votre portefeuille`,
@@ -273,7 +245,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
   };
   
   const handleAddAccount = (newAccount: Omit<Asset, 'id'>) => {
-    // Make sure we're adding an investment account
     const accountAsset = {
       ...newAccount,
       type: 'investment-account' as AssetType,
@@ -287,8 +258,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
       description: `${newAccount.name} a été ajouté`,
     });
     
-    // After adding account, we need to refresh the state to see the new account
-    // This is handled by the parent component through assets state update
+    setDialogOpen(false);
   };
   
   const handleEditAsset = (asset: Asset) => {
@@ -298,14 +268,12 @@ const StocksPage: React.FC<StocksPageProps> = ({
 
   const handleUpdateAsset = (updatedAsset: Omit<Asset, 'id'>) => {
     if (editingAsset && onUpdateAsset) {
-      // Calculate value for stocks
       if (updatedAsset.type === 'stock' && typeof updatedAsset.quantity === 'number' && typeof updatedAsset.purchasePrice === 'number') {
         updatedAsset.value = updatedAsset.quantity * updatedAsset.purchasePrice;
       }
       
       onUpdateAsset(editingAsset.id, updatedAsset);
       
-      // If this is a stock, update the parent account's value
       if (updatedAsset.type === 'stock' && updatedAsset.investmentAccountId && onUpdateAsset) {
         const account = investmentAccounts.find(a => a.id === updatedAsset.investmentAccountId);
         if (account) {
@@ -332,7 +300,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
       const assetToDelete = stocks.find(asset => asset.id === id);
       
       if (assetToDelete) {
-        // If this is a stock attached to an account, update the account's value
         if (assetToDelete.investmentAccountId && onUpdateAsset) {
           const account = investmentAccounts.find(a => a.id === assetToDelete.investmentAccountId);
           if (account) {
@@ -362,7 +329,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
     }));
   };
 
-  // Add a state for stock details dialog
   const [selectedStock, setSelectedStock] = useState<Asset | null>(null);
   const [stockDetailsOpen, setStockDetailsOpen] = useState(false);
   
@@ -400,7 +366,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
           </DialogContent>
         </Dialog>
         
-        {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
@@ -634,7 +599,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
           </Card>
         )}
         
-        {/* Unassigned stocks */}
         {unassignedStocks.length > 0 && (
           <div className="mt-6">
             <h3 className="text-lg font-medium mb-3">Actions sans compte assigné</h3>
@@ -680,7 +644,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
         )}
       </div>
 
-      {/* Stock Details Dialog */}
       <Dialog open={stockDetailsOpen} onOpenChange={setStockDetailsOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -695,7 +658,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
                   <TableBody>
                     <TableRow>
                       <TableCell className="font-medium">Quantité totale</TableCell>
-                      <TableCell className="text-right">{selectedStock.quantity}</TableCell>
+                      <TableCell className="text-right">{selectedStock.quantity || '0'}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell className="font-medium">Prix d'achat</TableCell>
@@ -739,10 +702,9 @@ const StocksPage: React.FC<StocksPageProps> = ({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {/* Pour l'instant on n'a qu'une seule transaction par action */}
                       <TableRow>
                         <TableCell>{selectedStock.purchaseDate || "Non spécifiée"}</TableCell>
-                        <TableCell>{selectedStock.quantity}</TableCell>
+                        <TableCell>{selectedStock.quantity || '0'}</TableCell>
                         <TableCell>{formatCurrency(selectedStock.purchasePrice || 0)}</TableCell>
                         <TableCell className="text-right">{formatCurrency(selectedStock.value)}</TableCell>
                       </TableRow>
