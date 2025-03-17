@@ -17,7 +17,7 @@ interface StockFormFieldsProps {
   setPurchasePrice: (value: string) => void;
   setInvestmentAccountId: (value: string) => void;
   investmentAccounts: Asset[];
-  onAddAccount?: (account: Omit<Asset, 'id'>) => void;
+  onAddAccount?: (account: Omit<Asset, 'id'>) => Asset | null | undefined;
 }
 
 const StockFormFields: React.FC<StockFormFieldsProps> = ({ 
@@ -54,7 +54,7 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
       setNewAccountName('');
       
       // Si l'ID est disponible immédiatement (si onAddAccount retourne le compte créé)
-      if (addedAccount && 'id' in addedAccount) {
+      if (addedAccount && addedAccount.id) {
         setInvestmentAccountId(addedAccount.id);
         setAccountDialogOpen(false); // Fermer seulement si on a l'ID
       } else {

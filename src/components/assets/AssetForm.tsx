@@ -70,8 +70,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
 
   const handleAddAccount = (accountData: Omit<Asset, 'id'>) => {
     if (onAddAccount) {
-      const newAccount = onAddAccount(accountData);
-      return newAccount;
+      return onAddAccount(accountData);
     }
     return null;
   };
