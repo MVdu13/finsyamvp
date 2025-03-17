@@ -13,7 +13,7 @@ interface StockFormProps {
   accounts: Asset[];
   onCreateNewAccount: () => void;
   selectedAccountId?: string;
-  forceRefresh?: number; // Add a force refresh prop
+  forceRefresh?: number;
 }
 
 const StockForm: React.FC<StockFormProps> = ({
@@ -30,9 +30,6 @@ const StockForm: React.FC<StockFormProps> = ({
   const [ticker, setTicker] = useState(initialValues?.symbol || '');
   const [quantity, setQuantity] = useState(initialValues?.quantity ? initialValues.quantity.toString() : '');
   const [purchasePrice, setPurchasePrice] = useState(initialValues?.purchasePrice ? initialValues.purchasePrice.toString() : '');
-  const [performance, setPerformance] = useState(initialValues?.performance ? initialValues.performance.toString() : '0');
-  const [value, setValue] = useState(initialValues?.value ? initialValues.value.toString() : '0');
-  const [description, setDescription] = useState(initialValues?.description || '');
   const [accountId, setAccountId] = useState(initialValues?.parentAccountId || selectedAccountId || '');
 
   // Reset account ID when forceRefresh changes or when selected account ID changes
@@ -49,11 +46,11 @@ const StockForm: React.FC<StockFormProps> = ({
     console.log('StockForm - Current Account ID:', accountId);
   }, [accounts, selectedAccountId, accountId]);
 
-  // Update value when quantity or purchase price changes
+  // Calculate value when quantity or purchase price changes
   useEffect(() => {
     if (quantity && purchasePrice) {
       const calculatedValue = parseFloat(quantity) * parseFloat(purchasePrice);
-      setValue(calculatedValue.toString());
+      // Note: We removed the setValue state, but we'll still calculate this for the asset object
     }
   }, [quantity, purchasePrice]);
 
@@ -62,12 +59,15 @@ const StockForm: React.FC<StockFormProps> = ({
     
     const stockDescription = description || `${quantity} actions à ${purchasePrice}€`;
     
+    // Calculate the value from quantity and purchase price
+    const calculatedValue = parseFloat(quantity) * parseFloat(purchasePrice) || 0;
+    
     const asset = {
       name: name || ticker,
       description: stockDescription,
       type: 'stock' as const,
-      value: parseFloat(value) || 0,
-      performance: parseFloat(performance) || 0,
+      value: calculatedValue,
+      performance: 0, // Default to 0 since we removed the field
       quantity: parseFloat(quantity) || 0,
       purchasePrice: parseFloat(purchasePrice) || 0,
       symbol: ticker,
@@ -78,6 +78,8 @@ const StockForm: React.FC<StockFormProps> = ({
     
     onSubmit(asset);
   };
+
+  const [description, setDescription] = useState(initialValues?.description || '');
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -94,11 +96,17 @@ const StockForm: React.FC<StockFormProps> = ({
               <SelectValue placeholder="Sélectionner un compte" />
             </SelectTrigger>
             <SelectContent>
-              {accounts.map(account => (
-                <SelectItem key={account.id} value={account.id}>
-                  {account.name} ({account.accountType})
+              {accounts.length > 0 ? (
+                accounts.map(account => (
+                  <SelectItem key={account.id} value={account.id}>
+                    {account.name} ({account.accountType})
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-accounts" disabled>
+                  Aucun compte disponible
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
           <button
@@ -176,40 +184,6 @@ const StockForm: React.FC<StockFormProps> = ({
             min="0"
             step="0.01"
             required
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="value" className="block text-sm font-medium mb-1">
-            Valeur totale (€)
-          </Label>
-          <Input
-            id="value"
-            type="number"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            className="wealth-input w-full"
-            placeholder="Calculé automatiquement"
-            min="0"
-            step="0.01"
-            required
-            readOnly
-          />
-        </div>
-        <div>
-          <Label htmlFor="performance" className="block text-sm font-medium mb-1">
-            Performance (%)
-          </Label>
-          <Input
-            id="performance"
-            type="number"
-            value={performance}
-            onChange={(e) => setPerformance(e.target.value)}
-            className="wealth-input w-full"
-            placeholder="Ex: 5.2"
-            step="0.1"
           />
         </div>
       </div>
