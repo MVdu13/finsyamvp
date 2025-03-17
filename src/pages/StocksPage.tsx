@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Briefcase, TrendingUp, TrendingDown, Plus, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { Briefcase, TrendingUp, TrendingDown, Plus, Filter, ChevronDown, ChevronUp, InfoIcon } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
 import { Asset, AssetType } from '@/types/assets';
@@ -13,6 +12,15 @@ import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface StocksPageProps {
   assets: Asset[];
@@ -354,6 +362,15 @@ const StocksPage: React.FC<StocksPageProps> = ({
     }));
   };
 
+  // Add a state for stock details dialog
+  const [selectedStock, setSelectedStock] = useState<Asset | null>(null);
+  const [stockDetailsOpen, setStockDetailsOpen] = useState(false);
+  
+  const openStockDetails = (stock: Asset) => {
+    setSelectedStock(stock);
+    setStockDetailsOpen(true);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -545,7 +562,26 @@ const StocksPage: React.FC<StocksPageProps> = ({
                                     <span className="ml-1">{(stock.performance || 0) > 0 ? "+" : ""}{(stock.performance || 0).toFixed(1)}%</span>
                                   </div>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 items-center">
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            openStockDetails(stock);
+                                          }}
+                                          className="text-xs p-1.5 bg-muted hover:bg-muted/80 rounded-full"
+                                        >
+                                          <InfoIcon size={14} />
+                                        </button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Voir les détails</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                  
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -643,6 +679,99 @@ const StocksPage: React.FC<StocksPageProps> = ({
           </div>
         )}
       </div>
+
+      {/* Stock Details Dialog */}
+      <Dialog open={stockDetailsOpen} onOpenChange={setStockDetailsOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Détails de l'action</DialogTitle>
+          </DialogHeader>
+          {selectedStock && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold">{selectedStock.name}</h3>
+              
+              <div className="bg-muted/30 p-4 rounded-lg">
+                <Table>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">Quantité totale</TableCell>
+                      <TableCell className="text-right">{selectedStock.quantity}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Prix d'achat</TableCell>
+                      <TableCell className="text-right">{formatCurrency(selectedStock.purchasePrice || 0)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Valeur totale</TableCell>
+                      <TableCell className="text-right">{formatCurrency(selectedStock.value)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Performance</TableCell>
+                      <TableCell className={cn(
+                        "text-right",
+                        (selectedStock.performance || 0) >= 0 ? "text-green-600" : "text-red-600"
+                      )}>
+                        {(selectedStock.performance || 0) > 0 ? "+" : ""}{(selectedStock.performance || 0).toFixed(1)}%
+                      </TableCell>
+                    </TableRow>
+                    {selectedStock.investmentAccountId && (
+                      <TableRow>
+                        <TableCell className="font-medium">Compte</TableCell>
+                        <TableCell className="text-right">
+                          {investmentAccounts.find(acc => acc.id === selectedStock.investmentAccountId)?.name || ""}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              <div>
+                <h4 className="font-medium mb-2">Transactions</h4>
+                <div className="border rounded-md overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Quantité</TableHead>
+                        <TableHead>Prix</TableHead>
+                        <TableHead className="text-right">Montant</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {/* Pour l'instant on n'a qu'une seule transaction par action */}
+                      <TableRow>
+                        <TableCell>{selectedStock.purchaseDate || "Non spécifiée"}</TableCell>
+                        <TableCell>{selectedStock.quantity}</TableCell>
+                        <TableCell>{formatCurrency(selectedStock.purchasePrice || 0)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(selectedStock.value)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 mt-4">
+                <button 
+                  className="wealth-btn" 
+                  onClick={() => setStockDetailsOpen(false)}
+                >
+                  Fermer
+                </button>
+                <button 
+                  className="wealth-btn wealth-btn-primary" 
+                  onClick={() => {
+                    setStockDetailsOpen(false);
+                    handleEditAsset(selectedStock);
+                  }}
+                >
+                  Modifier
+                </button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
