@@ -10,7 +10,7 @@ import CryptoPage from './CryptoPage';
 import ProjectsPage from './ProjectsPage';
 import BankAccountsPage from './BankAccountsPage';
 import SavingsAccountsPage from './SavingsAccountsPage';
-import { Asset, Transaction } from '@/types/assets';
+import { Asset } from '@/types/assets';
 import { mockAssets } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
 
@@ -49,78 +49,11 @@ const Index = () => {
   const totalWealth = assets.reduce((sum, asset) => sum + asset.value, 0);
 
   const addAsset = (newAsset: Omit<Asset, 'id'>) => {
-    // Vérifier si c'est une action (stock) avec un ticker et un compte d'investissement
-    if (newAsset.type === 'stock' && newAsset.ticker && newAsset.investmentAccountId) {
-      // Chercher si une action avec le même ticker existe déjà dans le même compte
-      const existingAssetIndex = assets.findIndex(asset => 
-        asset.type === 'stock' && 
-        asset.ticker === newAsset.ticker && 
-        asset.investmentAccountId === newAsset.investmentAccountId
-      );
-
-      if (existingAssetIndex >= 0) {
-        // Si l'action existe déjà, mettre à jour la quantité et la valeur
-        const existingAsset = assets[existingAssetIndex];
-        const newQuantity = (existingAsset.quantity || 0) + (newAsset.quantity || 0);
-        
-        // Créer une nouvelle transaction
-        const newTransaction: Transaction = {
-          id: Date.now().toString(),
-          date: new Date().toISOString(),
-          quantity: newAsset.quantity || 0,
-          price: newAsset.purchasePrice || 0,
-          total: (newAsset.quantity || 0) * (newAsset.purchasePrice || 0)
-        };
-        
-        // Calculer le nouveau prix d'achat moyen pondéré
-        const totalShares = newQuantity;
-        const totalValue = (existingAsset.value || 0) + (newAsset.quantity || 0) * (newAsset.purchasePrice || 0);
-        const newAveragePrice = totalValue / totalShares;
-        
-        // Mettre à jour l'actif existant
-        const updatedAsset = {
-          ...existingAsset,
-          quantity: newQuantity,
-          value: totalValue,
-          purchasePrice: newAveragePrice,
-          transactions: [...(existingAsset.transactions || []), newTransaction]
-        };
-
-        // Mettre à jour la liste des actifs
-        setAssets(prevAssets => 
-          prevAssets.map(asset => 
-            asset.id === existingAsset.id ? updatedAsset : asset
-          )
-        );
-        
-        toast({
-          title: "Action ajoutée au stack",
-          description: `${newAsset.quantity} ${newAsset.name} ont été ajoutées à votre portefeuille existant.`
-        });
-        
-        return updatedAsset;
-      }
-    }
-    
-    // Si ce n'est pas une action ou si elle n'existe pas encore, créer un nouvel actif
     const asset = {
       ...newAsset,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
     };
-    
-    // Si c'est une action, ajouter une première transaction
-    if (asset.type === 'stock') {
-      const firstTransaction: Transaction = {
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-        quantity: asset.quantity || 0,
-        price: asset.purchasePrice || 0,
-        total: (asset.quantity || 0) * (asset.purchasePrice || 0)
-      };
-      
-      asset.transactions = [firstTransaction];
-    }
     
     setAssets(prevAssets => [...prevAssets, asset as Asset]);
     
