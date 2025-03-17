@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Asset, AssetType, InvestmentAccountType } from '@/types/assets';
 import { X, Banknote, Wallet, BookText, Home, FileCheck } from 'lucide-react';
@@ -45,7 +44,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [purchasePrice, setPurchasePrice] = useState('');
   
   // Investment account related fields
-  const [accountName, setAccountName] = useState('');
+  const [investmentAccountName, setInvestmentAccountName] = useState('');
   const [accountType, setAccountType] = useState<InvestmentAccountType>('cto');
   const [selectedAccountId, setSelectedAccountId] = useState(initialValues?.parentAccountId || '');
   const [showCreateAccount, setShowCreateAccount] = useState(false);
@@ -67,7 +66,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [cryptoPurchasePrice, setCryptoPurchasePrice] = useState('');
   
   const [bankName, setBankName] = useState('');
-  const [accountName, setAccountName] = useState('');
+  const [bankAccountName, setBankAccountName] = useState('');
   
   const [savingsBankName, setSavingsBankName] = useState('');
   const [savingsAccountName, setSavingsAccountName] = useState('');
@@ -137,9 +136,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
           if (bankDetails.length > 1) {
             const accountPart = bankDetails[1] || '';
             if (accountPart.includes('Compte: ')) {
-              setAccountName(accountPart.replace('Compte: ', ''));
+              setBankAccountName(accountPart.replace('Compte: ', ''));
             } else {
-              setAccountName(accountPart);
+              setBankAccountName(accountPart);
             }
           }
         }
@@ -159,13 +158,19 @@ const AssetForm: React.FC<AssetFormProps> = ({
           }
         });
       }
+      else if (initialValues.type === 'investment-account') {
+        setInvestmentAccountName(initialValues.name);
+        if (initialValues.accountType) {
+          setAccountType(initialValues.accountType);
+        }
+      }
     }
     
-    if (initialValues?.name && initialValues.type === 'bank-account' && !accountName) {
+    if (initialValues?.name && initialValues.type === 'bank-account' && !bankAccountName) {
       const parts = initialValues.name.split(' - ');
       if (parts.length > 1) {
         if (!bankName) setBankName(parts[0]);
-        setAccountName(parts[1]);
+        setBankAccountName(parts[1]);
       }
     }
     
@@ -200,8 +205,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
     let finalType = type;
     let finalParentAccountId = undefined;
     
-    if (type === 'bank-account' && bankName && accountName) {
-      finalName = `${bankName} - ${accountName}`;
+    if (type === 'bank-account' && bankName && bankAccountName) {
+      finalName = `${bankName} - ${bankAccountName}`;
     } else if (type === 'savings-account' && savingsBankName && savingsAccountName) {
       finalName = `${savingsBankName} - ${savingsAccountName}`;
     } else if (type === 'real-estate') {
@@ -209,8 +214,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
     } else if (type === 'stock') {
       finalName = ticker;
       finalParentAccountId = selectedAccountId || undefined;
-    } else if (type === 'investment-account' && accountName) {
-      finalName = accountName;
+    } else if (type === 'investment-account' && investmentAccountName) {
+      finalName = investmentAccountName;
     }
     
     if (!description) {
@@ -219,7 +224,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
       } else if (type === 'crypto') {
         finalDescription = `${cryptoQty} unités à ${cryptoPurchasePrice}€`;
       } else if (type === 'bank-account') {
-        finalDescription = `Banque: ${bankName} - Compte: ${accountName}`;
+        finalDescription = `Banque: ${bankName} - Compte: ${bankAccountName}`;
       } else if (type === 'savings-account') {
         finalDescription = `Banque: ${savingsBankName} - Livret: ${savingsAccountName} - Taux: ${interestRate}%`;
       } else if (type === 'real-estate') {
@@ -293,10 +298,11 @@ const AssetForm: React.FC<AssetFormProps> = ({
       setCryptoPrice('');
       setCryptoPurchasePrice('');
       setBankName('');
-      setAccountName('');
+      setBankAccountName('');
       setSavingsBankName('');
       setSavingsAccountName('');
       setInterestRate('');
+      setInvestmentAccountName('');
     }
   };
 
@@ -396,9 +402,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
                   </button>
                 ) : (
                   <InvestmentAccountFormFields
-                    accountName={accountName}
+                    accountName={investmentAccountName}
                     accountType={accountType}
-                    setAccountName={setAccountName}
+                    setAccountName={setInvestmentAccountName}
                     setAccountType={setAccountType}
                   />
                 )}
@@ -420,9 +426,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
         return (
           <>
             <InvestmentAccountFormFields
-              accountName={accountName}
+              accountName={investmentAccountName}
               accountType={accountType}
-              setAccountName={setAccountName}
+              setAccountName={setInvestmentAccountName}
               setAccountType={setAccountType}
             />
             <div>
@@ -505,9 +511,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
         return (
           <BankAccountFormFields
             bankName={bankName}
-            accountName={accountName}
+            accountName={bankAccountName}
             setBankName={setBankName}
-            setAccountName={setAccountName}
+            setAccountName={setBankAccountName}
           />
         );
       case 'savings-account':
