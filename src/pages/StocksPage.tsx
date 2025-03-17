@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Briefcase, TrendingUp, TrendingDown, Plus, ChevronDown, ChevronUp, Trash2, List } from 'lucide-react';
+import { Briefcase, TrendingUp, TrendingDown, Plus, ChevronDown, ChevronUp, Trash2, List, Info } from 'lucide-react';
 import { Asset, AssetType, Transaction } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,6 +85,9 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const avgPerformance = stocks.length > 0 
     ? stocks.reduce((sum, asset) => sum + (asset.performance || 0), 0) / stocks.length
     : 0;
+  
+  const estimatedAnnualFeePercentage = 0.5; // 0.5% annual fee estimation
+  const estimatedAnnualFees = totalValue * (estimatedAnnualFeePercentage / 100);
   
   useEffect(() => {
     console.info('StocksPage - Investment Accounts:', investmentAccounts);
@@ -437,48 +440,69 @@ const StocksPage: React.FC<StocksPageProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(totalValue)}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              Performance
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="text-muted-foreground">
+                      <Info size={14} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Performance moyenne de toutes vos actions sur l'année en cours</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className={cn(
-              "text-xs flex items-center mt-1",
+              "text-2xl font-bold",
               avgPerformance >= 0 ? "text-green-600" : "text-red-600"
             )}>
-              {avgPerformance >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-              <span>{avgPerformance > 0 ? "+" : ""}{avgPerformance.toFixed(1)}% cette année</span>
+              {avgPerformance > 0 ? "+" : ""}{avgPerformance.toFixed(1)}%
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Nombre d'Actions/ETF</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stocks.length}</div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Titres en portefeuille
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Performance</CardTitle>
-          </CardHeader>
-          <CardContent>
             <div className={cn(
-              "text-xl font-bold",
+              "text-xs",
               absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
             )}>
               {absoluteGrowth >= 0 ? (
-                <>Vous avez gagné {formatCurrency(Math.abs(absoluteGrowth))}</>
+                <>+{formatCurrency(Math.abs(absoluteGrowth))}</>
               ) : (
-                <>Vous avez perdu {formatCurrency(Math.abs(absoluteGrowth))}</>
+                <>-{formatCurrency(Math.abs(absoluteGrowth))}</>
               )}
             </div>
-            <div className={cn(
-              "text-xs mt-1",
-              absoluteGrowth >= 0 ? "text-green-600" : "text-red-600"
-            )}>
-              {getTimePeriodText()} ({avgPerformance > 0 ? "+" : ""}{avgPerformance.toFixed(1)}%)
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              Frais Estimés (Annuels)
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="text-muted-foreground">
+                      <Info size={14} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Estimation des frais annuels basée sur {estimatedAnnualFeePercentage}% de votre portefeuille</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(estimatedAnnualFees)}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {estimatedAnnualFeePercentage}% de frais de gestion estimés
             </div>
           </CardContent>
         </Card>
@@ -788,3 +812,4 @@ const StocksPage: React.FC<StocksPageProps> = ({
 };
 
 export default StocksPage;
+
