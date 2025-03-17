@@ -47,14 +47,6 @@ const StockForm: React.FC<StockFormProps> = ({
     console.log('StockForm - Current Account ID:', accountId);
   }, [accounts, selectedAccountId, accountId]);
 
-  // Calculate value when quantity or purchase price changes
-  useEffect(() => {
-    if (quantity && purchasePrice) {
-      const calculatedValue = parseFloat(quantity) * parseFloat(purchasePrice);
-      // Note: We removed the setValue state, but we'll still calculate this for the asset object
-    }
-  }, [quantity, purchasePrice]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -68,7 +60,6 @@ const StockForm: React.FC<StockFormProps> = ({
       description: stockDescription,
       type: 'stock' as const,
       value: calculatedValue,
-      performance: 0, // Default to 0 since we removed the field
       quantity: parseFloat(quantity) || 0,
       purchasePrice: parseFloat(purchasePrice) || 0,
       symbol: ticker,

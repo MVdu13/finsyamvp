@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Asset, InvestmentAccountType } from '@/types/assets';
+import { Asset, InvestmentAccountType, AssetType } from '@/types/assets';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -28,7 +28,7 @@ const InvestmentAccountForm: React.FC<InvestmentAccountFormProps> = ({
     const asset = {
       name,
       description: description || `Compte ${accountType}`,
-      type: 'investment-account' as const,
+      type: 'investment-account' as AssetType,
       accountType,
       value: 0,
       performance: 0,

@@ -195,13 +195,11 @@ const StocksPage: React.FC<StocksPageProps> = ({
   };
   
   const handleAddAccount = (newAccount: Omit<Asset, 'id'>) => {
-    const addedAccount = {
+    onAddAsset({
       ...newAccount,
-      id: Date.now().toString(),
-      type: 'investment-account',
-    };
+      type: 'investment-account' as AssetType
+    });
     
-    onAddAsset(addedAccount);
     setAccountDialogOpen(false);
     
     toast({
@@ -212,10 +210,19 @@ const StocksPage: React.FC<StocksPageProps> = ({
     setForceRefresh(prev => prev + 1);
 
     if (selectedAccountId === 'new') {
-      setSelectedAccountId(addedAccount.id);
       setTimeout(() => {
-        setStockDialogOpen(true);
-      }, 100);
+        const newlyCreatedAccount = assets
+          .filter(a => a.type === 'investment-account')
+          .sort((a, b) => {
+            if (!a.createdAt || !b.createdAt) return 0;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          })[0];
+        
+        if (newlyCreatedAccount) {
+          setSelectedAccountId(newlyCreatedAccount.id);
+          setStockDialogOpen(true);
+        }
+      }, 300);
     }
   };
   
