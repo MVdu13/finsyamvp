@@ -212,6 +212,10 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const lastValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1] || 0;
   const absoluteGrowth = lastValue - firstValue;
   
+  const percentageGrowth = firstValue > 0 
+    ? Math.round((absoluteGrowth / firstValue) * 100) 
+    : 0;
+  
   const getTimePeriodText = () => {
     switch (timeFrame) {
       case '1M': return 'sur le dernier mois';
@@ -476,7 +480,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
                 <>Vous avez gagné {formatCurrency(Math.abs(absoluteGrowth))}</>
               ) : (
                 <>Vous avez perdu {formatCurrency(Math.abs(absoluteGrowth))}</>
-              )}
+              )} sur les 12 derniers mois ({percentageGrowth > 0 ? "+" : ""}{percentageGrowth}%)
             </div>
           </CardContent>
         </Card>
@@ -812,4 +816,3 @@ const StocksPage: React.FC<StocksPageProps> = ({
 };
 
 export default StocksPage;
-
