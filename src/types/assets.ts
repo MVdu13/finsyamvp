@@ -1,4 +1,3 @@
-
 export type AssetType = 
   | 'stock' 
   | 'crypto' 
@@ -18,6 +17,7 @@ export interface Transaction {
   price: number;
   total: number;
   type: 'buy' | 'sell';
+  performance?: number;
 }
 
 export interface Asset {
@@ -56,7 +56,6 @@ export interface Asset {
   annualCharges?: number;
 }
 
-// Updated AssetAllocation type to include separate properties for bank accounts and savings accounts
 export interface AssetAllocation {
   stocks: number;
   realEstate: number;
@@ -68,7 +67,6 @@ export interface AssetAllocation {
   other: number;
 }
 
-// Add the AssetClass type that was previously defined
 export interface AssetClass {
   name: string;
   value: number;
@@ -76,7 +74,6 @@ export interface AssetClass {
   percentage: number;
 }
 
-// Add the NetWorthHistory type that was referenced but missing
 export interface NetWorthHistory {
   dates: string[];
   values: number[];

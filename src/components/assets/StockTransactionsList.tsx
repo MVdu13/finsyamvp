@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Transaction } from '@/types/assets';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, formatPercentage } from '@/lib/formatters';
 import { format } from 'date-fns';
 import { 
   Table,
@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface StockTransactionsListProps {
   transactions: Transaction[];
@@ -42,6 +42,7 @@ const StockTransactionsList: React.FC<StockTransactionsListProps> = ({ transacti
               <TableHead>Type</TableHead>
               <TableHead>Quantité</TableHead>
               <TableHead>Prix unitaire</TableHead>
+              <TableHead>Performance</TableHead>
               <TableHead className="text-right">Montant total</TableHead>
             </TableRow>
           </TableHeader>
@@ -68,6 +69,18 @@ const StockTransactionsList: React.FC<StockTransactionsListProps> = ({ transacti
                 </TableCell>
                 <TableCell>{transaction.quantity}</TableCell>
                 <TableCell>{formatCurrency(transaction.price)}</TableCell>
+                <TableCell>
+                  {transaction.performance !== undefined && (
+                    <div className={`flex items-center gap-1 ${transaction.performance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {transaction.performance >= 0 ? (
+                        <TrendingUp size={16} />
+                      ) : (
+                        <TrendingDown size={16} />
+                      )}
+                      <span>{formatPercentage(transaction.performance)}</span>
+                    </div>
+                  )}
+                </TableCell>
                 <TableCell className="text-right">{formatCurrency(transaction.total)}</TableCell>
               </TableRow>
             ))}
