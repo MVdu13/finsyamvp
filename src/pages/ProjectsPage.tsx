@@ -13,6 +13,7 @@ import ProjectDetails from '@/components/projects/ProjectDetails';
 import SavingsCapacity from '@/components/projects/SavingsCapacity';
 import ProjectDeleteDialog from '@/components/projects/ProjectDeleteDialog';
 import SecurityCushion from '@/components/budget/SecurityCushion';
+import SecurityCushionForm from '@/components/budget/SecurityCushionForm';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/formatters';
 
