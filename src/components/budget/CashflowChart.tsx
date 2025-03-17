@@ -187,8 +187,8 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
       <CardHeader>
         <CardTitle className="text-lg font-medium">Flux de trésorerie</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="h-[400px] w-full overflow-hidden">
+      <CardContent className="p-2">
+        <div className="h-[450px] w-full overflow-visible">
           <ChartContainer config={chartConfig}>
             <ResponsiveContainer width="100%" height="100%">
               <Sankey
@@ -202,7 +202,7 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
                     radius={[2, 2, 2, 2]}
                   />
                 }
-                margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                margin={{ top: 15, right: 15, bottom: 15, left: 15 }}
               >
                 <Tooltip
                   content={
