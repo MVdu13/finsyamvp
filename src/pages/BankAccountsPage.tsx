@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Wallet, TrendingUp, TrendingDown, Plus, AlertCircle } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -7,6 +6,7 @@ import { Asset, AssetType } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LineChartComponent from '@/components/charts/LineChart';
+import DonutChart from '@/components/charts/DonutChart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatCurrency, formatPercentage } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
@@ -216,6 +216,40 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
     }
   };
 
+  // Generate distribution chart data
+  const generateDistributionChartData = () => {
+    if (assets.length === 0) {
+      return {
+        labels: ['Aucun compte'],
+        values: [1],
+        colors: ['#e5e7eb'], // Light gray for empty state
+      };
+    }
+
+    // Sort assets by value (highest first) to make chart more readable
+    const sortedAssets = [...assets].sort((a, b) => b.value - a.value);
+    
+    // For donut chart
+    const colors = [
+      '#4ade80', // green
+      '#60a5fa', // blue
+      '#c084fc', // purple
+      '#f97316', // orange
+      '#facc15', // yellow
+      '#38bdf8', // light blue
+      '#fb7185', // pink
+      '#94a3b8', // gray
+    ];
+
+    return {
+      labels: sortedAssets.map(asset => asset.name),
+      values: sortedAssets.map(asset => asset.value),
+      colors: sortedAssets.map((_, index) => colors[index % colors.length]),
+    };
+  };
+
+  const distributionChartData = generateDistributionChartData();
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -329,30 +363,46 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
         </Card>
       </div>
 
-      <Card className="col-span-3">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <div>
-            <CardTitle>Évolution du solde</CardTitle>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle>Évolution du solde</CardTitle>
+              <CardDescription>
+                {timeFrame === '1Y' ? 'Sur les 12 derniers mois' : 
+                 timeFrame === '1M' ? 'Sur le dernier mois' : 
+                 timeFrame === '3M' ? 'Sur les 3 derniers mois' : 
+                 timeFrame === '6M' ? 'Sur les 6 derniers mois' : 
+                 timeFrame === '5Y' ? 'Sur les 5 dernières années' : 
+                 'Historique complet'}
+              </CardDescription>
+            </div>
+            <TimeFrameSelector 
+              selectedTimeFrame={timeFrame} 
+              onTimeFrameChange={setTimeFrame} 
+            />
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <LineChartComponent data={chartData} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Répartition des comptes</CardTitle>
             <CardDescription>
-              {timeFrame === '1Y' ? 'Sur les 12 derniers mois' : 
-               timeFrame === '1M' ? 'Sur le dernier mois' : 
-               timeFrame === '3M' ? 'Sur les 3 derniers mois' : 
-               timeFrame === '6M' ? 'Sur les 6 derniers mois' : 
-               timeFrame === '5Y' ? 'Sur les 5 dernières années' : 
-               'Historique complet'}
+              Distribution par compte bancaire
             </CardDescription>
-          </div>
-          <TimeFrameSelector 
-            selectedTimeFrame={timeFrame} 
-            onTimeFrameChange={setTimeFrame} 
-          />
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <LineChartComponent data={chartData} />
-          </div>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] flex items-center justify-center">
+              <DonutChart data={distributionChartData} height={260} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div>
         <h2 className="text-xl font-semibold mb-4">Vos Comptes Bancaires</h2>
