@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
-import { Asset, AssetType, InvestmentAccountType } from '@/types/assets';
-import { X, Banknote, Wallet, BookText, Home, FileCheck } from 'lucide-react';
+import { Asset, AssetType } from '@/types/assets';
+import { X, Banknote, Wallet, BookText, Home } from 'lucide-react';
 import { CryptoInfo } from '@/services/cryptoService';
 import TypeSelector from './form/TypeSelector';
 import CommonFormFields from './form/CommonFormFields';
@@ -9,10 +10,8 @@ import CryptoFormFields from './form/CryptoFormFields';
 import RealEstateFormFields from './form/RealEstateFormFields';
 import BankAccountFormFields from './form/BankAccountFormFields';
 import SavingsAccountFormFields from './form/SavingsAccountFormFields';
-import InvestmentAccountFormFields from './form/InvestmentAccountFormFields';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AssetFormProps {
   onSubmit: (asset: Omit<Asset, 'id'>) => void;
@@ -21,7 +20,6 @@ interface AssetFormProps {
   showTypeSelector?: boolean;
   initialValues?: Asset;
   isEditing?: boolean;
-  investmentAccounts?: Asset[];
 }
 
 const AssetForm: React.FC<AssetFormProps> = ({ 
@@ -30,8 +28,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
   defaultType = 'stock',
   showTypeSelector = true,
   initialValues,
-  isEditing = false,
-  investmentAccounts = []
+  isEditing = false
 }) => {
   const [name, setName] = useState(initialValues?.name || '');
   const [description, setDescription] = useState(initialValues?.description || '');
@@ -42,12 +39,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [ticker, setTicker] = useState('');
   const [shares, setShares] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
-  
-  // Investment account related fields
-  const [investmentAccountName, setInvestmentAccountName] = useState('');
-  const [accountType, setAccountType] = useState<InvestmentAccountType>('cto');
-  const [selectedAccountId, setSelectedAccountId] = useState(initialValues?.parentAccountId || '');
-  const [showCreateAccount, setShowCreateAccount] = useState(false);
   
   // Real Estate Fields
   const [address, setAddress] = useState('');
@@ -66,7 +57,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [cryptoPurchasePrice, setCryptoPurchasePrice] = useState('');
   
   const [bankName, setBankName] = useState('');
-  const [bankAccountName, setBankAccountName] = useState('');
+  const [accountName, setAccountName] = useState('');
   
   const [savingsBankName, setSavingsBankName] = useState('');
   const [savingsAccountName, setSavingsAccountName] = useState('');
@@ -136,9 +127,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
           if (bankDetails.length > 1) {
             const accountPart = bankDetails[1] || '';
             if (accountPart.includes('Compte: ')) {
-              setBankAccountName(accountPart.replace('Compte: ', ''));
+              setAccountName(accountPart.replace('Compte: ', ''));
             } else {
-              setBankAccountName(accountPart);
+              setAccountName(accountPart);
             }
           }
         }
@@ -158,19 +149,13 @@ const AssetForm: React.FC<AssetFormProps> = ({
           }
         });
       }
-      else if (initialValues.type === 'investment-account') {
-        setInvestmentAccountName(initialValues.name);
-        if (initialValues.accountType) {
-          setAccountType(initialValues.accountType);
-        }
-      }
     }
     
-    if (initialValues?.name && initialValues.type === 'bank-account' && !bankAccountName) {
+    if (initialValues?.name && initialValues.type === 'bank-account' && !accountName) {
       const parts = initialValues.name.split(' - ');
       if (parts.length > 1) {
         if (!bankName) setBankName(parts[0]);
-        setBankAccountName(parts[1]);
+        setAccountName(parts[1]);
       }
     }
     
@@ -183,12 +168,14 @@ const AssetForm: React.FC<AssetFormProps> = ({
     }
   }, [initialValues]);
 
+  // When property type or current value changes, update the main value field
   useEffect(() => {
     if (type === 'real-estate' && currentValue) {
       setValue(currentValue);
     }
   }, [type, currentValue]);
 
+  // Calculate value based on quantity and price for stocks and crypto
   useEffect(() => {
     if (type === 'stock' && shares && purchasePrice) {
       setValue((parseFloat(shares) * parseFloat(purchasePrice)).toString());
@@ -199,30 +186,24 @@ const AssetForm: React.FC<AssetFormProps> = ({
     e.preventDefault();
     
     let finalName = name;
-    let finalDescription = description;
-    let finalType = type;
-    let finalParentAccountId = undefined;
-    
-    if (type === 'bank-account' && bankName && bankAccountName) {
-      finalName = `${bankName} - ${bankAccountName}`;
+    if (type === 'bank-account' && bankName && accountName) {
+      finalName = `${bankName} - ${accountName}`;
     } else if (type === 'savings-account' && savingsBankName && savingsAccountName) {
       finalName = `${savingsBankName} - ${savingsAccountName}`;
     } else if (type === 'real-estate') {
       finalName = address;
-    } else if (type === 'stock') {
+    } else if (type === 'stock' && ticker) {
       finalName = ticker;
-      finalParentAccountId = selectedAccountId || undefined;
-    } else if (type === 'investment-account' && investmentAccountName) {
-      finalName = investmentAccountName;
     }
     
+    let finalDescription = description;
     if (!description) {
       if (type === 'stock') {
         finalDescription = `${shares} actions à ${purchasePrice}€`;
       } else if (type === 'crypto') {
         finalDescription = `${cryptoQty} unités à ${cryptoPurchasePrice}€`;
       } else if (type === 'bank-account') {
-        finalDescription = `Banque: ${bankName} - Compte: ${bankAccountName}`;
+        finalDescription = `Banque: ${bankName} - Compte: ${accountName}`;
       } else if (type === 'savings-account') {
         finalDescription = `Banque: ${savingsBankName} - Livret: ${savingsAccountName} - Taux: ${interestRate}%`;
       } else if (type === 'real-estate') {
@@ -241,14 +222,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
         }
         
         finalDescription = descParts.join(' | ');
-      } else if (type === 'investment-account') {
-        const accountTypeLabels = {
-          'cto': 'Compte-Titres Ordinaire',
-          'pea': 'Plan d\'Épargne en Actions',
-          'per': 'Plan d\'Épargne Retraite',
-          'assurance-vie': 'Assurance Vie'
-        };
-        finalDescription = `Type: ${accountTypeLabels[accountType]}`;
       }
     }
     
@@ -262,11 +235,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
     const asset = {
       name: finalName,
       description: finalDescription,
-      type: finalType,
+      type,
       value: parseFloat(value),
       performance: parseFloat(finalPerformance || '0'),
-      ...(finalParentAccountId && { parentAccountId: finalParentAccountId }),
-      ...(type === 'investment-account' && { accountType }),
       ...(initialValues?.createdAt && { createdAt: initialValues.createdAt }),
       updatedAt: new Date().toISOString()
     };
@@ -296,11 +267,10 @@ const AssetForm: React.FC<AssetFormProps> = ({
       setCryptoPrice('');
       setCryptoPurchasePrice('');
       setBankName('');
-      setBankAccountName('');
+      setAccountName('');
       setSavingsBankName('');
       setSavingsAccountName('');
       setInterestRate('');
-      setInvestmentAccountName('');
     }
   };
 
@@ -315,7 +285,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
       case 'commodities': return `${action} des matières premières`;
       case 'bank-account': return `${action} un compte bancaire`;
       case 'savings-account': return `${action} un livret d'épargne`;
-      case 'investment-account': return `${action} un compte-titres`;
       default: return `${action} un nouvel actif`;
     }
   };
@@ -325,7 +294,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
       case 'bank-account': return <Wallet size={24} className="text-[#FA5003]" />;
       case 'savings-account': return <BookText size={24} className="text-[#FA5003]" />;
       case 'real-estate': return <Home size={24} className="text-[#FA5003]" />;
-      case 'investment-account': return <FileCheck size={24} className="text-[#FA5003]" />;
       default: return null;
     }
   };
@@ -354,113 +322,14 @@ const AssetForm: React.FC<AssetFormProps> = ({
     switch (type) {
       case 'stock':
         return (
-          <>
-            {investmentAccounts.length > 0 ? (
-              <div className="mb-4">
-                <Label htmlFor="accountSelect" className="block text-sm font-medium mb-1">
-                  Compte d'investissement
-                </Label>
-                <div className="flex gap-2">
-                  <Select 
-                    value={selectedAccountId} 
-                    onValueChange={setSelectedAccountId}
-                  >
-                    <SelectTrigger id="accountSelect" className="w-full">
-                      <SelectValue placeholder="Sélectionner un compte" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {investmentAccounts.map(account => (
-                        <SelectItem key={account.id} value={account.id}>
-                          {account.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <button 
-                    type="button"
-                    className="wealth-btn wealth-btn-secondary"
-                    onClick={() => setShowCreateAccount(true)}
-                  >
-                    Nouveau
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="mb-4">
-                <Label className="block text-sm font-medium mb-1">
-                  Compte d'investissement
-                </Label>
-                {!showCreateAccount ? (
-                  <button 
-                    type="button"
-                    className="wealth-btn wealth-btn-secondary w-full"
-                    onClick={() => setShowCreateAccount(true)}
-                  >
-                    Créer un compte d'investissement
-                  </button>
-                ) : (
-                  <InvestmentAccountFormFields
-                    accountName={investmentAccountName}
-                    accountType={accountType}
-                    setAccountName={setInvestmentAccountName}
-                    setAccountType={setAccountType}
-                  />
-                )}
-              </div>
-            )}
-            {!showCreateAccount && (
-              <StockFormFields
-                ticker={ticker}
-                shares={shares}
-                purchasePrice={purchasePrice}
-                setTicker={setTicker}
-                setShares={setShares}
-                setPurchasePrice={setPurchasePrice}
-              />
-            )}
-          </>
-        );
-      case 'investment-account':
-        return (
-          <>
-            <InvestmentAccountFormFields
-              accountName={investmentAccountName}
-              accountType={accountType}
-              setAccountName={setInvestmentAccountName}
-              setAccountType={setAccountType}
-            />
-            <div>
-              <Label htmlFor="value" className="block text-sm font-medium mb-1">
-                Valeur totale (€)
-              </Label>
-              <Input
-                id="value"
-                type="number"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                className="wealth-input w-full"
-                placeholder="Ex: 10000"
-                min="0"
-                step="0.01"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="performance" className="block text-sm font-medium mb-1">
-                Performance annuelle (%)
-              </Label>
-              <Input
-                id="performance"
-                type="number"
-                value={performance}
-                onChange={(e) => setPerformance(e.target.value)}
-                className="wealth-input w-full"
-                placeholder="Ex: 5"
-                min="-100"
-                step="0.01"
-              />
-            </div>
-          </>
+          <StockFormFields
+            ticker={ticker}
+            shares={shares}
+            purchasePrice={purchasePrice}
+            setTicker={setTicker}
+            setShares={setShares}
+            setPurchasePrice={setPurchasePrice}
+          />
         );
       case 'crypto':
         return (
@@ -509,9 +378,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
         return (
           <BankAccountFormFields
             bankName={bankName}
-            accountName={bankAccountName}
+            accountName={accountName}
             setBankName={setBankName}
-            setAccountName={setBankAccountName}
+            setAccountName={setAccountName}
           />
         );
       case 'savings-account':
@@ -550,8 +419,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
           <TypeSelector type={type} setType={setType} />
         )}
         
-        {type !== 'bank-account' && type !== 'savings-account' && type !== 'real-estate' && 
-         type !== 'stock' && type !== 'crypto' && type !== 'investment-account' && (
+        {type !== 'bank-account' && type !== 'savings-account' && type !== 'real-estate' && type !== 'stock' && type !== 'crypto' && (
           <CommonFormFields
             name={name}
             value={value}

@@ -1,18 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Briefcase, TrendingUp, TrendingDown, Plus, Filter, FileCheck } from 'lucide-react';
+import { Briefcase, TrendingUp, TrendingDown, Plus, Filter } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
-import InvestmentAccountsList from '@/components/assets/InvestmentAccountsList';
 import { Asset, AssetType } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LineChartComponent from '@/components/charts/LineChart';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
-import StockForm from '@/components/assets/form/StockForm';
-import InvestmentAccountForm from '@/components/assets/form/InvestmentAccountForm';
 
 interface StocksPageProps {
   assets: Asset[];
@@ -25,34 +22,21 @@ const StocksPage: React.FC<StocksPageProps> = ({
   assets, 
   onAddAsset,
   onDeleteAsset,
-  onUpdateAsset 
+  onUpdateAsset
 }) => {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
-  const [newlyCreatedAccountId, setNewlyCreatedAccountId] = useState<string | null>(null);
-  const [forceRefresh, setForceRefresh] = useState(0);
-  
-  // Filter assets by type
-  const stocks = assets.filter(asset => asset.type === 'stock');
-  const investmentAccounts = assets.filter(asset => asset.type === 'investment-account');
-  
-  // Add a console log to debug the accounts
-  useEffect(() => {
-    console.log('Investment accounts:', investmentAccounts);
-    console.log('Stocks:', stocks);
-  }, [investmentAccounts, stocks, forceRefresh]);
   
   // Calculate metrics
-  const totalValue = stocks.reduce((sum, asset) => sum + asset.value, 0);
-  const avgPerformance = stocks.length > 0 
-    ? stocks.reduce((sum, asset) => sum + (asset.performance || 0), 0) / stocks.length
+  const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
+  const avgPerformance = assets.length > 0 
+    ? assets.reduce((sum, asset) => sum + asset.performance, 0) / assets.length
     : 0;
   
-  // Generate chart data for the stocks value
+  // Générer un historique cohérent basé sur la valeur totale actuelle et la timeframe
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
     
@@ -216,43 +200,6 @@ const StocksPage: React.FC<StocksPageProps> = ({
       title: "Action ajoutée",
       description: `${newStock.name} a été ajouté à votre portefeuille`,
     });
-    
-    // Force refresh to update the lists
-    setForceRefresh(prev => prev + 1);
-  };
-  
-  const handleAddAccount = (newAccount: Omit<Asset, 'id'>) => {
-    console.log("Adding account:", newAccount);
-    
-    // Make sure we're adding an investment account asset with default values
-    const accountAsset = {
-      ...newAccount,
-      type: 'investment-account' as AssetType,
-      value: 0,  // Default value
-      performance: 0  // Default performance
-    };
-    
-    // Call the parent's onAddAsset function
-    onAddAsset(accountAsset);
-    setAccountDialogOpen(false);
-    
-    // If we were adding a stock and needed to create an account first,
-    // reopen the stock dialog
-    if (newlyCreatedAccountId !== null) {
-      setTimeout(() => {
-        setDialogOpen(true);
-        setNewlyCreatedAccountId(null);
-      }, 300);
-    }
-    
-    // Force refresh to update the lists
-    setForceRefresh(prev => prev + 1);
-    
-    // Show success toast
-    toast({
-      title: "Compte d'investissement ajouté",
-      description: `${newAccount.name} a été ajouté à votre portefeuille`,
-    });
   };
   
   const handleEditAsset = (asset: Asset) => {
@@ -264,8 +211,8 @@ const StocksPage: React.FC<StocksPageProps> = ({
     if (editingAsset && onUpdateAsset) {
       onUpdateAsset(editingAsset.id, updatedAsset);
       toast({
-        title: editingAsset.type === 'stock' ? "Action modifiée" : "Compte modifié",
-        description: `${updatedAsset.name} a été mis à jour`,
+        title: "Action modifiée",
+        description: `${updatedAsset.name} a été mise à jour`,
       });
       setEditDialogOpen(false);
       setEditingAsset(null);
@@ -274,27 +221,12 @@ const StocksPage: React.FC<StocksPageProps> = ({
 
   const handleDeleteAsset = (id: string) => {
     if (onDeleteAsset) {
-      const assetToDelete = assets.find(asset => asset.id === id);
       onDeleteAsset(id);
       toast({
-        title: assetToDelete?.type === 'stock' ? "Action supprimée" : "Compte supprimé",
-        description: assetToDelete?.type === 'stock' 
-          ? "L'action a été supprimée de votre portefeuille"
-          : "Le compte a été supprimé de votre portefeuille",
+        title: "Action supprimée",
+        description: "L'action a été supprimée de votre portefeuille",
       });
     }
-  };
-
-  const handleOpenAddAccount = () => {
-    setEditingAsset(null);
-    setDialogOpen(false); // Close the stock dialog if it's open
-    setAccountDialogOpen(true);
-    setNewlyCreatedAccountId('pending'); // Mark that we're creating an account for a stock
-  };
-
-  const handleOpenAddStock = () => {
-    setEditingAsset(null);
-    setDialogOpen(true);
   };
 
   return (
@@ -304,61 +236,31 @@ const StocksPage: React.FC<StocksPageProps> = ({
           <h1 className="text-2xl font-bold tracking-tight">Portefeuille d'Actions et ETF</h1>
           <p className="text-muted-foreground">Gérez vos actions et ETF et suivez leur performance</p>
         </div>
-        <div className="flex gap-2">
-          <Dialog open={accountDialogOpen} onOpenChange={setAccountDialogOpen}>
-            <DialogTrigger asChild>
-              <button className="wealth-btn wealth-btn-secondary flex items-center gap-2">
-                <FileCheck size={16} />
-                <span>Ajouter un compte</span>
-              </button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Ajouter un compte d'investissement</DialogTitle>
-                <DialogDescription>
-                  Créez un nouveau compte pour y stocker vos actions et ETF.
-                </DialogDescription>
-              </DialogHeader>
-              <InvestmentAccountForm 
-                onSubmit={handleAddAccount} 
-                onCancel={() => setAccountDialogOpen(false)} 
-              />
-            </DialogContent>
-          </Dialog>
-          
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <button className="wealth-btn wealth-btn-primary flex items-center gap-2">
-                <Plus size={16} />
-                <span>Ajouter une action/ETF</span>
-              </button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Ajouter une action/ETF</DialogTitle>
-                <DialogDescription>
-                  Ajoutez une action ou un ETF à votre portefeuille.
-                </DialogDescription>
-              </DialogHeader>
-              <StockForm 
-                onSubmit={handleAddStock} 
-                onCancel={() => setDialogOpen(false)}
-                investmentAccounts={investmentAccounts}
-                onNeedAccount={handleOpenAddAccount}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <button className="wealth-btn wealth-btn-primary flex items-center gap-2">
+              <Plus size={16} />
+              <span>Ajouter une action/ETF</span>
+            </button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Ajouter une action/ETF</DialogTitle>
+            </DialogHeader>
+            <AssetForm 
+              onSubmit={handleAddStock} 
+              onCancel={() => setDialogOpen(false)} 
+              defaultType="stock" 
+              showTypeSelector={false}
+            />
+          </DialogContent>
+        </Dialog>
         
         {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>
-                {editingAsset?.type === 'investment-account' 
-                  ? 'Modifier un compte d\'investissement' 
-                  : 'Modifier une action/ETF'}
-              </DialogTitle>
+              <DialogTitle>Modifier une action/ETF</DialogTitle>
             </DialogHeader>
             {editingAsset && (
               <AssetForm 
@@ -367,11 +269,10 @@ const StocksPage: React.FC<StocksPageProps> = ({
                   setEditDialogOpen(false);
                   setEditingAsset(null);
                 }}
-                defaultType={editingAsset.type}
+                defaultType="stock"
                 initialValues={editingAsset}
                 isEditing={true}
                 showTypeSelector={false}
-                investmentAccounts={investmentAccounts}
               />
             )}
           </DialogContent>
@@ -400,7 +301,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
             <CardTitle className="text-sm font-medium text-muted-foreground">Nombre d'Actions/ETF</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stocks.length}</div>
+            <div className="text-2xl font-bold">{assets.length}</div>
             <div className="text-xs text-muted-foreground mt-1">
               Titres en portefeuille
             </div>
@@ -458,15 +359,27 @@ const StocksPage: React.FC<StocksPageProps> = ({
       </Card>
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">Comptes d'investissement & Actions</h2>
-        <InvestmentAccountsList 
-          accounts={investmentAccounts}
-          stocks={stocks}
-          onAddStock={handleOpenAddStock}
-          onAddAccount={handleOpenAddAccount}
-          onEditAsset={handleEditAsset}
-          onDeleteAsset={handleDeleteAsset}
-        />
+        <h2 className="text-xl font-semibold mb-4">Vos Actions et ETF</h2>
+        {assets.length > 0 ? (
+          <AssetsList 
+            assets={assets} 
+            title="Actions et ETF" 
+            onEdit={handleEditAsset}
+            onDelete={handleDeleteAsset}
+          />
+        ) : (
+          <div className="text-center py-12 bg-muted rounded-lg">
+            <p className="text-lg text-muted-foreground mb-4">
+              Aucune action ou ETF dans votre portefeuille
+            </p>
+            <button 
+              className="wealth-btn wealth-btn-primary"
+              onClick={() => setDialogOpen(true)}
+            >
+              Ajouter votre première action/ETF
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

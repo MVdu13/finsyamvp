@@ -1,3 +1,4 @@
+
 export type AssetType = 
   | 'stock' 
   | 'crypto' 
@@ -7,14 +8,7 @@ export type AssetType =
   | 'commodities' 
   | 'other'
   | 'bank-account'
-  | 'savings-account'
-  | 'investment-account';
-
-export type InvestmentAccountType =
-  | 'cto'
-  | 'pea'
-  | 'per'
-  | 'assurance-vie';
+  | 'savings-account';
 
 export interface Asset {
   id: string;
@@ -34,10 +28,6 @@ export interface Asset {
   createdAt?: string;
   updatedAt?: string;
   
-  // Investment account specific properties
-  accountType?: InvestmentAccountType;
-  parentAccountId?: string;
-  
   // Real estate specific properties
   propertyType?: 'apartment' | 'house' | 'building' | 'commercial' | 'land' | 'other';
   usageType?: 'main' | 'secondary' | 'rental';
@@ -49,6 +39,7 @@ export interface Asset {
   annualCharges?: number;
 }
 
+// Updated AssetAllocation type to include separate properties for bank accounts and savings accounts
 export interface AssetAllocation {
   stocks: number;
   realEstate: number;
@@ -60,6 +51,7 @@ export interface AssetAllocation {
   other: number;
 }
 
+// Add the AssetClass type that was previously defined
 export interface AssetClass {
   name: string;
   value: number;
@@ -67,6 +59,7 @@ export interface AssetClass {
   percentage: number;
 }
 
+// Add the NetWorthHistory type that was referenced but missing
 export interface NetWorthHistory {
   dates: string[];
   values: number[];
