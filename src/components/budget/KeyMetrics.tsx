@@ -2,13 +2,12 @@
 import React from 'react';
 import { formatCurrency } from '@/lib/formatters';
 import { Card, CardContent } from '@/components/ui/card';
-import { EuroIcon, ArrowDownIcon, ArrowUpIcon, PiggyBankIcon, TrendingUpIcon } from 'lucide-react';
+import { ArrowDownIcon, ArrowUpIcon, PiggyBankIcon, TrendingUpIcon, Target } from 'lucide-react';
 
 interface KeyMetricsProps {
   totalIncome: number;
   totalExpenses: number;
   savingsAmount: number;
-  savingsRate: number;
   monthlyProjectsContribution: number;
 }
 
@@ -16,13 +15,12 @@ const KeyMetrics: React.FC<KeyMetricsProps> = ({
   totalIncome,
   totalExpenses,
   savingsAmount,
-  savingsRate,
   monthlyProjectsContribution
 }) => {
   const investmentCapacity = Math.max(0, savingsAmount - monthlyProjectsContribution);
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <Card className="bg-white">
         <CardContent className="flex items-center p-6">
           <div className="rounded-full p-3 bg-green-100 mr-4">
@@ -61,24 +59,24 @@ const KeyMetrics: React.FC<KeyMetricsProps> = ({
       
       <Card className="bg-white">
         <CardContent className="flex items-center p-6">
-          <div className="rounded-full p-3 bg-amber-100 mr-4">
-            <TrendingUpIcon className="h-6 w-6 text-amber-600" />
+          <div className="rounded-full p-3 bg-indigo-100 mr-4">
+            <Target className="h-6 w-6 text-indigo-600" />
           </div>
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Capacité d'investissement</p>
-            <h3 className="text-2xl font-bold">{formatCurrency(investmentCapacity)}</h3>
+            <p className="text-sm font-medium text-muted-foreground">Allocation projets</p>
+            <h3 className="text-2xl font-bold">{formatCurrency(monthlyProjectsContribution)}</h3>
           </div>
         </CardContent>
       </Card>
       
       <Card className="bg-white">
         <CardContent className="flex items-center p-6">
-          <div className="rounded-full p-3 bg-purple-100 mr-4">
-            <EuroIcon className="h-6 w-6 text-purple-600" />
+          <div className="rounded-full p-3 bg-amber-100 mr-4">
+            <TrendingUpIcon className="h-6 w-6 text-amber-600" />
           </div>
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Taux d'épargne</p>
-            <h3 className="text-2xl font-bold">{savingsRate}%</h3>
+            <p className="text-sm font-medium text-muted-foreground">Capacité d'investissement</p>
+            <h3 className="text-2xl font-bold">{formatCurrency(investmentCapacity)}</h3>
           </div>
         </CardContent>
       </Card>

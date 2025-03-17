@@ -230,7 +230,6 @@ const BudgetPage = () => {
         totalIncome={budget.totalIncome}
         totalExpenses={budget.totalExpenses}
         savingsAmount={availableAfterExpenses}
-        savingsRate={savingsRate}
         monthlyProjectsContribution={monthlyProjectsContribution}
       />
       
