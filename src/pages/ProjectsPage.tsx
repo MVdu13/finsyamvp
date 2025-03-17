@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { FinancialGoal, ProjectPlan } from '@/types/goals';
-import { mockBudget, mockGoals } from '@/lib/mockData';
-import { Download, Plus } from 'lucide-react';
+import { mockBudget, mockAssets, mockGoals } from '@/lib/mockData';
+import { Download, Plus, ShieldCheck, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ProjectForm from '@/components/projects/ProjectForm';
 import { toast } from '@/hooks/use-toast';
@@ -12,6 +12,9 @@ import ProjectsList from '@/components/projects/ProjectsList';
 import ProjectDetails from '@/components/projects/ProjectDetails';
 import SavingsCapacity from '@/components/projects/SavingsCapacity';
 import ProjectDeleteDialog from '@/components/projects/ProjectDeleteDialog';
+import SecurityCushion from '@/components/budget/SecurityCushion';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { formatCurrency } from '@/lib/formatters';
 
 interface ProjectsPageProps {
   onAddAsset?: (newAsset: Omit<Asset, 'id'>) => void;
@@ -22,12 +25,31 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
   const [selectedProject, setSelectedProject] = useState<FinancialGoal | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [assets, setAssets] = useState<Asset[]>(mockAssets);
+  const [riskProfile, setRiskProfile] = useState<'high' | 'medium' | 'low'>('medium');
+  const [cushionFormOpen, setCushionFormOpen] = useState(false);
   
   // Monthly savings from budget
   const monthlySavings = mockBudget.totalIncome - mockBudget.totalExpenses;
   
   // Dialog states
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Calculate total from savings accounts
+  const calculateSavingsTotal = () => {
+    return assets
+      .filter(asset => asset.type === 'savings-account')
+      .reduce((sum, asset) => sum + asset.value, 0);
+  };
+
+  const savingsAccountsTotal = calculateSavingsTotal();
+  
+  // Calculate security cushion target
+  const monthlyExpenses = mockBudget.totalExpenses;
+  const recommendedMonths = 
+    riskProfile === 'high' ? 3 :
+    riskProfile === 'medium' ? 6 : 9;
+  const targetAmount = monthlyExpenses * recommendedMonths;
 
   // Load projects from localStorage on initial render
   useEffect(() => {
@@ -37,6 +59,32 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
     } else {
       setProjects([...mockGoals]);
     }
+    
+    const loadAssetsFromStorage = () => {
+      const storedAssets = localStorage.getItem('financial-assets');
+      if (storedAssets) {
+        setAssets(JSON.parse(storedAssets));
+      }
+    };
+    
+    loadAssetsFromStorage();
+    
+    const savedRiskProfile = localStorage.getItem('security-cushion-risk-profile');
+    if (savedRiskProfile && (savedRiskProfile === 'high' || savedRiskProfile === 'medium' || savedRiskProfile === 'low')) {
+      setRiskProfile(savedRiskProfile as 'high' | 'medium' | 'low');
+    }
+    
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'financial-assets') {
+        loadAssetsFromStorage();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   // Save projects to localStorage whenever they change
@@ -125,6 +173,17 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
     });
   };
   
+  const handleSaveCushion = (data: {currentAmount: number, riskProfile: 'high' | 'medium' | 'low'}) => {
+    setRiskProfile(data.riskProfile);
+    
+    localStorage.setItem('security-cushion-risk-profile', data.riskProfile);
+    
+    toast({
+      title: "Profil de risque mis à jour",
+      description: "Votre profil de risque pour le matelas de sécurité a été mis à jour avec succès.",
+    });
+  };
+  
   const totalAllocation = projects.reduce((total, project) => total + project.monthlyContribution, 0);
   const projectsInProgress = projects.filter(p => p.currentAmount < p.targetAmount).length;
   const projectsCompleted = projects.filter(p => p.currentAmount >= p.targetAmount).length;
@@ -149,6 +208,63 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
         </div>
       </div>
       
+      {/* New Savings Section */}
+      <Card className="p-6">
+        <CardHeader className="p-0 pb-4">
+          <div className="flex items-center gap-2">
+            <Wallet className="h-5 w-5 text-wealth-primary" />
+            <CardTitle>Épargne</CardTitle>
+          </div>
+          <CardDescription>Vue d'ensemble de votre épargne et de vos objectifs financiers</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <Card className="col-span-1 p-4">
+              <CardHeader className="p-0 pb-2">
+                <CardTitle className="text-lg">Total des livrets</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="mt-2 mb-4">
+                  <div className="text-3xl font-bold text-wealth-primary">{formatCurrency(savingsAccountsTotal)}</div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Répartis sur {assets.filter(asset => asset.type === 'savings-account').length} livrets d'épargne
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  {assets
+                    .filter(asset => asset.type === 'savings-account')
+                    .map(account => (
+                      <div key={account.id} className="flex justify-between items-center p-2 bg-muted rounded">
+                        <span className="font-medium">{account.name}</span>
+                        <span>{formatCurrency(account.value)}</span>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <div className="lg:col-span-2">
+              <SecurityCushion 
+                currentAmount={savingsAccountsTotal}
+                targetAmount={targetAmount}
+                expenseAmount={monthlyExpenses}
+                riskProfile={riskProfile}
+                onEditClick={() => setCushionFormOpen(true)}
+              />
+            </div>
+          </div>
+          
+          <ProjectsList 
+            projects={projects}
+            selectedProject={selectedProject}
+            onSelectProject={handleSelectProject}
+            onAddProject={handleAddProject}
+            onEditProject={handleEditProject}
+            onDeleteProject={confirmDelete}
+          />
+        </CardContent>
+      </Card>
+      
       <ProjectsOverview 
         projects={projects}
         projectsInProgress={projectsInProgress}
@@ -158,14 +274,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <ProjectsList 
-            projects={projects}
-            selectedProject={selectedProject}
-            onSelectProject={handleSelectProject}
-            onAddProject={handleAddProject}
-            onEditProject={handleEditProject}
-            onDeleteProject={confirmDelete}
-          />
+          {/* ProjectsList has been moved to the Savings section */}
         </div>
         
         <div className="space-y-6">
@@ -196,6 +305,15 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirmDelete={handleDeleteProject}
+      />
+      
+      {/* Security Cushion Form */}
+      <SecurityCushionForm
+        isOpen={cushionFormOpen}
+        onClose={() => setCushionFormOpen(false)}
+        onSave={handleSaveCushion}
+        currentAmount={savingsAccountsTotal}
+        riskProfile={riskProfile}
       />
     </div>
   );
