@@ -195,30 +195,6 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
     }
   };
 
-  // Custom label component that correctly renders the labels
-  const CustomizedLabelComponent = (props: LabelContentProps) => {
-    const { x = 0, y = 0, width = 0, height = 0, payload } = props;
-    if (!payload || !payload.name) return null;
-    
-    const xPos = x + width + 6;
-    const yPos = y + height / 2;
-    
-    return (
-      <g>
-        <text 
-          x={xPos} 
-          y={yPos} 
-          fill="#333" 
-          textAnchor="start" 
-          dominantBaseline="middle"
-          className="text-xs font-medium"
-        >
-          {payload.name}
-        </text>
-      </g>
-    );
-  };
-
   // Custom node component that uses the fill property from the node data
   const CustomizedNodeComponent = (props: any) => {
     const { x, y, width, height, index, payload } = props;
@@ -234,6 +210,34 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
         radius={[4, 4, 4, 4]}
       />
     );
+  };
+
+  // Always visible labels for nodes
+  const renderSankeyLabels = () => {
+    return nodes.map((node, index) => (
+      <Label
+        key={`node-label-${index}`}
+        content={(props: any) => {
+          const { x, y, width, payload } = props;
+          const nodeName = payload.name || '';
+          
+          return (
+            <g>
+              <text
+                x={x + width + 10}
+                y={y + 15}
+                fill="#333"
+                textAnchor="start"
+                dominantBaseline="middle"
+                className="text-xs font-medium"
+              >
+                {nodeName}
+              </text>
+            </g>
+          );
+        }}
+      />
+    ));
   };
 
   return (
@@ -264,19 +268,16 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
         <div className="w-full overflow-x-auto" style={{ height: '800px' }}>
           <ChartContainer config={chartConfig}>
             <Sankey
-              width={800}
-              height={600}
+              width={900} 
+              height={700}
               data={{ nodes, links }}
-              nodePadding={20}
+              nodePadding={40}
               nodeWidth={15}
               link={{ stroke: '#d1d5db' }}
               node={CustomizedNodeComponent}
-              margin={{ top: 20, right: 200, bottom: 20, left: 200 }}
+              margin={{ top: 20, right: 250, bottom: 20, left: 20 }}
             >
-              <Label
-                position="right"
-                content={CustomizedLabelComponent}
-              />
+              {renderSankeyLabels()}
               <Tooltip
                 content={
                   <ChartTooltipContent 
