@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import CryptoTransactionsList from './CryptoTransactionsList';
 import { cn } from '@/lib/utils';
@@ -29,11 +30,19 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
     ? new Date(crypto.purchaseDate).toLocaleDateString('fr-FR')
     : 'Non spécifié';
 
+  // Calculate current price if quantity is available
+  const currentPrice = crypto.quantity && crypto.quantity > 0 
+    ? crypto.value / crypto.quantity 
+    : crypto.purchasePrice || 0;
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">{crypto.name}</DialogTitle>
+          <DialogDescription>
+            Détails de votre investissement en cryptomonnaie
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6 mt-4">
@@ -80,7 +89,11 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
                 <p className="font-medium">{crypto.quantity || 'N/A'}</p>
               </div>
               <div className="text-sm">
-                <p className="text-muted-foreground">Prix d'achat</p>
+                <p className="text-muted-foreground">Prix actuel</p>
+                <p className="font-medium">{formatCurrency(currentPrice)}</p>
+              </div>
+              <div className="text-sm">
+                <p className="text-muted-foreground">Prix d'achat moyen</p>
                 <p className="font-medium">{crypto.purchasePrice ? formatCurrency(crypto.purchasePrice) : 'N/A'}</p>
               </div>
               <div className="text-sm">
@@ -94,8 +107,34 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
                 <p className="text-muted-foreground">Plateforme</p>
                 <p className="font-medium">{crypto.cryptoPlatform || (crypto.cryptoAccountId ? 'Compte crypto' : 'Direct')}</p>
               </div>
+              <div className="text-sm">
+                <p className="text-muted-foreground">Valeur initiale</p>
+                <p className="font-medium">
+                  {crypto.purchasePrice && crypto.quantity 
+                    ? formatCurrency(crypto.purchasePrice * crypto.quantity) 
+                    : 'N/A'}
+                </p>
+              </div>
             </div>
           </div>
+          
+          {/* Market data if available */}
+          {crypto.change24h !== undefined && (
+            <div className="bg-muted/30 p-4 rounded-lg">
+              <h3 className="font-medium mb-2">Données de marché</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-sm">
+                  <p className="text-muted-foreground">Variation 24h</p>
+                  <p className={cn(
+                    "font-medium",
+                    crypto.change24h >= 0 ? "text-green-600" : "text-red-600"
+                  )}>
+                    {crypto.change24h > 0 ? "+" : ""}{crypto.change24h}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Transactions */}
           {crypto.transactions && crypto.transactions.length > 0 && (
