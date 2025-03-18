@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Bitcoin, TrendingUp, TrendingDown, Wallet, Plus, Filter, MoreVertical } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -41,6 +41,10 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   const avgPerformance = cryptoAssets.length > 0 
     ? cryptoAssets.reduce((sum, asset) => sum + (asset.performance || 0), 0) / cryptoAssets.length
     : 0;
+
+  const absoluteGrowth = useMemo(() => {
+    return totalValue * (avgPerformance / 100);
+  }, [totalValue, avgPerformance]);
   
   const groupedCryptos = cryptoAccounts.map(account => {
     const accountCryptos = cryptoAssets.filter(crypto => crypto.cryptoAccountId === account.id);

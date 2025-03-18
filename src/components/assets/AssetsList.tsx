@@ -12,6 +12,7 @@ interface AssetsListProps {
   showActions?: boolean;
   onEdit?: (asset: Asset) => void;
   onDelete?: (assetId: string) => void;
+  onAssetClick?: (asset: Asset) => void;
 }
 
 const AssetsList: React.FC<AssetsListProps> = ({ 
@@ -19,7 +20,8 @@ const AssetsList: React.FC<AssetsListProps> = ({
   title, 
   showActions = true,
   onEdit,
-  onDelete
+  onDelete,
+  onAssetClick
 }) => {
   const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
 
@@ -59,7 +61,8 @@ const AssetsList: React.FC<AssetsListProps> = ({
             assets.map((asset) => (
               <div 
                 key={asset.id} 
-                className="p-3 rounded-lg border border-border hover:border-wealth-primary/20 transition-all hover:shadow-sm"
+                className="p-3 rounded-lg border border-border hover:border-wealth-primary/20 transition-all hover:shadow-sm cursor-pointer"
+                onClick={() => onAssetClick?.(asset)}
               >
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
