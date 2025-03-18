@@ -265,7 +265,7 @@ const CreditSimulatorPage = () => {
                         <span>Capital: {formatCurrency(loanAmount)} ({((loanAmount / totalPayment) * 100).toFixed(1)}%)</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div className="w-3 h-3 rounded-full bg-[#FA5003]"></div>
                         <span className="text-[#FA5003]">Intérêts: {formatCurrency(totalInterest)} ({((totalInterest / totalPayment) * 100).toFixed(1)}%)</span>
                       </div>
                     </div>
