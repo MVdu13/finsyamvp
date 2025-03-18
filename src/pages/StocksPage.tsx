@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, Plus, ChevronDown, ChevronUp, Trash2, List, Info } from 'lucide-react';
@@ -161,7 +162,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
           {
             label: 'Valeur actions',
             data: Array(labels.length).fill(0),
-            color: '#2563EB',
+            color: '#FA5003', // Changed to primary orange
             fill: true,
           }
         ]
@@ -199,7 +200,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
         {
           label: 'Valeur actions',
           data: values,
-          color: '#2563EB',
+          color: '#FA5003', // Changed to primary orange
           fill: true,
         }
       ]

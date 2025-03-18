@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Wallet, Plus, ChevronDown, Trash2 } from 'lucide-react';
@@ -144,7 +145,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
           {
             label: 'Valeur crypto',
             data: Array(labels.length).fill(0),
-            color: '#F59E0B',
+            color: '#FA5003', // Changed to primary orange
             fill: true,
           }
         ]
@@ -182,7 +183,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         {
           label: 'Valeur crypto',
           data: values,
-          color: '#F59E0B',
+          color: '#FA5003', // Changed to primary orange
           fill: true,
         }
       ]
