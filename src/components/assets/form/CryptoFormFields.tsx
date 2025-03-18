@@ -1,12 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Asset } from '@/types/assets';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Plus } from 'lucide-react';
 import CryptoAccountFormFields from './CryptoAccountFormFields';
 
 interface CryptoFormFieldsProps {

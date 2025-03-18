@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Asset, AssetType } from '@/types/assets';
 import { X, Banknote, Wallet, BookText, Home } from 'lucide-react';
-import { CryptoInfo } from '@/services/cryptoService';
 import TypeSelector from './form/TypeSelector';
 import CommonFormFields from './form/CommonFormFields';
 import StockFormFields from './form/StockFormFields';
@@ -404,7 +403,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
             setPurchasePrice={setCryptoPurchasePrice}
             setCryptoAccountId={setCryptoAccountId}
             cryptoAccounts={cryptoAccounts || []}
-            onCryptoSelect={handleCryptoSelect}
             onAddAccount={handleAddAccount}
           />
         );
