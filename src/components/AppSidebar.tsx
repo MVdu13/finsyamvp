@@ -170,7 +170,7 @@ const AppSidebar = ({
                     className={cn("sidebar-subitem", activeItem === 'stocks' ? "active" : "")}
                   >
                     <Briefcase size={18} />
-                    <span>Actions</span>
+                    <span>Actions et ETF</span>
                   </button>
                   <button 
                     onClick={() => setActiveItem('crypto')} 
