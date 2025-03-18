@@ -3,7 +3,7 @@ import React from 'react';
 import { Income, Expense } from '@/types/budget';
 import { formatCurrency } from '@/lib/formatters';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sankey, Tooltip, Rectangle } from 'recharts';
+import { Sankey, Tooltip, Rectangle, Label } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 interface CashflowChartProps {
@@ -37,21 +37,24 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
     const nodes: SankeyNode[] = [];
     const links: SankeyLink[] = [];
 
+    // Income node
     nodes.push({ 
       name: `Revenus: ${formatCurrency(totalIncome)}`, 
-      fill: '#a5b4fc' // Light blue
+      fill: '#9b87f5' // Primary purple for income
     });
 
+    // Budget node
     nodes.push({ 
       name: `Budget: ${formatCurrency(totalIncome)}`,
-      fill: '#fdba74' // Light orange
+      fill: '#D3E4FD' // Soft blue for budget
     });
 
     links.push({
       source: 0,
       target: 1,
       value: totalIncome,
-      fill: '#a5b4fc80', // Transparent light blue
+      name: 'Revenu Total',
+      fill: '#9b87f580', // Semi-transparent purple
     });
 
     const fixedExpenses = expenses.filter(expense => expense.type === 'fixed');
@@ -159,11 +162,17 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
 
   const chartConfig = {
     income: {
-      color: '#a5b4fc',
+      color: '#9b87f5', // Primary purple for income
     },
     expense: {
-      color: '#fdba74',
+      color: '#F97316', // Bright orange for expenses
     },
+    category: {
+      color: '#D3E4FD', // Soft blue for categories
+    },
+    savings: {
+      color: '#F2FCE2', // Soft green for savings
+    }
   };
 
   return (
@@ -172,23 +181,58 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
         <CardTitle className="text-lg font-medium">Flux de trésorerie</CardTitle>
       </CardHeader>
       <CardContent className="p-2">
+        <div className="flex justify-between mb-4 px-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-[#9b87f5]"></div>
+            <span className="text-sm">Revenus</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-[#D3E4FD]"></div>
+            <span className="text-sm">Budget</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-[#F97316]"></div>
+            <span className="text-sm">Dépenses</span>
+          </div>
+        </div>
         <div className="w-full" style={{ height: '800px' }}>
           <ChartContainer config={chartConfig}>
             <Sankey
               width={800}
               height={480}
               data={{ nodes, links }}
-              nodePadding={10}
-              nodeWidth={10}
+              nodePadding={20}
+              nodeWidth={15}
               link={{ stroke: '#d1d5db' }}
               node={
                 <Rectangle 
-                  fill="#a5b4fc"
-                  radius={[2, 2, 2, 2]}
+                  fill={({ payload }) => payload.fill || '#a5b4fc'}
+                  radius={[4, 4, 4, 4]}
                 />
               }
-              margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
+              margin={{ top: 20, right: 160, bottom: 20, left: 160 }}
             >
+              <Label
+                position="right"
+                offset={5}
+                content={({ x, y, width, height, index, payload }) => {
+                  const value = payload?.name || '';
+                  return (
+                    <g>
+                      <text 
+                        x={x + width + 6} 
+                        y={y + height / 2} 
+                        fill="#888" 
+                        textAnchor="start" 
+                        dominantBaseline="middle"
+                        className="text-xs"
+                      >
+                        {value}
+                      </text>
+                    </g>
+                  );
+                }}
+              />
               <Tooltip
                 content={
                   <ChartTooltipContent 
