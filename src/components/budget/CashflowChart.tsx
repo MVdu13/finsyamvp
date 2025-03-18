@@ -162,16 +162,16 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
 
   const chartConfig = {
     income: {
-      color: '#9b87f5', // Primary purple for income
+      color: '#9b87f5',
     },
     expense: {
-      color: '#F97316', // Bright orange for expenses
+      color: '#F97316',
     },
     category: {
-      color: '#D3E4FD', // Soft blue for categories
+      color: '#D3E4FD',
     },
     savings: {
-      color: '#F2FCE2', // Soft green for savings
+      color: '#F2FCE2',
     }
   };
 
@@ -204,24 +204,25 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
               nodePadding={20}
               nodeWidth={15}
               link={{ stroke: '#d1d5db' }}
-              node={
-                <Rectangle 
-                  fill={({ payload }) => payload.fill || '#a5b4fc'}
-                  radius={[4, 4, 4, 4]}
-                />
-              }
+              node={{
+                fill: (nodeData: any) => nodeData.payload.fill || '#a5b4fc',
+                radius: 4
+              }}
               margin={{ top: 20, right: 160, bottom: 20, left: 160 }}
             >
               <Label
                 position="right"
                 offset={5}
-                content={({ x, y, width, height, index, payload }) => {
-                  const value = payload?.name || '';
+                content={({ x = 0, y = 0, width = 0, height = 0, payload }: any) => {
+                  if (!payload) return null;
+                  const value = payload.name || '';
+                  const xPos = Number(x) + Number(width) + 6;
+                  const yPos = Number(y) + Number(height) / 2;
                   return (
                     <g>
                       <text 
-                        x={x + width + 6} 
-                        y={y + height / 2} 
+                        x={xPos}
+                        y={yPos}
                         fill="#888" 
                         textAnchor="start" 
                         dominantBaseline="middle"
@@ -249,3 +250,4 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
 };
 
 export default CashflowChart;
+
