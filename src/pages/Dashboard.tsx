@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import NetWorthChart, { AssetCategoryFilter } from '@/components/dashboard/NetWorthChart';
 import AssetAllocation from '@/components/dashboard/AssetAllocation';
@@ -117,7 +116,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     profileImage: undefined,
   };
 
-  // Grouped assets for display
   const groupedAssets = assets.reduce((groups, asset) => {
     const type = asset.type;
     if (!groups[type]) {
@@ -127,10 +125,17 @@ const Dashboard: React.FC<DashboardProps> = ({
     return groups;
   }, {} as Record<AssetType, Asset[]>);
 
-  // Sort each group by value
   Object.keys(groupedAssets).forEach(type => {
     groupedAssets[type as AssetType].sort((a, b) => b.value - a.value);
   });
+
+  const filteredGroupedAssets = { ...groupedAssets };
+  if (filteredGroupedAssets['investment-account']) {
+    delete filteredGroupedAssets['investment-account'];
+  }
+  if (filteredGroupedAssets['crypto-account']) {
+    delete filteredGroupedAssets['crypto-account'];
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -226,14 +231,14 @@ const Dashboard: React.FC<DashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <GroupedAssetsList 
-            groupedAssets={groupedAssets}
+            groupedAssets={filteredGroupedAssets}
             navigateTo={navigateTo}
             onEdit={onUpdateAsset ? (asset) => {
               setEditingAsset(asset);
               setDialogOpen(true);
             } : undefined}
             onDelete={onDeleteAsset}
-            hideInvestmentAccounts={true}
+            hideInvestmentAccounts={false}
           />
         </div>
         
