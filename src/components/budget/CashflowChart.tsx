@@ -235,8 +235,8 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
             <div className="w-3 h-3 rounded-full bg-[#D3E4FD]"></div>
             <span className="text-xs">Budget</span>
           </div>
-          {uniqueCategories.map((category) => (
-            <div key={category} className="flex items-center space-x-2">
+          {uniqueCategories.map((category, index) => (
+            <div key={`category-${index}`} className="flex items-center space-x-2">
               <div 
                 className="w-3 h-3 rounded-full" 
                 style={{ backgroundColor: getCategoryColor(category) }}
@@ -249,12 +249,12 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
           <ChartContainer config={chartConfig}>
             <Sankey
               width={800}
-              height={480}
+              height={600}
               data={{ nodes, links }}
               nodePadding={20}
               nodeWidth={15}
               link={{ stroke: '#d1d5db' }}
-              node={<Rectangle radius={[4, 4, 4, 4]} />}
+              node={<Rectangle fill={(nodeData: any) => nodeData.fill || '#d1d5db'} radius={[4, 4, 4, 4]} />}
               margin={{ top: 20, right: 200, bottom: 20, left: 200 }}
             >
               <Label
