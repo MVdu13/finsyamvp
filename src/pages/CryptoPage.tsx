@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Wallet, Plus, ChevronDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Plus, ChevronDown, Trash2 } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
+import CryptoTransactionsList from '@/components/assets/CryptoTransactionsList';
 import { Asset, AssetType } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -256,6 +257,16 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
     }
   };
 
+  const handleDeleteAccount = (accountId: string) => {
+    if (onDeleteAsset) {
+      onDeleteAsset(accountId);
+      toast({
+        title: "Compte supprimé",
+        description: "Le compte a été supprimé avec succès",
+      });
+    }
+  };
+
   const handleAssetClick = (asset: Asset) => {
     setSelectedCrypto(asset);
     setTransactionDialogOpen(true);
@@ -297,6 +308,18 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
                   <div className="text-right">
                     <div className="font-semibold">{formatCurrency(group.totalValue)}</div>
                   </div>
+                  {group.account.id !== 'unassigned' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteAccount(group.account.id);
+                      }}
+                      className="p-1.5 rounded-full hover:bg-muted transition-colors text-red-500"
+                      title="Supprimer le compte"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                   <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform" />
                 </div>
               </div>
@@ -418,7 +441,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
                 </div>
 
                 {selectedCrypto.transactions && selectedCrypto.transactions.length > 0 ? (
-                  <StockTransactionsList transactions={selectedCrypto.transactions} />
+                  <CryptoTransactionsList transactions={selectedCrypto.transactions} />
                 ) : (
                   <div className="text-center py-6 bg-muted rounded-lg">
                     <p className="text-muted-foreground">

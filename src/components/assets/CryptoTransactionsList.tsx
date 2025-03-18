@@ -1,91 +1,41 @@
 
 import React from 'react';
 import { Transaction } from '@/types/assets';
-import { formatCurrency, formatPercentage } from '@/lib/formatters';
+import { formatCurrency } from '@/lib/formatters';
 import { format } from 'date-fns';
-import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface CryptoTransactionsListProps {
   transactions: Transaction[];
 }
 
 const CryptoTransactionsList: React.FC<CryptoTransactionsListProps> = ({ transactions }) => {
-  if (!transactions || transactions.length === 0) {
-    return (
-      <div className="text-center py-4">
-        <p className="text-muted-foreground">Aucune transaction à afficher</p>
-      </div>
-    );
-  }
-
-  // Trier les transactions par date (la plus récente en premier)
-  const sortedTransactions = [...transactions].sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-
   return (
-    <div className="mt-4">
-      <h4 className="font-medium mb-2">Historique des transactions</h4>
-      <div className="border rounded-md overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Quantité</TableHead>
-              <TableHead>Prix unitaire</TableHead>
-              <TableHead>Performance</TableHead>
-              <TableHead className="text-right">Montant total</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedTransactions.map((transaction) => (
-              <TableRow key={transaction.id}>
-                <TableCell>
-                  {transaction.date ? format(new Date(transaction.date), 'dd/MM/yyyy') : "N/A"}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    {transaction.type === 'buy' ? (
-                      <>
-                        <ArrowDownRight size={16} className="text-green-600" />
-                        <span>Achat</span>
-                      </>
-                    ) : (
-                      <>
-                        <ArrowUpRight size={16} className="text-red-600" />
-                        <span>Vente</span>
-                      </>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{transaction.quantity}</TableCell>
-                <TableCell>{formatCurrency(transaction.price)}</TableCell>
-                <TableCell>
-                  {transaction.performance !== undefined && (
-                    <div className={`flex items-center gap-1 ${transaction.performance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {transaction.performance >= 0 ? (
-                        <TrendingUp size={16} />
-                      ) : (
-                        <TrendingDown size={16} />
-                      )}
-                      <span>{formatPercentage(transaction.performance)}</span>
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">{formatCurrency(transaction.total)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold">Historique des transactions</h3>
+      <div className="space-y-2">
+        {transactions.map((transaction) => (
+          <div 
+            key={transaction.id} 
+            className="p-4 border rounded-lg flex justify-between items-center"
+          >
+            <div>
+              <p className="font-medium">
+                {transaction.type === 'buy' ? 'Achat' : 'Vente'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {format(new Date(transaction.date), 'dd/MM/yyyy')}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="font-medium">
+                {transaction.quantity} × {formatCurrency(transaction.price)}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Total: {formatCurrency(transaction.total)}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
