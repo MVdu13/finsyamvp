@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BarChart3, ArrowUpRight, ArrowDownRight, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -49,7 +48,6 @@ const AssetsList: React.FC<AssetsListProps> = ({
     if (onAssetClick) {
       onAssetClick(asset);
     } else if (asset.type === 'real-estate') {
-      // Show details dialog for real estate
       setSelectedAsset(asset);
       setDetailsDialogOpen(true);
     }
