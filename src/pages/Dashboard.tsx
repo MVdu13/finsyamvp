@@ -116,7 +116,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     profileImage: undefined,
   };
 
-  // Grouped assets for display - exclude investment accounts in the main dashboard
+  // Grouped assets for display
   const groupedAssets = assets.reduce((groups, asset) => {
     const type = asset.type;
     if (!groups[type]) {
@@ -204,6 +204,26 @@ const Dashboard: React.FC<DashboardProps> = ({
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
+          <NetWorthChart 
+            data={netWorthHistory} 
+            currentNetWorth={totalValue}
+            periodGrowth={periodGrowth}
+            selectedCategory={assetCategoryFilter}
+            onCategoryChange={setAssetCategoryFilter}
+          />
+        </div>
+        
+        <div>
+          <AssetAllocation 
+            allocation={currentAllocation}
+            totalValue={totalValue}
+            selectedCategory={assetCategoryFilter}
+          />
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
           <FinancialGoals 
             goals={mockGoals} 
             onAddGoal={handleNavigateToProjects} 
@@ -219,7 +239,6 @@ const Dashboard: React.FC<DashboardProps> = ({
               setDialogOpen(true);
             } : undefined}
             onDelete={onDeleteAsset}
-            hideInvestmentAccounts={true}
           />
         </div>
       </div>

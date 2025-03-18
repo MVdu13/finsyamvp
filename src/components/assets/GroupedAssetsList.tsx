@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BarChart3, ArrowUpRight, ArrowDownRight, ExternalLink, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Asset, AssetType } from '@/types/assets';
@@ -12,15 +11,13 @@ interface GroupedAssetsListProps {
   navigateTo: (item: string) => void;
   onEdit?: (asset: Asset) => void;
   onDelete?: (id: string) => void;
-  hideInvestmentAccounts?: boolean;
 }
 
 const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
   groupedAssets,
   navigateTo,
   onEdit,
-  onDelete,
-  hideInvestmentAccounts = false
+  onDelete
 }) => {
   const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -87,15 +84,7 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
     }
   };
 
-  // Filter out investment and crypto accounts if hideInvestmentAccounts is true
-  const filteredTypes = Object.keys(groupedAssets).filter(type => {
-    if (hideInvestmentAccounts) {
-      return type !== 'investment-account' && type !== 'crypto-account';
-    }
-    return true;
-  });
-
-  const orderedTypes = filteredTypes.sort((a, b) => {
+  const orderedTypes = Object.keys(groupedAssets).sort((a, b) => {
     const order = {
       'bank-account': 1,
       'savings-account': 2,
