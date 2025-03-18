@@ -186,7 +186,7 @@ const CreditSimulatorPage = () => {
                   <CardContent>
                     <p className="text-2xl font-bold">{formatCurrency(totalPayment)}</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      dont {formatCurrency(loanAmount)} de capital et {formatCurrency(totalInterest)} d'intérêts
+                      dont {formatCurrency(loanAmount)} de capital et <span className="text-[#FA5003]">{formatCurrency(totalInterest)}</span> d'intérêts
                     </p>
                   </CardContent>
                 </Card>
@@ -266,7 +266,7 @@ const CreditSimulatorPage = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                        <span>Intérêts: {formatCurrency(totalInterest)} ({((totalInterest / totalPayment) * 100).toFixed(1)}%)</span>
+                        <span className="text-[#FA5003]">Intérêts: {formatCurrency(totalInterest)} ({((totalInterest / totalPayment) * 100).toFixed(1)}%)</span>
                       </div>
                     </div>
                   </div>
@@ -294,7 +294,7 @@ const CreditSimulatorPage = () => {
                                 ? formatCurrency(yearlyData[entry.year - 2].principalPaid - yearlyData[entry.year - 1].principalPaid) 
                                 : formatCurrency(loanAmount - yearlyData[0].balance)}
                             </td>
-                            <td className="px-3 py-2 text-sm text-right text-red-600">
+                            <td className="px-3 py-2 text-sm text-right text-[#FA5003]">
                               {entry.year > 1 
                                 ? formatCurrency(yearlyData[entry.year - 1].interestPaid - yearlyData[entry.year - 2].interestPaid) 
                                 : formatCurrency(yearlyData[0].interestPaid)}
