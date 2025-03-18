@@ -21,7 +21,6 @@ interface RealEstatePageProps {
   onDeleteAsset: (assetId: string) => void;
 }
 
-// Define the property filter types
 type PropertyFilter = 'all' | 'residential' | 'rental';
 
 const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onUpdateAsset, onDeleteAsset }) => {
@@ -34,10 +33,8 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
   const [propertyFilter, setPropertyFilter] = useState<PropertyFilter>('all');
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   
-  // Properties are real estate assets
   const properties = assets.filter(asset => asset.type === 'real-estate');
 
-  // Separate properties by usage type
   const residentialProperties = properties.filter(property => 
     property.usageType === 'main' || property.usageType === 'secondary'
   );
@@ -46,7 +43,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
     property.usageType === 'rental'
   );
   
-  // Get filtered properties based on the selected filter
   const filteredProperties = useMemo(() => {
     switch (propertyFilter) {
       case 'residential':
@@ -59,24 +55,19 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
     }
   }, [properties, residentialProperties, rentalProperties, propertyFilter]);
 
-  // Calculate financials based on filtered properties
   const realEstateMetrics = useMemo(() => {
     const totalValue = filteredProperties.reduce((sum, property) => sum + property.value, 0);
     
-    // Calculate annual income (rent)
     const annualIncome = filteredProperties.reduce((sum, property) => {
       return sum + (property.annualRent || 0);
     }, 0);
     
-    // Calculate annual costs (property tax, annual fees, annual charges)
     const annualCosts = filteredProperties.reduce((sum, property) => {
       return sum + (property.propertyTax || 0) + (property.annualFees || 0) + (property.annualCharges || 0) + (property.housingTax || 0);
     }, 0);
     
-    // Calculate gross yield
     const grossYield = totalValue > 0 ? (annualIncome / totalValue) * 100 : 0;
     
-    // Calculate net income
     const netIncome = annualIncome - annualCosts;
     const netYield = totalValue > 0 ? (netIncome / totalValue) * 100 : 0;
     
@@ -94,7 +85,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
     ? filteredProperties.reduce((sum, property) => sum + (property.performance || 0), 0) / filteredProperties.length
     : 0;
 
-  // Get filter label for the UI
   const getFilterLabel = () => {
     switch (propertyFilter) {
       case 'residential':
@@ -107,7 +97,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
     }
   };
 
-  // Get filter icon for the UI
   const getFilterIcon = () => {
     switch (propertyFilter) {
       case 'residential':
@@ -120,21 +109,17 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
     }
   };
 
-  // Générer un historique cohérent basé sur la valeur totale actuelle et la timeframe
   const generateChartData = () => {
     const baseValue = realEstateMetrics.totalValue > 0 ? realEstateMetrics.totalValue : 0;
     
-    // Déterminer le nombre de points de données selon la timeframe
     let numDataPoints;
     let labels;
     
-    // Créer des dates basées sur la timeframe sélectionnée
     const currentDate = new Date();
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
     
     switch (timeFrame) {
       case '1M':
-        // Jours du mois
         numDataPoints = 30;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -143,7 +128,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         });
         break;
       case '3M':
-        // Points hebdomadaires sur 3 mois
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -152,7 +136,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         });
         break;
       case '6M':
-        // Bi-hebdomadaire sur 6 mois
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -161,7 +144,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         });
         break;
       case '5Y':
-        // Mensuel sur 5 ans
         numDataPoints = 60;
         labels = Array.from({ length: Math.min(numDataPoints, 24) }, (_, i) => {
           const date = new Date();
@@ -170,7 +152,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         });
         break;
       case 'ALL':
-        // Annuel
         numDataPoints = 5;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -180,7 +161,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         break;
       case '1Y':
       default:
-        // Mensuel sur 1 an
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -190,7 +170,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         break;
     }
     
-    // Si aucun bien immobilier, retourner des valeurs à zéro
     if (baseValue === 0) {
       return {
         labels,
@@ -205,29 +184,24 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
       };
     }
     
-    // L'immobilier est généralement moins volatile que les actions ou les cryptos
     const volatilityFactor = timeFrame === '1M' ? 0.01 : 
                              timeFrame === '3M' ? 0.02 : 
                              timeFrame === '6M' ? 0.03 : 
                              timeFrame === '5Y' ? 0.10 : 
-                             timeFrame === 'ALL' ? 0.15 : 0.05; // 1Y
+                             timeFrame === 'ALL' ? 0.15 : 0.05;
     
     const generateRandomWalk = (steps: number, finalValue: number, volatility: number) => {
-      // Commencer avec une valeur initiale inférieure à la valeur finale pour simuler une croissance
       let initialValue = finalValue * (1 - Math.random() * volatility);
       const result = [initialValue];
       
       for (let i = 1; i < steps - 1; i++) {
-        // Calculer la prochaine valeur avec une tendance vers la valeur finale
         const progress = i / (steps - 1);
         const trend = initialValue + progress * (finalValue - initialValue);
         
-        // Ajouter une variation aléatoire autour de la tendance
         const randomFactor = 1 + (Math.random() * 2 - 1) * volatility * (1 - progress);
         result.push(trend * randomFactor);
       }
       
-      // Ajouter la valeur finale
       result.push(finalValue);
       
       return result.map(val => Math.round(val));
@@ -251,17 +225,14 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
   const chartData = generateChartData();
 
   const handleAddProperty = (newProperty: Omit<Asset, 'id'>) => {
-    // Make sure we're adding a real-estate asset
     const realEstateAsset = {
       ...newProperty,
       type: 'real-estate' as AssetType
     };
     
-    // Call the parent's onAddAsset function
     onAddAsset(realEstateAsset);
     setAddDialogOpen(false);
     
-    // Show success toast
     toast({
       title: "Bien immobilier ajouté",
       description: `${newProperty.name} a été ajouté à votre portefeuille`,
@@ -315,7 +286,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
     setDetailsDialogOpen(true);
   };
 
-  // Debug to check if values are present
   console.log("Properties:", properties);
   console.log("Metrics:", realEstateMetrics);
 
@@ -394,7 +364,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(realEstateMetrics.annualCosts)}</div>
+            <div className="text-2xl font-bold text-red-600">{formatCurrency(realEstateMetrics.annualCosts)}</div>
             <div className="text-xs text-muted-foreground mt-1">
               Taxes, charges, frais divers
             </div>
@@ -581,7 +551,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
             </TableHeader>
             <TableBody>
               {rentalProperties.map((property) => {
-                // Calculate individual property metrics
                 const annualIncome = property.annualRent || 0;
                 const annualCosts = (property.propertyTax || 0) + (property.annualFees || 0) + (property.annualCharges || 0);
                 const netIncome = annualIncome - annualCosts;
@@ -650,7 +619,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         </div>
       </div>
 
-      {/* Dialogue de modification */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -672,7 +640,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         </DialogContent>
       </Dialog>
 
-      {/* Dialogue de confirmation de suppression */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -693,7 +660,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Dialogue de détails du bien */}
       <RealEstateDetailsDialog
         isOpen={detailsDialogOpen}
         onClose={() => setDetailsDialogOpen(false)}
