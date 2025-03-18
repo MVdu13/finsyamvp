@@ -1,11 +1,9 @@
-
 import React from 'react';
 import { Income, Expense } from '@/types/budget';
 import { formatCurrency } from '@/lib/formatters';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sankey, Tooltip, Rectangle } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CashflowChartProps {
   incomes: Income[];
@@ -172,36 +170,34 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
       <CardHeader>
         <CardTitle className="text-lg font-medium">Flux de trésorerie</CardTitle>
       </CardHeader>
-      <CardContent className="px-0 py-1">
-        <ScrollArea className="h-[450px] w-full">
-          <div className="min-w-[800px] px-6">
-            <ChartContainer config={chartConfig}>
-              <Sankey
-                width={1000}
-                height={400}
-                data={{ nodes, links }}
-                nodePadding={10}
-                nodeWidth={10}
-                link={{ stroke: '#d1d5db' }}
-                node={
-                  <Rectangle 
-                    fill="#a5b4fc"
-                    radius={[2, 2, 2, 2]}
+      <CardContent className="p-2">
+        <div className="w-full" style={{ height: '600px' }}>
+          <ChartContainer config={chartConfig}>
+            <Sankey
+              width={900}
+              height={580}
+              data={{ nodes, links }}
+              nodePadding={10}
+              nodeWidth={10}
+              link={{ stroke: '#d1d5db' }}
+              node={
+                <Rectangle 
+                  fill="#a5b4fc"
+                  radius={[2, 2, 2, 2]}
+                />
+              }
+              margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
+            >
+              <Tooltip
+                content={
+                  <ChartTooltipContent 
+                    formatter={(value, name) => [formatCurrency(value as number), name]}
                   />
                 }
-                margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
-              >
-                <Tooltip
-                  content={
-                    <ChartTooltipContent 
-                      formatter={(value, name) => [formatCurrency(value as number), name]}
-                    />
-                  }
-                />
-              </Sankey>
-            </ChartContainer>
-          </div>
-        </ScrollArea>
+              />
+            </Sankey>
+          </ChartContainer>
+        </div>
       </CardContent>
     </Card>
   );
