@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Asset, AssetType } from '@/types/assets';
 import { X, Banknote, Wallet, BookText, Home } from 'lucide-react';
@@ -277,7 +276,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
       finalPerformance = interestRate;
     }
     
-    const asset = {
+    const asset: Omit<Asset, 'id'> = {
       name: finalName,
       description: finalDescription,
       type,
@@ -292,6 +291,23 @@ const AssetForm: React.FC<AssetFormProps> = ({
       ...(type === 'crypto' && { quantity: parseFloat(cryptoQty) || 0 }),
       ...(type === 'crypto' && { purchasePrice: parseFloat(cryptoPurchasePrice) || 0 }),
     };
+    
+    if (type === 'real-estate') {
+      asset.propertyType = propertyType as any;
+      asset.usageType = usageType as any;
+      asset.surface = parseFloat(surface) || undefined;
+      asset.propertyTax = parseFloat(propertyTax) || undefined;
+      
+      if (usageType === 'secondary') {
+        asset.housingTax = parseFloat(housingTax) || undefined;
+      }
+      
+      if (usageType === 'rental') {
+        asset.annualRent = parseFloat(annualRent) || undefined;
+        asset.annualFees = parseFloat(annualFees) || undefined;
+        asset.annualCharges = parseFloat(annualCharges) || undefined;
+      }
+    }
     
     onSubmit(asset);
 

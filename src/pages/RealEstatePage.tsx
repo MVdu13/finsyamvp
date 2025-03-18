@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight, Pencil, Trash2, Wallet, Percent, Coins, Shield, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +29,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   
   // Properties are real estate assets
-  const properties = assets;
+  const properties = assets.filter(asset => asset.type === 'real-estate');
 
   // Calculate financials
   const realEstateMetrics = useMemo(() => {
@@ -41,7 +42,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
     
     // Calculate annual costs (property tax, annual fees, annual charges)
     const annualCosts = properties.reduce((sum, property) => {
-      return sum + (property.propertyTax || 0) + (property.annualFees || 0) + (property.annualCharges || 0);
+      return sum + (property.propertyTax || 0) + (property.annualFees || 0) + (property.annualCharges || 0) + (property.housingTax || 0);
     }, 0);
     
     // Calculate gross yield
@@ -255,6 +256,10 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
     setDeleteDialogOpen(true);
   };
 
+  // Debug to check if values are present
+  console.log("Properties:", properties);
+  console.log("Metrics:", realEstateMetrics);
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -408,7 +413,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
               {properties.map((property) => {
                 // Calculate individual property metrics
                 const annualIncome = property.annualRent || 0;
-                const annualCosts = (property.propertyTax || 0) + (property.annualFees || 0) + (property.annualCharges || 0);
+                const annualCosts = (property.propertyTax || 0) + (property.annualFees || 0) + (property.annualCharges || 0) + (property.housingTax || 0);
                 const netIncome = annualIncome - annualCosts;
                 const netYield = property.value > 0 ? (netIncome / property.value) * 100 : 0;
                 
