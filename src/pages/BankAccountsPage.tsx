@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Wallet, TrendingUp, TrendingDown, Plus, AlertCircle } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -125,7 +126,7 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
           {
             label: 'Solde comptes',
             data: Array(labels.length).fill(0),
-            color: '#4338CA',
+            color: '#FA5003', // Changed to primary orange
             fill: true,
           }
         ]
@@ -164,7 +165,7 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
         {
           label: 'Solde comptes',
           data: values,
-          color: '#4338CA',
+          color: '#FA5003', // Changed to primary orange
           fill: true,
         }
       ]

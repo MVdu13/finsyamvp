@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ScrollText, TrendingUp, Plus, Percent } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -110,7 +111,7 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
           {
             label: 'Solde livrets',
             data: Array(labels.length).fill(0),
-            color: '#8B5CF6',
+            color: '#FA5003', // Changed to primary orange
             fill: true,
           }
         ]
@@ -163,7 +164,7 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
         {
           label: 'Solde livrets',
           data: values,
-          color: '#8B5CF6',
+          color: '#FA5003', // Changed to primary orange
           fill: true,
         }
       ]
