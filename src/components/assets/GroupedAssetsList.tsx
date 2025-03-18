@@ -59,8 +59,17 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
   };
 
   const handleAssetClick = (asset: Asset) => {
-    const refreshedAsset = { ...asset };
-    setSelectedAsset(refreshedAsset);
+    let upToDateAsset = asset;
+    
+    const assetType = asset.type as AssetType;
+    if (groupedAssets[assetType]) {
+      const foundAsset = groupedAssets[assetType].find(a => a.id === asset.id);
+      if (foundAsset) {
+        upToDateAsset = foundAsset;
+      }
+    }
+    
+    setSelectedAsset(upToDateAsset);
     
     switch (asset.type) {
       case 'real-estate':
@@ -206,6 +215,11 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
                                   {asset.description}
                                 </p>
                                 {asset.type === 'stock' && asset.quantity && asset.purchasePrice && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {asset.quantity} × {formatCurrency(asset.purchasePrice)}
+                                  </p>
+                                )}
+                                {asset.type === 'crypto' && asset.quantity && asset.purchasePrice && (
                                   <p className="text-xs text-muted-foreground mt-1">
                                     {asset.quantity} × {formatCurrency(asset.purchasePrice)}
                                   </p>
