@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { BarChart3, ArrowUpRight, ArrowDownRight, ExternalLink, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Asset, AssetType } from '@/types/assets';
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
+import RealEstateDetailsDialog from './RealEstateDetailsDialog';
 
 interface GroupedAssetsListProps {
   groupedAssets: Record<AssetType, Asset[]>;
@@ -27,6 +27,8 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
     'stock': true,
     'crypto': true
   });
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   const handleDeleteClick = (asset: Asset) => {
     setAssetToDelete(asset);
@@ -48,6 +50,14 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
       ...prev,
       [type]: !prev[type]
     }));
+  };
+
+  const handleAssetClick = (asset: Asset, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (asset.type === 'real-estate') {
+      setSelectedAsset(asset);
+      setDetailsDialogOpen(true);
+    }
   };
 
   const getSectionName = (type: string): string => {
@@ -75,7 +85,6 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
     }
   };
 
-  // Order asset types for display
   const orderedTypes = Object.keys(groupedAssets).sort((a, b) => {
     const order = {
       'bank-account': 1,
@@ -131,7 +140,8 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
                       {assets.map(asset => (
                         <div 
                           key={asset.id} 
-                          className="p-3 rounded-lg border border-border hover:border-wealth-primary/20 transition-all hover:shadow-sm"
+                          className="p-3 rounded-lg border border-border hover:border-wealth-primary/20 transition-all hover:shadow-sm cursor-pointer"
+                          onClick={(e) => handleAssetClick(asset, e)}
                         >
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-3">
@@ -183,7 +193,10 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
                             <div className="mt-3 pt-3 border-t border-border flex justify-end gap-2">
                               {onEdit && (
                                 <button 
-                                  onClick={() => onEdit(asset)} 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit(asset);
+                                  }} 
                                   className="p-1.5 rounded-full hover:bg-muted transition-colors text-wealth-primary"
                                   title="Modifier"
                                 >
@@ -192,7 +205,10 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
                               )}
                               {onDelete && (
                                 <button 
-                                  onClick={() => handleDeleteClick(asset)} 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteClick(asset);
+                                  }} 
                                   className="p-1.5 rounded-full hover:bg-muted transition-colors text-red-500"
                                   title="Supprimer"
                                 >
@@ -227,6 +243,12 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
         assetName={assetToDelete?.name}
+      />
+
+      <RealEstateDetailsDialog
+        isOpen={detailsDialogOpen}
+        onClose={() => setDetailsDialogOpen(false)}
+        property={selectedAsset}
       />
     </div>
   );

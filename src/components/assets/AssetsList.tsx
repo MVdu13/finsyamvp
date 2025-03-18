@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Asset } from '@/types/assets';
 import { formatCurrency } from '@/lib/formatters';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
+import RealEstateDetailsDialog from './RealEstateDetailsDialog';
 
 interface AssetsListProps {
   assets: Asset[];
@@ -24,6 +25,8 @@ const AssetsList: React.FC<AssetsListProps> = ({
   onAssetClick
 }) => {
   const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   const handleDeleteClick = (asset: Asset) => {
     setAssetToDelete(asset);
@@ -38,6 +41,16 @@ const AssetsList: React.FC<AssetsListProps> = ({
 
   const handleCancelDelete = () => {
     setAssetToDelete(null);
+  };
+
+  const handleAssetClick = (asset: Asset) => {
+    if (onAssetClick) {
+      onAssetClick(asset);
+    } else if (asset.type === 'real-estate') {
+      // Show details dialog for real estate
+      setSelectedAsset(asset);
+      setDetailsDialogOpen(true);
+    }
   };
 
   return (
@@ -62,7 +75,7 @@ const AssetsList: React.FC<AssetsListProps> = ({
               <div 
                 key={asset.id} 
                 className="p-3 rounded-lg border border-border hover:border-wealth-primary/20 transition-all hover:shadow-sm cursor-pointer"
-                onClick={() => onAssetClick?.(asset)}
+                onClick={() => handleAssetClick(asset)}
               >
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
@@ -112,7 +125,10 @@ const AssetsList: React.FC<AssetsListProps> = ({
                   <div className="mt-3 pt-3 border-t border-border flex justify-end gap-2">
                     {onEdit && (
                       <button 
-                        onClick={() => onEdit(asset)} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(asset);
+                        }} 
                         className="p-1.5 rounded-full hover:bg-muted transition-colors text-wealth-primary"
                         title="Modifier"
                       >
@@ -121,7 +137,10 @@ const AssetsList: React.FC<AssetsListProps> = ({
                     )}
                     {onDelete && (
                       <button 
-                        onClick={() => handleDeleteClick(asset)} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(asset);
+                        }} 
                         className="p-1.5 rounded-full hover:bg-muted transition-colors text-red-500"
                         title="Supprimer"
                       >
@@ -150,6 +169,12 @@ const AssetsList: React.FC<AssetsListProps> = ({
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
         assetName={assetToDelete?.name}
+      />
+
+      <RealEstateDetailsDialog
+        isOpen={detailsDialogOpen}
+        onClose={() => setDetailsDialogOpen(false)}
+        property={selectedAsset}
       />
     </div>
   );

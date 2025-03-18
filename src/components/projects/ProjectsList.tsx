@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { FinancialGoal } from '@/types/goals';
 import { formatCurrency } from '@/lib/formatters';
 import { BarChart4, Calculator, Edit, Plus, Trash2 } from 'lucide-react';
