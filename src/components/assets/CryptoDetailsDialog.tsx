@@ -2,7 +2,7 @@
 import React from 'react';
 import { Asset } from '@/types/assets';
 import { formatCurrency, formatPercentage } from '@/lib/formatters';
-import { TrendingUp, TrendingDown, Calendar } from 'lucide-react';
+import { TrendingUp, TrendingDown, Calendar, Wallet } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,13 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
   const currentPrice = crypto.quantity && crypto.quantity > 0 
     ? crypto.value / crypto.quantity 
     : crypto.purchasePrice || 0;
+    
+  // Calculate annual performance (simple estimate if not provided)
+  const annualPerformance = crypto.performance 
+    ? crypto.performance 
+    : crypto.purchasePrice && currentPrice
+      ? ((currentPrice - crypto.purchasePrice) / crypto.purchasePrice) * 100
+      : undefined;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -85,7 +92,7 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
             
             <div className="grid grid-cols-2 gap-4 mt-2">
               <div className="text-sm">
-                <p className="text-muted-foreground">Quantité</p>
+                <p className="text-muted-foreground">Quantité totale</p>
                 <p className="font-medium">{crypto.quantity || 'N/A'} {crypto.symbol || ''}</p>
               </div>
               <div className="text-sm">
@@ -115,6 +122,26 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
                     : 'N/A'}
                 </p>
               </div>
+              <div className="text-sm">
+                <p className="text-muted-foreground">Performance annuelle</p>
+                <p className={cn(
+                  "font-medium",
+                  annualPerformance >= 0 ? "text-green-600" : "text-red-600"
+                )}>
+                  {annualPerformance !== undefined 
+                    ? `${annualPerformance > 0 ? "+" : ""}${formatPercentage(annualPerformance)}` 
+                    : 'N/A'}
+                </p>
+              </div>
+              <div className="text-sm">
+                <p className="text-muted-foreground">Compte</p>
+                <p className="font-medium flex items-center gap-1">
+                  <Wallet size={14} />
+                  {crypto.cryptoAccountId 
+                    ? `Compte ${crypto.cryptoAccountId}` 
+                    : crypto.cryptoPlatform || 'Portefeuille personnel'}
+                </p>
+              </div>
             </div>
           </div>
           
@@ -139,6 +166,11 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
           {/* Transactions */}
           {crypto.transactions && crypto.transactions.length > 0 && (
             <CryptoTransactionsList transactions={crypto.transactions} />
+          )}
+          {(!crypto.transactions || crypto.transactions.length === 0) && (
+            <div className="text-center py-4 text-muted-foreground border rounded-lg">
+              Aucune transaction enregistrée pour cette cryptomonnaie
+            </div>
           )}
         </div>
       </DialogContent>

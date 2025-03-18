@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { Transaction } from '@/types/assets';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, formatPercentage } from '@/lib/formatters';
 import { format } from 'date-fns';
-import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CryptoTransactionsListProps {
@@ -52,10 +52,15 @@ const CryptoTransactionsList: React.FC<CryptoTransactionsListProps> = ({ transac
                 </p>
                 {transaction.performance !== undefined && (
                   <p className={cn(
-                    "text-xs",
+                    "text-xs flex items-center justify-end gap-1",
                     transaction.performance >= 0 ? "text-green-600" : "text-red-600"
                   )}>
-                    Performance: {transaction.performance > 0 ? "+" : ""}{transaction.performance}%
+                    {transaction.performance >= 0 ? (
+                      <TrendingUp size={14} />
+                    ) : (
+                      <TrendingDown size={14} />
+                    )}
+                    Performance: {transaction.performance > 0 ? "+" : ""}{formatPercentage(transaction.performance)}
                   </p>
                 )}
               </div>
