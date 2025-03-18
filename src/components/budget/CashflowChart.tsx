@@ -160,6 +160,11 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
 
   const { nodes, links } = prepareData();
 
+  // Create legend items from unique categories
+  const uniqueCategories = Array.from(
+    new Set(expenses.map(expense => expense.category))
+  ).filter(Boolean);
+
   const chartConfig = {
     income: {
       color: '#9b87f5', // Primary purple for income
@@ -181,21 +186,26 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
         <CardTitle className="text-lg font-medium">Flux de trésorerie</CardTitle>
       </CardHeader>
       <CardContent className="p-2">
-        <div className="flex justify-between mb-4 px-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 px-4">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 rounded-full bg-[#9b87f5]"></div>
-            <span className="text-sm">Revenus</span>
+            <span className="text-xs">Revenus</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 rounded-full bg-[#D3E4FD]"></div>
-            <span className="text-sm">Budget</span>
+            <span className="text-xs">Budget</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-[#F97316]"></div>
-            <span className="text-sm">Dépenses</span>
-          </div>
+          {uniqueCategories.map((category) => (
+            <div key={category} className="flex items-center space-x-2">
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: getCategoryColor(category) }}
+              ></div>
+              <span className="text-xs truncate">{category}</span>
+            </div>
+          ))}
         </div>
-        <div className="w-full" style={{ height: '800px' }}>
+        <div className="w-full overflow-x-auto" style={{ height: '800px' }}>
           <ChartContainer config={chartConfig}>
             <Sankey
               width={800}
@@ -204,28 +214,27 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
               nodePadding={20}
               nodeWidth={15}
               link={{ stroke: '#d1d5db' }}
-              node={
-                <Rectangle 
-                  fill={({ payload }) => payload.fill || '#a5b4fc'}
-                  radius={[4, 4, 4, 4]}
-                />
-              }
-              margin={{ top: 20, right: 160, bottom: 20, left: 160 }}
+              node={<Rectangle radius={[4, 4, 4, 4]} />}
+              margin={{ top: 20, right: 200, bottom: 20, left: 200 }}
             >
               <Label
                 position="right"
-                offset={5}
+                offset={10}
                 content={({ x, y, width, height, index, payload }) => {
-                  const value = payload?.name || '';
+                  if (!payload || !payload.name) return null;
+                  const value = payload.name || '';
+                  const xPos = (x || 0) + (width || 0) + 6;
+                  const yPos = (y || 0) + (height || 0) / 2;
+                  
                   return (
                     <g>
                       <text 
-                        x={x + width + 6} 
-                        y={y + height / 2} 
-                        fill="#888" 
+                        x={xPos} 
+                        y={yPos} 
+                        fill="#333" 
                         textAnchor="start" 
                         dominantBaseline="middle"
-                        className="text-xs"
+                        className="text-xs font-medium"
                       >
                         {value}
                       </text>
