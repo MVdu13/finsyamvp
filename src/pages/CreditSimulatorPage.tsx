@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -251,6 +252,14 @@ const CreditSimulatorPage = () => {
                         <div 
                           className="h-full bg-blue-500"
                           style={{ width: `${(loanAmount / totalPayment) * 100}%` }}
+                        ></div>
+                        <div 
+                          className="h-full bg-[#FA5003]"
+                          style={{ 
+                            width: `${(totalInterest / totalPayment) * 100}%`,
+                            marginLeft: `${(loanAmount / totalPayment) * 100}%`,
+                            marginTop: "-2rem" 
+                          }}
                         ></div>
                       </div>
                     </div>
