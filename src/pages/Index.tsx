@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import Dashboard from './Dashboard';
@@ -9,6 +10,8 @@ import CryptoPage from './CryptoPage';
 import ProjectsPage from './ProjectsPage';
 import BankAccountsPage from './BankAccountsPage';
 import SavingsAccountsPage from './SavingsAccountsPage';
+import CompoundInterestPage from './CompoundInterestPage';
+import CreditSimulatorPage from './CreditSimulatorPage';
 import { Asset, Transaction } from '@/types/assets';
 import { mockAssets } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
@@ -281,6 +284,10 @@ const Index = () => {
                 onUpdateAsset={updateAsset}
                 onDeleteAsset={deleteAsset}
                />;
+      case 'compound-interest':
+        return <CompoundInterestPage />;
+      case 'credit-simulator':
+        return <CreditSimulatorPage />;
       default:
         return (
           <div className="p-6">

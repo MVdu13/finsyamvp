@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { LayoutDashboard, CircleDollarSign, PiggyBank, Building2, Briefcase, Bitcoin, CreditCard, BarChart4, Settings, ChevronLeft, LogOut, ChevronDown, ChevronRight, Wallet, ScrollText, Menu } from 'lucide-react';
+import { LayoutDashboard, CircleDollarSign, PiggyBank, Building2, Briefcase, Bitcoin, CreditCard, BarChart4, Settings, ChevronLeft, LogOut, ChevronDown, ChevronRight, Wallet, ScrollText, Menu, Calculator, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
@@ -205,6 +206,52 @@ const AppSidebar = ({
                   className={cn("sidebar-item", activeItem === 'crypto' ? "active" : "", "justify-center")}
                 >
                   <Bitcoin size={22} />
+                </button>
+              </>
+            )}
+            
+            {/* Tools section - New */}
+            {!isCollapsed ? (
+              <Collapsible open={isExpanded('tools')} onOpenChange={() => toggleSection('tools')}>
+                <CollapsibleTrigger className="w-full sidebar-item">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-2">
+                      <Calculator size={22} />
+                      <span>Outils</span>
+                    </div>
+                    {isExpanded('tools') ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-7 space-y-1 mt-1">
+                  <button 
+                    onClick={() => setActiveItem('compound-interest')} 
+                    className={cn("sidebar-subitem", activeItem === 'compound-interest' ? "active" : "")}
+                  >
+                    <TrendingUp size={18} />
+                    <span>Intérêt Composés</span>
+                  </button>
+                  <button 
+                    onClick={() => setActiveItem('credit-simulator')} 
+                    className={cn("sidebar-subitem", activeItem === 'credit-simulator' ? "active" : "")}
+                  >
+                    <Calculator size={18} />
+                    <span>Simulateur de Crédit</span>
+                  </button>
+                </CollapsibleContent>
+              </Collapsible>
+            ) : (
+              <>
+                <button 
+                  onClick={() => setActiveItem('compound-interest')} 
+                  className={cn("sidebar-item", activeItem === 'compound-interest' ? "active" : "", "justify-center")}
+                >
+                  <TrendingUp size={22} />
+                </button>
+                <button 
+                  onClick={() => setActiveItem('credit-simulator')} 
+                  className={cn("sidebar-item", activeItem === 'credit-simulator' ? "active" : "", "justify-center")}
+                >
+                  <Calculator size={22} />
                 </button>
               </>
             )}
