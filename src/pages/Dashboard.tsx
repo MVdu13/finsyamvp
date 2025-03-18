@@ -224,14 +224,14 @@ const Dashboard: React.FC<DashboardProps> = ({
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+        <div>
           <FinancialGoals 
             goals={mockGoals} 
             onAddGoal={handleNavigateToProjects} 
           />
         </div>
         
-        <div>
+        <div className="lg:col-span-2">
           <GroupedAssetsList 
             groupedAssets={groupedAssets}
             navigateTo={navigateTo}
