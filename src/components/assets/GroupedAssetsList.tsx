@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BarChart3, ArrowUpRight, ArrowDownRight, ExternalLink, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Asset, AssetType } from '@/types/assets';
@@ -62,7 +61,6 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
   };
 
   const handleAssetClick = (asset: Asset) => {
-    // If onAssetClick prop is provided, use it instead of the default behavior
     if (onAssetClick) {
       onAssetClick(asset);
       return;
@@ -285,7 +283,9 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
                     </div>
                   )}
                   
-                  {expandedSections[type] && (
+                  {expandedSections[type] && 
+                   type !== 'bank-account' && 
+                   type !== 'savings-account' && (
                     <button 
                       className="text-sm text-wealth-primary font-medium pl-6 flex items-center gap-1 hover:underline"
                       onClick={() => navigateTo(getNavigationTarget(type))}

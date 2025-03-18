@@ -14,6 +14,7 @@ interface AssetsListProps {
   onEdit?: (asset: Asset) => void;
   onDelete?: (assetId: string) => void;
   onAssetClick?: (asset: Asset) => void;
+  hideViewAllButton?: boolean;
 }
 
 const AssetsList: React.FC<AssetsListProps> = ({ 
@@ -22,7 +23,8 @@ const AssetsList: React.FC<AssetsListProps> = ({
   showActions = true,
   onEdit,
   onDelete,
-  onAssetClick
+  onAssetClick,
+  hideViewAllButton = false
 }) => {
   const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
@@ -164,7 +166,7 @@ const AssetsList: React.FC<AssetsListProps> = ({
         </div>
       </div>
 
-      {showActions && (
+      {showActions && !hideViewAllButton && (
         <div className="mt-4 pt-4 border-t border-border">
           <button className="flex items-center justify-center w-full p-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium gap-1">
             <span>Voir tous les actifs</span>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Wallet, TrendingUp, TrendingDown, Plus, AlertCircle } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -39,30 +38,23 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   
-  // Calculate metrics
   const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
   
-  // Calculate the ratio of bank accounts to total wealth
   const bankAccountRatio = totalWealth > 0 ? (totalValue / totalWealth) * 100 : 0;
   
-  // Determine if the ratio is too high (greater than 30%)
   const isRatioTooHigh = bankAccountRatio > 30;
   
-  // Generate chart data
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
     
-    // Déterminer le nombre de points de données selon la timeframe
     let numDataPoints;
     let labels;
     
-    // Créer des dates basées sur la timeframe sélectionnée
     const currentDate = new Date();
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
     
     switch (timeFrame) {
       case '1M':
-        // Jours du mois
         numDataPoints = 30;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -71,7 +63,6 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
         });
         break;
       case '3M':
-        // Points hebdomadaires sur 3 mois
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -80,7 +71,6 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
         });
         break;
       case '6M':
-        // Bi-hebdomadaire sur 6 mois
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -89,7 +79,6 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
         });
         break;
       case '5Y':
-        // Mensuel sur 5 ans
         numDataPoints = 60;
         labels = Array.from({ length: Math.min(numDataPoints, 24) }, (_, i) => {
           const date = new Date();
@@ -98,7 +87,6 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
         });
         break;
       case 'ALL':
-        // Annuel
         numDataPoints = 5;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -108,7 +96,6 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
         break;
       case '1Y':
       default:
-        // Mensuel sur 1 an
         numDataPoints = 12;
         labels = Array.from({ length: numDataPoints }, (_, i) => {
           const date = new Date();
@@ -118,7 +105,6 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
         break;
     }
     
-    // Si aucun compte, retourner des valeurs à zéro
     if (baseValue === 0) {
       return {
         labels,
@@ -126,22 +112,20 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
           {
             label: 'Solde comptes',
             data: Array(labels.length).fill(0),
-            color: '#FA5003', // Changed to primary orange
+            color: '#FA5003',
             fill: true,
           }
         ]
       };
     }
     
-    // Les comptes bancaires ont une volatilité plus faible que les investissements
     const volatilityFactor = timeFrame === '1M' ? 0.02 : 
                              timeFrame === '3M' ? 0.03 : 
                              timeFrame === '6M' ? 0.04 : 
                              timeFrame === '5Y' ? 0.1 : 
-                             timeFrame === 'ALL' ? 0.15 : 0.05; // 1Y
+                             timeFrame === 'ALL' ? 0.15 : 0.05;
     
     const generateValues = (steps: number, finalValue: number, volatility: number) => {
-      // Pour les comptes bancaires, nous voulons une tendance plus plate mais avec des pics/creux
       let currentValue = finalValue * (1 - Math.random() * volatility * 0.5);
       const result = [currentValue];
       
@@ -151,7 +135,6 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
         result.push(currentValue);
       }
       
-      // Ajouter la valeur finale
       result.push(finalValue);
       
       return result.map(val => Math.round(val));
@@ -165,7 +148,7 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
         {
           label: 'Solde comptes',
           data: values,
-          color: '#FA5003', // Changed to primary orange
+          color: '#FA5003',
           fill: true,
         }
       ]
@@ -175,7 +158,6 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
   const chartData = generateChartData();
 
   const handleAddAccount = (newAsset: Omit<Asset, 'id'>) => {
-    // Assurer que nous ajoutons un compte bancaire
     const bankAccount = {
       ...newAsset,
       type: 'bank-account' as AssetType
@@ -217,29 +199,26 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
     }
   };
 
-  // Generate distribution chart data
   const generateDistributionChartData = () => {
     if (assets.length === 0) {
       return {
         labels: ['Aucun compte'],
         values: [1],
-        colors: ['#e5e7eb'], // Light gray for empty state
+        colors: ['#e5e7eb'],
       };
     }
 
-    // Sort assets by value (highest first) to make chart more readable
     const sortedAssets = [...assets].sort((a, b) => b.value - a.value);
     
-    // For donut chart
     const colors = [
-      '#4ade80', // green
-      '#60a5fa', // blue
-      '#c084fc', // purple
-      '#f97316', // orange
-      '#facc15', // yellow
-      '#38bdf8', // light blue
-      '#fb7185', // pink
-      '#94a3b8', // gray
+      '#4ade80',
+      '#60a5fa',
+      '#c084fc',
+      '#f97316',
+      '#facc15',
+      '#38bdf8',
+      '#fb7185',
+      '#94a3b8',
     ];
 
     return {
@@ -279,7 +258,6 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
           </DialogContent>
         </Dialog>
         
-        {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
@@ -413,6 +391,7 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
             title="Comptes bancaires" 
             onEdit={handleEditAsset}
             onDelete={handleDeleteAsset}
+            hideViewAllButton={true}
           />
         ) : (
           <div className="text-center py-12 bg-muted rounded-lg">
