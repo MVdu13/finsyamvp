@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus, Filter, Search, Trash2, Pencil } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -242,7 +243,7 @@ const AssetsPage: React.FC<AssetsPageProps> = ({
                         <div>
                           <h3 className="font-medium">{asset.name}</h3>
                           {asset.type === 'crypto' && asset.quantity ? (
-                            <p className="text-sm text-muted-foreground">{asset.quantity} {asset.symbol || ''}</p>
+                            <p className="text-sm text-muted-foreground">{asset.quantity} unités à {asset.purchasePrice ? formatCurrency(asset.purchasePrice) : 'N/A'}</p>
                           ) : (
                             <p className="text-sm text-muted-foreground">{asset.description}</p>
                           )}
