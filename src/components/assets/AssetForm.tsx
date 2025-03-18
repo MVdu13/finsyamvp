@@ -62,7 +62,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const [annualCharges, setAnnualCharges] = useState('');
   
   const [cryptoQty, setCryptoQty] = useState('');
-  const [cryptoPrice, setCryptoPrice] = useState('');
   const [cryptoPurchasePrice, setCryptoPurchasePrice] = useState('');
   const [cryptoName, setCryptoName] = useState(initialValues?.name || '');
   
@@ -98,9 +97,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
         if (match) {
           setCryptoQty(match[1]);
           setCryptoPurchasePrice(match[2]);
-          if (initialValues.value && match[1]) {
-            setCryptoPrice((initialValues.value / parseFloat(match[1])).toString());
-          }
         }
       } 
       else if (initialValues.type === 'real-estate') {
@@ -194,6 +190,12 @@ const AssetForm: React.FC<AssetFormProps> = ({
       setValue((parseFloat(shares) * parseFloat(purchasePrice)).toString());
     }
   }, [type, shares, purchasePrice]);
+
+  useEffect(() => {
+    if (type === 'crypto' && cryptoQty && cryptoPurchasePrice) {
+      setValue((parseFloat(cryptoQty) * parseFloat(cryptoPurchasePrice)).toString());
+    }
+  }, [type, cryptoQty, cryptoPurchasePrice]);
 
   const validateForm = (): boolean => {
     if (type === 'stock' && !investmentAccountId) {
@@ -302,7 +304,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
       setPurchasePrice('');
       setCryptoAccountId('');
       setCryptoQty('');
-      setCryptoPrice('');
       setCryptoPurchasePrice('');
       setAddress('');
       setSurface('');
@@ -347,19 +348,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
     }
   };
 
-  const handleCryptoSelect = (crypto: CryptoInfo) => {
-    setName(crypto.name);
-    setTicker(crypto.symbol.toUpperCase());
-    setCryptoPrice(crypto.current_price.toString());
-    setCryptoPurchasePrice(crypto.current_price.toString());
-    setPerformance(crypto.price_change_percentage_24h.toString());
-    setCryptoQty('1');
-    setValue((crypto.current_price * 1).toString());
-  };
-
-  const updateCryptoValue = (qty: string, price: string) => {
-    if (qty && price) {
-      setValue((parseFloat(price) * parseFloat(qty)).toString());
+  const updateCryptoValue = (qty: string) => {
+    if (qty && cryptoPurchasePrice) {
+      setValue((parseFloat(cryptoPurchasePrice) * parseFloat(qty)).toString());
     }
   };
 
@@ -389,17 +380,12 @@ const AssetForm: React.FC<AssetFormProps> = ({
           <CryptoFormFields
             cryptoName={cryptoName}
             cryptoQty={cryptoQty}
-            cryptoPrice={cryptoPrice}
             purchasePrice={cryptoPurchasePrice}
             cryptoAccountId={cryptoAccountId}
             setCryptoName={setCryptoName}
             setCryptoQty={(newQty) => {
               setCryptoQty(newQty);
-              updateCryptoValue(newQty, cryptoPrice);
-            }}
-            setCryptoPrice={(newPrice) => {
-              setCryptoPrice(newPrice);
-              updateCryptoValue(cryptoQty, newPrice);
+              updateCryptoValue(newQty);
             }}
             setPurchasePrice={setCryptoPurchasePrice}
             setCryptoAccountId={setCryptoAccountId}

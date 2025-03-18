@@ -11,12 +11,10 @@ import CryptoAccountFormFields from './CryptoAccountFormFields';
 interface CryptoFormFieldsProps {
   cryptoName: string;
   cryptoQty: string;
-  cryptoPrice: string;
   purchasePrice: string;
   cryptoAccountId: string;
   setCryptoName: (value: string) => void;
   setCryptoQty: (value: string) => void;
-  setCryptoPrice: (value: string) => void;
   setPurchasePrice: (value: string) => void;
   setCryptoAccountId: (value: string) => void;
   cryptoAccounts: Asset[];
@@ -26,12 +24,10 @@ interface CryptoFormFieldsProps {
 const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
   cryptoName,
   cryptoQty,
-  cryptoPrice,
   purchasePrice,
   cryptoAccountId,
   setCryptoName,
   setCryptoQty,
-  setCryptoPrice,
   setPurchasePrice,
   setCryptoAccountId,
   cryptoAccounts,
@@ -172,39 +168,11 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
           id="cryptoQty"
           type="number"
           value={cryptoQty}
-          onChange={(e) => {
-            const newQty = e.target.value;
-            setCryptoQty(newQty);
-            if (cryptoPrice && newQty) {
-              // La logique est gérée par le parent
-            }
-          }}
+          onChange={(e) => setCryptoQty(e.target.value)}
           className="wealth-input w-full"
           placeholder="Ex: 0.5"
           min="0"
           step="0.000001"
-          required
-        />
-      </div>
-      <div>
-        <Label htmlFor="cryptoPrice" className="block text-sm font-medium mb-1">
-          Prix unitaire actuel (€) <span className="text-red-500">*</span>
-        </Label>
-        <Input
-          id="cryptoPrice"
-          type="number"
-          value={cryptoPrice}
-          onChange={(e) => {
-            const newPrice = e.target.value;
-            setCryptoPrice(newPrice);
-            if (cryptoQty && newPrice) {
-              // La logique est gérée par le parent
-            }
-          }}
-          className="wealth-input w-full"
-          placeholder="Ex: 30000"
-          min="0"
-          step="0.01"
           required
         />
       </div>
