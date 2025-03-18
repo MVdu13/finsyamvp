@@ -10,10 +10,11 @@ import LineChartComponent from '@/components/charts/LineChart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
+import { Button } from '@/components/ui/button';
 
 interface CryptoPageProps {
   assets: Asset[];
-  onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+  onAddAsset: (asset: Omit<Asset, 'id'>) => Asset | null | undefined;
   onDeleteAsset?: (id: string) => void;
   onUpdateAsset?: (id: string, asset: Partial<Asset>) => void;
 }
@@ -30,12 +31,42 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   
+  const cryptoAccounts = assets.filter(asset => asset.type === 'crypto-account');
   const cryptoAssets = assets.filter(asset => asset.type === 'crypto');
   
   const totalValue = cryptoAssets.reduce((sum, asset) => sum + asset.value, 0);
   const avgPerformance = cryptoAssets.length > 0 
-    ? cryptoAssets.reduce((sum, asset) => sum + asset.performance, 0) / cryptoAssets.length
+    ? cryptoAssets.reduce((sum, asset) => sum + (asset.performance || 0), 0) / cryptoAssets.length
     : 0;
+  
+  const groupedCryptos = cryptoAccounts.map(account => {
+    const accountCryptos = cryptoAssets.filter(crypto => crypto.cryptoAccountId === account.id);
+    const accountValue = accountCryptos.reduce((sum, crypto) => sum + crypto.value, 0);
+    
+    return {
+      account,
+      cryptos: accountCryptos,
+      totalValue: accountValue
+    };
+  });
+  
+  const unassignedCryptos = cryptoAssets.filter(crypto => !crypto.cryptoAccountId);
+  if (unassignedCryptos.length > 0) {
+    const unassignedValue = unassignedCryptos.reduce((sum, crypto) => sum + crypto.value, 0);
+    groupedCryptos.push({
+      account: {
+        id: 'unassigned',
+        name: 'Non catégorisées',
+        type: 'crypto-account' as AssetType,
+        value: unassignedValue,
+        performance: 0
+      },
+      cryptos: unassignedCryptos,
+      totalValue: unassignedValue
+    });
+  }
+  
+  groupedCryptos.sort((a, b) => b.totalValue - a.totalValue);
   
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
@@ -153,18 +184,42 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   const chartData = generateChartData();
 
   const handleAddCrypto = (newCrypto: Omit<Asset, 'id'>) => {
-    const cryptoAsset = {
-      ...newCrypto,
-      type: 'crypto' as AssetType
-    };
-    
-    onAddAsset(cryptoAsset);
-    setDialogOpen(false);
-    
-    toast({
-      title: "Crypto ajoutée",
-      description: `${newCrypto.name} a été ajouté à votre portefeuille`,
-    });
+    if (newCrypto.type === 'crypto-account') {
+      const cryptoAccount = {
+        ...newCrypto,
+        type: 'crypto-account' as AssetType,
+        value: 0
+      };
+      
+      const addedAccount = onAddAsset(cryptoAccount);
+      setDialogOpen(false);
+      
+      toast({
+        title: "Compte crypto ajouté",
+        description: `${newCrypto.name} a été ajouté à votre portefeuille`,
+      });
+      
+      return addedAccount;
+    } else {
+      const cryptoAsset = {
+        ...newCrypto,
+        type: 'crypto' as AssetType
+      };
+      
+      const addedAsset = onAddAsset(cryptoAsset);
+      setDialogOpen(false);
+      
+      toast({
+        title: "Crypto ajoutée",
+        description: `${newCrypto.name} a été ajoutée à votre portefeuille`,
+      });
+      
+      return addedAsset;
+    }
+  };
+  
+  const handleAddAccount = () => {
+    setDialogOpen(true);
   };
   
   const handleEditAsset = (asset: Asset) => {
@@ -233,6 +288,8 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
               onCancel={() => setDialogOpen(false)} 
               defaultType="crypto" 
               showTypeSelector={false}
+              cryptoAccounts={cryptoAccounts}
+              onAddAccount={handleAddCrypto}
             />
           </DialogContent>
         </Dialog>
@@ -253,6 +310,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
                 initialValues={editingAsset}
                 isEditing={true}
                 showTypeSelector={false}
+                cryptoAccounts={cryptoAccounts}
               />
             )}
           </DialogContent>
@@ -338,29 +396,66 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         </CardContent>
       </Card>
 
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Vos Cryptomonnaies</h2>
-        {cryptoAssets.length > 0 ? (
-          <AssetsList 
-            assets={cryptoAssets} 
-            title="Cryptomonnaies" 
-            onEdit={handleEditAsset}
-            onDelete={handleDeleteAsset}
-          />
-        ) : (
-          <div className="text-center py-12 bg-muted rounded-lg">
-            <p className="text-lg text-muted-foreground mb-4">
-              Aucune cryptomonnaie dans votre portefeuille
-            </p>
-            <button 
-              className="wealth-btn wealth-btn-primary"
-              onClick={() => setDialogOpen(true)}
-            >
-              Ajouter votre première cryptomonnaie
-            </button>
-          </div>
-        )}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Vos comptes crypto</h2>
+        <Button 
+          variant="outline" 
+          onClick={handleAddAccount}
+          className="flex items-center gap-1"
+        >
+          <Plus size={16} />
+          <span>Nouveau compte</span>
+        </Button>
       </div>
+
+      {groupedCryptos.length > 0 ? (
+        <div className="space-y-8">
+          {groupedCryptos.map(group => (
+            <div key={group.account.id} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">
+                  {group.account.name} {group.account.cryptoPlatform && `(${group.account.cryptoPlatform})`}
+                </h3>
+                <div className="text-lg font-semibold">{formatCurrency(group.totalValue)}</div>
+              </div>
+              
+              {group.cryptos.length > 0 ? (
+                <AssetsList 
+                  assets={group.cryptos} 
+                  title="" 
+                  onEdit={handleEditAsset}
+                  onDelete={handleDeleteAsset}
+                  showHeader={false}
+                />
+              ) : (
+                <div className="text-center py-6 bg-muted rounded-lg">
+                  <p className="text-muted-foreground">
+                    Aucune cryptomonnaie dans ce compte
+                  </p>
+                  <button 
+                    className="wealth-btn mt-2"
+                    onClick={() => setDialogOpen(true)}
+                  >
+                    Ajouter une cryptomonnaie
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 bg-muted rounded-lg">
+          <p className="text-lg text-muted-foreground mb-4">
+            Aucun compte crypto dans votre portefeuille
+          </p>
+          <button 
+            className="wealth-btn wealth-btn-primary"
+            onClick={() => setDialogOpen(true)}
+          >
+            Ajouter votre premier compte crypto
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import Dashboard from './Dashboard';
@@ -49,9 +48,7 @@ const Index = () => {
   const totalWealth = assets.reduce((sum, asset) => sum + asset.value, 0);
 
   const addAsset = (newAsset: Omit<Asset, 'id'>) => {
-    // Si c'est une action, on vérifie si on peut la stacker
     if (newAsset.type === 'stock' && newAsset.name && newAsset.investmentAccountId) {
-      // On cherche une action existante avec le même nom dans le même compte
       const existingStock = assets.find(asset => 
         asset.type === 'stock' && 
         asset.name === newAsset.name && 
@@ -59,7 +56,6 @@ const Index = () => {
       );
 
       if (existingStock) {
-        // Créer la nouvelle transaction
         const transaction: Transaction = {
           id: Date.now().toString(),
           date: new Date().toISOString(),
@@ -69,12 +65,10 @@ const Index = () => {
           type: 'buy'
         };
 
-        // Calculer les nouvelles valeurs
         const newQuantity = (existingStock.quantity || 0) + (newAsset.quantity || 0);
         const newValue = (existingStock.value || 0) + transaction.total;
         const newWeightedPrice = newValue / newQuantity;
         
-        // Mettre à jour l'action existante
         const updatedAsset: Asset = {
           ...existingStock,
           quantity: newQuantity,
@@ -99,14 +93,47 @@ const Index = () => {
       }
     }
     
-    // Si ce n'est pas une action ou si on ne peut pas stacker, on crée un nouvel actif
+    if (newAsset.type === 'crypto' && newAsset.name && newAsset.cryptoAccountId) {
+      const existingCrypto = assets.find(asset => 
+        asset.type === 'crypto' && 
+        asset.name === newAsset.name && 
+        asset.cryptoAccountId === newAsset.cryptoAccountId
+      );
+
+      if (existingCrypto) {
+        const newQuantity = (existingCrypto.quantity || 0) + (newAsset.quantity || 0);
+        const newValue = (existingCrypto.value || 0) + ((newAsset.quantity || 0) * (newAsset.purchasePrice || 0));
+        const newWeightedPrice = newValue / newQuantity;
+        
+        const updatedAsset: Asset = {
+          ...existingCrypto,
+          quantity: newQuantity,
+          value: newValue,
+          purchasePrice: newWeightedPrice,
+          updatedAt: new Date().toISOString()
+        };
+        
+        setAssets(prevAssets => 
+          prevAssets.map(asset => 
+            asset.id === existingCrypto.id ? updatedAsset : asset
+          )
+        );
+        
+        toast({
+          title: "Crypto mise à jour",
+          description: `${newAsset.quantity} ${newAsset.name} ont été ajoutées à votre portefeuille.`
+        });
+        
+        return updatedAsset;
+      }
+    }
+    
     const asset = {
       ...newAsset,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
     };
     
-    // Ajouter la première transaction pour les actions
     if (asset.type === 'stock' && asset.quantity && asset.purchasePrice) {
       const transaction: Transaction = {
         id: Date.now().toString(),
@@ -207,7 +234,7 @@ const Index = () => {
                />;
       case 'crypto':
         return <CryptoPage 
-                assets={assets.filter(asset => asset.type === 'crypto')} 
+                assets={assets.filter(asset => asset.type === 'crypto' || asset.type === 'crypto-account')} 
                 onAddAsset={addAsset}
                 onUpdateAsset={updateAsset}
                 onDeleteAsset={deleteAsset}
