@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import LineChart from '../charts/LineChart';
-import { BarChart3, Download, Info, Wallet, Coins, BarChart4 } from 'lucide-react';
+import { Info, Wallet, Coins, BarChart4 } from 'lucide-react';
 import { NetWorthHistory } from '@/types/assets';
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '../charts/TimeFrameSelector';
@@ -222,23 +221,6 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({
             selectedTimeFrame={timeFrame} 
             onTimeFrameChange={setTimeFrame} 
           />
-          
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setChartType(chartType === 'line' ? 'bar' : 'line')}
-            className="p-2 rounded-md hover:bg-muted transition-colors"
-          >
-            <BarChart3 size={18} />
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="icon"
-            className="p-2 rounded-md hover:bg-muted transition-colors"
-          >
-            <Download size={18} />
-          </Button>
         </div>
       </div>
       
