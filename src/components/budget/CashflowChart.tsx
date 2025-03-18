@@ -204,20 +204,21 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
               nodePadding={20}
               nodeWidth={15}
               link={{ stroke: '#d1d5db' }}
-              node={{
-                fill: (nodeData: any) => nodeData.payload.fill || '#a5b4fc',
-                radius: 4
-              }}
+              node={<Rectangle 
+                fill="#a5b4fc"
+                radius={4}
+              />}
               margin={{ top: 20, right: 160, bottom: 20, left: 160 }}
             >
               <Label
                 position="right"
                 offset={5}
-                content={({ x = 0, y = 0, width = 0, height = 0, payload }: any) => {
-                  if (!payload) return null;
+                content={(props: any) => {
+                  if (!props || !props.payload) return null;
+                  const { x, y, width, height, payload } = props;
                   const value = payload.name || '';
-                  const xPos = Number(x) + Number(width) + 6;
-                  const yPos = Number(y) + Number(height) / 2;
+                  const xPos = Number(x || 0) + Number(width || 0) + 6;
+                  const yPos = Number(y || 0) + Number(height || 0) / 2;
                   return (
                     <g>
                       <text 
@@ -250,4 +251,3 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
 };
 
 export default CashflowChart;
-
