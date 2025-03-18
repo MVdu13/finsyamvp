@@ -24,21 +24,25 @@ const RealEstateDetailsDialog: React.FC<RealEstateDetailsDialogProps> = ({
 }) => {
   if (!property) return null;
 
-  const propertyType = property.metadata?.propertyType || 'Appartement';
-  const usageType = property.metadata?.usageType || 'primary';
-  const address = property.metadata?.address || 'Non spécifié';
-  const yearBuilt = property.metadata?.yearBuilt || 'Non spécifié';
-  const area = property.metadata?.area || 0;
-  const monthlyRent = property.metadata?.monthlyRent || 0;
-  const yearlyTaxes = property.metadata?.yearlyTaxes || 0;
-  const yearlyFees = property.metadata?.yearlyFees || 0;
-  const purchaseYear = property.metadata?.purchaseYear || new Date().getFullYear();
-  const purchasePrice = property.metadata?.purchasePrice || 0;
+  const propertyType = property.propertyType || 'apartment';
+  const usageType = property.usageType || 'main';
+  const address = property.location || 'Non spécifié';
+  const yearBuilt = property.description?.includes('construit en') 
+    ? property.description.split('construit en')[1].trim().substring(0, 4) 
+    : 'Non spécifié';
+  const area = property.surface || 0;
+  const monthlyRent = property.annualRent ? property.annualRent / 12 : 0;
+  const yearlyTaxes = property.propertyTax || 0;
+  const yearlyFees = property.annualFees || 0;
+  const purchaseYear = property.purchaseDate 
+    ? new Date(property.purchaseDate).getFullYear() 
+    : new Date().getFullYear();
+  const purchasePrice = property.purchasePrice || 0;
   
   // Calculate metrics
-  const yearlyRent = monthlyRent * 12;
+  const yearlyRent = property.annualRent || 0;
   const grossYield = property.value > 0 ? (yearlyRent / property.value) * 100 : 0;
-  const yearlyExpenses = yearlyTaxes + yearlyFees;
+  const yearlyExpenses = yearlyTaxes + yearlyFees + (property.annualCharges || 0) + (property.housingTax || 0);
   const netRent = yearlyRent - yearlyExpenses;
   const netYield = property.value > 0 ? (netRent / property.value) * 100 : 0;
   const pricePerSqm = area > 0 ? property.value / area : 0;
@@ -65,16 +69,22 @@ const RealEstateDetailsDialog: React.FC<RealEstateDetailsDialogProps> = ({
                   "w-10 h-10 rounded-md flex items-center justify-center",
                   "bg-green-100"
                 )}>
-                  {propertyType === 'Maison' ? (
+                  {propertyType === 'house' ? (
                     <Home className="text-green-600" />
                   ) : (
                     <Building className="text-green-600" />
                   )}
                 </div>
                 <div>
-                  <h4 className="font-medium">{propertyType}</h4>
+                  <h4 className="font-medium">
+                    {propertyType === 'apartment' ? 'Appartement' :
+                     propertyType === 'house' ? 'Maison' :
+                     propertyType === 'building' ? 'Immeuble' :
+                     propertyType === 'commercial' ? 'Local commercial' :
+                     propertyType === 'land' ? 'Terrain' : 'Autre'}
+                  </h4>
                   <p className="text-sm text-muted-foreground">
-                    {usageType === 'primary' ? 'Résidence principale' : 
+                    {usageType === 'main' ? 'Résidence principale' : 
                      usageType === 'secondary' ? 'Résidence secondaire' : 
                      'Bien locatif'}
                   </p>
