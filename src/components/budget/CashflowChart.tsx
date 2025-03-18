@@ -172,14 +172,14 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
         <CardTitle className="text-lg font-medium">Flux de trésorerie</CardTitle>
       </CardHeader>
       <CardContent className="p-2">
-        <div className="w-full" style={{ height: '700px' }}>
+        <div className="w-full" style={{ height: '500px' }}>
           <ChartContainer config={chartConfig}>
             <Sankey
-              width={1200}
-              height={680}
+              width={800}
+              height={480}
               data={{ nodes, links }}
-              nodePadding={15}
-              nodeWidth={12}
+              nodePadding={10}
+              nodeWidth={10}
               link={{ stroke: '#d1d5db' }}
               node={
                 <Rectangle 
