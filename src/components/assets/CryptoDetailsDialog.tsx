@@ -41,7 +41,7 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="text-xl">{crypto.name}</DialogTitle>
           <DialogDescription>
-            Détails de votre investissement en cryptomonnaie
+            {crypto.quantity !== undefined ? `${crypto.quantity} ${crypto.symbol || 'unités'}` : ''} - Détails de votre investissement en cryptomonnaie
           </DialogDescription>
         </DialogHeader>
         
@@ -61,7 +61,7 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
                 <div>
                   <h4 className="font-medium">{crypto.name}</h4>
                   <p className="text-sm text-muted-foreground">
-                    {crypto.quantity !== undefined ? `${crypto.quantity} unités` : crypto.symbol || 'Crypto'}
+                    {crypto.quantity !== undefined ? `${crypto.quantity} ${crypto.symbol || 'unités'}` : crypto.symbol || 'Crypto'}
                   </p>
                 </div>
               </div>
@@ -86,7 +86,7 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
             <div className="grid grid-cols-2 gap-4 mt-2">
               <div className="text-sm">
                 <p className="text-muted-foreground">Quantité</p>
-                <p className="font-medium">{crypto.quantity || 'N/A'}</p>
+                <p className="font-medium">{crypto.quantity || 'N/A'} {crypto.symbol || ''}</p>
               </div>
               <div className="text-sm">
                 <p className="text-muted-foreground">Prix actuel</p>

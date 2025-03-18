@@ -219,9 +219,9 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
                                     {asset.quantity} × {formatCurrency(asset.purchasePrice)}
                                   </p>
                                 )}
-                                {asset.type === 'crypto' && asset.quantity && asset.purchasePrice && (
+                                {asset.type === 'crypto' && asset.quantity && (
                                   <p className="text-xs text-muted-foreground mt-1">
-                                    {asset.quantity} × {formatCurrency(asset.purchasePrice)}
+                                    {asset.quantity} {asset.symbol || ''} {asset.purchasePrice ? `× ${formatCurrency(asset.purchasePrice)}` : ''}
                                   </p>
                                 )}
                               </div>
