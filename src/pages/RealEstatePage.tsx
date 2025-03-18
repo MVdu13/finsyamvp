@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight, Pencil, Trash2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight, Pencil, Trash2, Wallet, Percent, Coin, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from '@/lib/formatters';
 import { Asset, AssetType } from '@/types/assets';
@@ -31,9 +31,39 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
   // Properties are real estate assets
   const properties = assets;
 
-  const totalValue = properties.reduce((sum, property) => sum + property.value, 0);
+  // Calculate financials
+  const realEstateMetrics = useMemo(() => {
+    const totalValue = properties.reduce((sum, property) => sum + property.value, 0);
+    
+    // Calculate annual income (rent)
+    const annualIncome = properties.reduce((sum, property) => {
+      return sum + (property.annualRent || 0);
+    }, 0);
+    
+    // Calculate annual costs (property tax, annual fees, annual charges)
+    const annualCosts = properties.reduce((sum, property) => {
+      return sum + (property.propertyTax || 0) + (property.annualFees || 0) + (property.annualCharges || 0);
+    }, 0);
+    
+    // Calculate gross yield
+    const grossYield = totalValue > 0 ? (annualIncome / totalValue) * 100 : 0;
+    
+    // Calculate net yield
+    const netIncome = annualIncome - annualCosts;
+    const netYield = totalValue > 0 ? (netIncome / totalValue) * 100 : 0;
+    
+    return {
+      totalValue,
+      annualIncome,
+      annualCosts,
+      netIncome,
+      grossYield,
+      netYield,
+    };
+  }, [properties]);
+
   const avgPerformance = properties.length > 0 
-    ? properties.reduce((sum, property) => sum + property.performance, 0) / properties.length
+    ? properties.reduce((sum, property) => sum + (property.performance || 0), 0) / properties.length
     : 0;
 
   // Générer un historique cohérent basé sur la valeur totale actuelle et la timeframe
@@ -257,13 +287,16 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Valeur Totale</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Wallet size={16} />
+              Valeur Totale
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalValue)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(realEstateMetrics.totalValue)}</div>
             <div className={cn(
               "text-xs flex items-center mt-1",
               avgPerformance >= 0 ? "text-green-600" : "text-red-600"
@@ -276,29 +309,55 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Nombre de Biens</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <TrendingUp size={16} />
+              Rendement Brut
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{properties.length}</div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Biens immobiliers en portefeuille
+            <div className="text-2xl font-bold">{formatCurrency(realEstateMetrics.annualIncome)}</div>
+            <div className="text-xs text-green-600 mt-1 flex items-center">
+              <Percent size={14} className="mr-1" />
+              {realEstateMetrics.grossYield.toFixed(2)}% par an
             </div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Rendement Moyen</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Coin size={16} />
+              Coût Annuel
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(realEstateMetrics.annualCosts)}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Taxes, charges, frais divers
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Shield size={16} />
+              Rendement Net
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className={cn(
               "text-2xl font-bold",
-              avgPerformance >= 0 ? "text-green-600" : "text-red-600"
+              realEstateMetrics.netYield >= 0 ? "text-green-600" : "text-red-600"
             )}>
-              {avgPerformance > 0 ? "+" : ""}{avgPerformance.toFixed(1)}%
+              {formatCurrency(realEstateMetrics.netIncome)}
             </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Performance estimée sur l'année
+            <div className={cn(
+              "text-xs mt-1 flex items-center",
+              realEstateMetrics.netYield >= 0 ? "text-green-600" : "text-red-600"
+            )}>
+              <Percent size={14} className="mr-1" />
+              {realEstateMetrics.netYield.toFixed(2)}% par an
             </div>
           </CardContent>
         </Card>
@@ -339,54 +398,65 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
                 <TableHead>Nom</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Valeur</TableHead>
-                <TableHead>Performance</TableHead>
+                <TableHead>Revenu annuel</TableHead>
+                <TableHead>Coût annuel</TableHead>
+                <TableHead>Rendement net</TableHead>
                 <TableHead>Date d'acquisition</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {properties.map((property) => (
-                <TableRow key={property.id}>
-                  <TableCell className="font-medium">{property.name}</TableCell>
-                  <TableCell>{property.description}</TableCell>
-                  <TableCell>{formatCurrency(property.value)}</TableCell>
-                  <TableCell>
-                    <span className={cn(
-                      "inline-flex items-center",
-                      property.performance >= 0 ? "text-green-600" : "text-red-600"
-                    )}>
-                      {property.performance >= 0 ? <ArrowUpRight size={14} className="mr-1" /> : <ArrowDownRight size={14} className="mr-1" />}
-                      {property.performance > 0 ? "+" : ""}{property.performance}%
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {property.createdAt 
-                      ? new Date(property.createdAt).toLocaleDateString() 
-                      : 'Non spécifiée'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => openEditDialog(property)}
-                        className="p-2 rounded-full hover:bg-muted transition-colors text-blue-600"
-                        title="Modifier"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      <button
-                        onClick={() => openDeleteDialog(property)}
-                        className="p-2 rounded-full hover:bg-muted transition-colors text-red-600"
-                        title="Supprimer"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {properties.map((property) => {
+                // Calculate individual property metrics
+                const annualIncome = property.annualRent || 0;
+                const annualCosts = (property.propertyTax || 0) + (property.annualFees || 0) + (property.annualCharges || 0);
+                const netIncome = annualIncome - annualCosts;
+                const netYield = property.value > 0 ? (netIncome / property.value) * 100 : 0;
+                
+                return (
+                  <TableRow key={property.id}>
+                    <TableCell className="font-medium">{property.name}</TableCell>
+                    <TableCell>{property.description}</TableCell>
+                    <TableCell>{formatCurrency(property.value)}</TableCell>
+                    <TableCell>{formatCurrency(annualIncome)}</TableCell>
+                    <TableCell>{formatCurrency(annualCosts)}</TableCell>
+                    <TableCell>
+                      <span className={cn(
+                        "inline-flex items-center",
+                        netYield >= 0 ? "text-green-600" : "text-red-600"
+                      )}>
+                        {netYield.toFixed(2)}%
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {property.createdAt 
+                        ? new Date(property.createdAt).toLocaleDateString() 
+                        : 'Non spécifiée'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => openEditDialog(property)}
+                          className="p-2 rounded-full hover:bg-muted transition-colors text-blue-600"
+                          title="Modifier"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => openDeleteDialog(property)}
+                          className="p-2 rounded-full hover:bg-muted transition-colors text-red-600"
+                          title="Supprimer"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
               {properties.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+                  <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
                     Aucun bien immobilier enregistré
                   </TableCell>
                 </TableRow>
