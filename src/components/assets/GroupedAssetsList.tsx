@@ -11,13 +11,15 @@ interface GroupedAssetsListProps {
   navigateTo: (item: string) => void;
   onEdit?: (asset: Asset) => void;
   onDelete?: (id: string) => void;
+  hideInvestmentAccounts?: boolean;
 }
 
 const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
   groupedAssets,
   navigateTo,
   onEdit,
-  onDelete
+  onDelete,
+  hideInvestmentAccounts = false
 }) => {
   const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -69,6 +71,8 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
       case 'bonds': return 'Obligations';
       case 'cash': return 'Liquidités';
       case 'commodities': return 'Matières premières';
+      case 'investment-account': return 'Comptes d\'investissement';
+      case 'crypto-account': return 'Comptes crypto';
       default: return 'Autres actifs';
     }
   };
@@ -80,11 +84,31 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
       case 'real-estate': return 'real-estate';
       case 'stock': return 'stocks';
       case 'crypto': return 'crypto';
+      case 'investment-account': return 'stocks';
+      case 'crypto-account': return 'crypto';
       default: return 'assets';
     }
   };
 
-  const orderedTypes = Object.keys(groupedAssets).sort((a, b) => {
+  const filteredGroupedAssets = { ...groupedAssets };
+  if (hideInvestmentAccounts) {
+    delete filteredGroupedAssets['investment-account'];
+    delete filteredGroupedAssets['crypto-account'];
+    
+    if (filteredGroupedAssets['stock']) {
+      filteredGroupedAssets['stock'] = filteredGroupedAssets['stock'].filter(
+        asset => !asset.investmentAccountId
+      );
+    }
+    
+    if (filteredGroupedAssets['crypto']) {
+      filteredGroupedAssets['crypto'] = filteredGroupedAssets['crypto'].filter(
+        asset => !asset.cryptoAccountId
+      );
+    }
+  }
+
+  const orderedTypes = Object.keys(filteredGroupedAssets).sort((a, b) => {
     const order = {
       'bank-account': 1,
       'savings-account': 2,
@@ -94,9 +118,11 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
       'bonds': 6,
       'cash': 7,
       'commodities': 8,
-      'other': 9
+      'investment-account': 9,
+      'crypto-account': 10,
+      'other': 11
     };
-    return (order[a as keyof typeof order] || 10) - (order[b as keyof typeof order] || 10);
+    return (order[a as keyof typeof order] || 12) - (order[b as keyof typeof order] || 12);
   });
 
   return (
@@ -116,7 +142,7 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
         ) : (
           <div className="space-y-6">
             {orderedTypes.map(type => {
-              const assets = groupedAssets[type as AssetType];
+              const assets = filteredGroupedAssets[type as AssetType];
               if (!assets || assets.length === 0) return null;
               
               const sectionTotal = assets.reduce((sum, asset) => sum + asset.value, 0);

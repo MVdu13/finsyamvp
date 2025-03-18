@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import NetWorthChart, { AssetCategoryFilter } from '@/components/dashboard/NetWorthChart';
 import AssetAllocation from '@/components/dashboard/AssetAllocation';
@@ -239,6 +240,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               setDialogOpen(true);
             } : undefined}
             onDelete={onDeleteAsset}
+            hideInvestmentAccounts={true}
           />
         </div>
       </div>
