@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { Bitcoin, TrendingUp, TrendingDown, Wallet, Plus, Filter, MoreVertical } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Plus, ChevronDown } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
-import { Asset, AssetType, Transaction } from '@/types/assets';
+import { Asset, AssetType } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LineChartComponent from '@/components/charts/LineChart';
@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
 import { Button } from '@/components/ui/button';
-import StockTransactionsList from '@/components/assets/StockTransactionsList';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface CryptoPageProps {
   assets: Asset[];
@@ -273,6 +273,64 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
     }
   };
 
+  const renderCryptoGroup = (group: { account: Asset, cryptos: Asset[], totalValue: number }) => {
+    return (
+      <div key={group.account.id} className="space-y-4">
+        <Collapsible>
+          <div className="rounded-lg border p-4 mb-4">
+            <CollapsibleTrigger className="w-full">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-md bg-purple-100 flex items-center justify-center">
+                    <Wallet className="h-5 w-5 text-purple-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">
+                      {group.account.name} {group.account.cryptoPlatform && `(${group.account.cryptoPlatform})`}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {group.cryptos.length} cryptomonnaies
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <div className="font-semibold">{formatCurrency(group.totalValue)}</div>
+                  </div>
+                  <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform" />
+                </div>
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4">
+              {group.cryptos.length > 0 ? (
+                <AssetsList 
+                  assets={group.cryptos} 
+                  title="" 
+                  showActions={false}
+                  onEdit={handleEditAsset}
+                  onDelete={handleDeleteAsset}
+                  onAssetClick={handleAssetClick}
+                />
+              ) : (
+                <div className="text-center py-6 bg-muted rounded-lg">
+                  <p className="text-muted-foreground">
+                    Aucune cryptomonnaie dans ce compte
+                  </p>
+                  <button 
+                    className="wealth-btn mt-2"
+                    onClick={() => setDialogOpen(true)}
+                  >
+                    Ajouter une cryptomonnaie
+                  </button>
+                </div>
+              )}
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
+      </div>
+    );
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -466,39 +524,8 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       </div>
 
       {groupedCryptos.length > 0 ? (
-        <div className="space-y-8">
-          {groupedCryptos.map(group => (
-            <div key={group.account.id} className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">
-                  {group.account.name} {group.account.cryptoPlatform && `(${group.account.cryptoPlatform})`}
-                </h3>
-                <div className="text-lg font-semibold">{formatCurrency(group.totalValue)}</div>
-              </div>
-              
-              {group.cryptos.length > 0 ? (
-                <AssetsList 
-                  assets={group.cryptos} 
-                  title="" 
-                  onEdit={handleEditAsset}
-                  onDelete={handleDeleteAsset}
-                  onAssetClick={handleAssetClick}
-                />
-              ) : (
-                <div className="text-center py-6 bg-muted rounded-lg">
-                  <p className="text-muted-foreground">
-                    Aucune cryptomonnaie dans ce compte
-                  </p>
-                  <button 
-                    className="wealth-btn mt-2"
-                    onClick={() => setDialogOpen(true)}
-                  >
-                    Ajouter une cryptomonnaie
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+        <div className="space-y-4">
+          {groupedCryptos.map(renderCryptoGroup)}
         </div>
       ) : (
         <div className="text-center py-12 bg-muted rounded-lg">
