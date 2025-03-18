@@ -12,6 +12,7 @@ import BankAccountsPage from './BankAccountsPage';
 import SavingsAccountsPage from './SavingsAccountsPage';
 import CompoundInterestPage from './CompoundInterestPage';
 import CreditSimulatorPage from './CreditSimulatorPage';
+import PortfolioRebalancingPage from './PortfolioRebalancingPage';
 import { Asset, Transaction } from '@/types/assets';
 import { mockAssets } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
@@ -288,6 +289,8 @@ const Index = () => {
         return <CompoundInterestPage />;
       case 'credit-simulator':
         return <CreditSimulatorPage />;
+      case 'portfolio-rebalancing':
+        return <PortfolioRebalancingPage />;
       default:
         return (
           <div className="p-6">
