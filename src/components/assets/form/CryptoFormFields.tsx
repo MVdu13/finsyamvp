@@ -1,9 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import CryptoSearch from '../CryptoSearch';
-import { CryptoInfo } from '@/services/cryptoService';
 import { Button } from '@/components/ui/button';
-import { Search, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -12,34 +10,35 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import CryptoAccountFormFields from './CryptoAccountFormFields';
 
 interface CryptoFormFieldsProps {
+  cryptoName: string;
   cryptoQty: string;
   cryptoPrice: string;
   purchasePrice: string;
   cryptoAccountId: string;
+  setCryptoName: (value: string) => void;
   setCryptoQty: (value: string) => void;
   setCryptoPrice: (value: string) => void;
   setPurchasePrice: (value: string) => void;
   setCryptoAccountId: (value: string) => void;
   cryptoAccounts: Asset[];
-  onCryptoSelect: (crypto: CryptoInfo) => void;
   onAddAccount?: (account: Omit<Asset, 'id'>) => Asset | null | undefined;
 }
 
 const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
+  cryptoName,
   cryptoQty,
   cryptoPrice,
   purchasePrice,
   cryptoAccountId,
+  setCryptoName,
   setCryptoQty,
   setCryptoPrice,
   setPurchasePrice,
   setCryptoAccountId,
   cryptoAccounts,
-  onCryptoSelect,
   onAddAccount
 }) => {
   const { toast } = useToast();
-  const [showCryptoSearch, setShowCryptoSearch] = useState(true);
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [newAccountName, setNewAccountName] = useState('');
   const [newCryptoPlatform, setNewCryptoPlatform] = useState<'Binance' | 'Bitget' | 'Kucoin' | 'Coinbase' | 'Metamask' | 'Phantom' | 'Ledger' | 'Autre'>('Binance');
@@ -152,35 +151,23 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
         )}
       </div>
 
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-1">
-          <Label className="block text-sm font-medium">
-            Rechercher une cryptomonnaie
-          </Label>
-          <Button 
-            type="button" 
-            onClick={() => setShowCryptoSearch(!showCryptoSearch)}
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2 text-xs"
-          >
-            {showCryptoSearch ? 'Masquer' : <Search className="h-4 w-4 mr-1" />}
-            {!showCryptoSearch && 'Rechercher'}
-          </Button>
-        </div>
-        
-        {showCryptoSearch && (
-          <div className="mb-2">
-            <CryptoSearch onSelect={(crypto) => {
-              onCryptoSelect(crypto);
-              // Laissons la recherche visible pour que l'utilisateur puisse chercher une autre crypto s'il le souhaite
-            }} />
-          </div>
-        )}
+      <div>
+        <Label htmlFor="cryptoName" className="block text-sm font-medium mb-1">
+          Nom de la cryptomonnaie <span className="text-red-500">*</span>
+        </Label>
+        <Input
+          id="cryptoName"
+          type="text"
+          value={cryptoName}
+          onChange={(e) => setCryptoName(e.target.value)}
+          className="wealth-input w-full"
+          placeholder="Ex: Bitcoin"
+          required
+        />
       </div>
       <div>
         <Label htmlFor="cryptoQty" className="block text-sm font-medium mb-1">
-          Quantité
+          Quantité <span className="text-red-500">*</span>
         </Label>
         <Input
           id="cryptoQty"
@@ -197,11 +184,12 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
           placeholder="Ex: 0.5"
           min="0"
           step="0.000001"
+          required
         />
       </div>
       <div>
         <Label htmlFor="cryptoPrice" className="block text-sm font-medium mb-1">
-          Prix unitaire actuel (€)
+          Prix unitaire actuel (€) <span className="text-red-500">*</span>
         </Label>
         <Input
           id="cryptoPrice"
@@ -218,11 +206,12 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
           placeholder="Ex: 30000"
           min="0"
           step="0.01"
+          required
         />
       </div>
       <div>
         <Label htmlFor="purchasePrice" className="block text-sm font-medium mb-1">
-          Prix d'achat unitaire (€)
+          Prix d'achat unitaire (€) <span className="text-red-500">*</span>
         </Label>
         <Input
           id="purchasePrice"
@@ -233,6 +222,7 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
           placeholder="Ex: 25000"
           min="0"
           step="0.01"
+          required
         />
       </div>
     </>

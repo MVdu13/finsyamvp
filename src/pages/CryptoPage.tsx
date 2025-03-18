@@ -425,7 +425,6 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
                   title="" 
                   onEdit={handleEditAsset}
                   onDelete={handleDeleteAsset}
-                  showHeader={false}
                 />
               ) : (
                 <div className="text-center py-6 bg-muted rounded-lg">
