@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { BarChart3, ArrowUpRight, ArrowDownRight, ExternalLink, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Asset, AssetType } from '@/types/assets';
@@ -14,6 +15,7 @@ interface GroupedAssetsListProps {
   onEdit?: (asset: Asset) => void;
   onDelete?: (id: string) => void;
   hideInvestmentAccounts?: boolean;
+  onAssetClick?: (asset: Asset) => void;
 }
 
 const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
@@ -21,7 +23,8 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
   navigateTo,
   onEdit,
   onDelete,
-  hideInvestmentAccounts = false
+  hideInvestmentAccounts = false,
+  onAssetClick
 }) => {
   const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -59,6 +62,12 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
   };
 
   const handleAssetClick = (asset: Asset) => {
+    // If onAssetClick prop is provided, use it instead of the default behavior
+    if (onAssetClick) {
+      onAssetClick(asset);
+      return;
+    }
+    
     let upToDateAsset = asset;
     
     const assetType = asset.type as AssetType;
