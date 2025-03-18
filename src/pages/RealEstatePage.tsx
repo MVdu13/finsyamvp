@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
-import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight, Pencil, Trash2, Wallet, Percent, Coin, Shield } from 'lucide-react';
+import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight, Pencil, Trash2, Wallet, Percent, Coins, Shield, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from '@/lib/formatters';
 import { Asset, AssetType } from '@/types/assets';
@@ -68,7 +67,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
 
   // Générer un historique cohérent basé sur la valeur totale actuelle et la timeframe
   const generateChartData = () => {
-    const baseValue = totalValue > 0 ? totalValue : 0;
+    const baseValue = realEstateMetrics.totalValue > 0 ? realEstateMetrics.totalValue : 0;
     
     // Déterminer le nombre de points de données selon la timeframe
     let numDataPoints;
@@ -326,7 +325,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Coin size={16} />
+              <Coins size={16} />
               Coût Annuel
             </CardTitle>
           </CardHeader>
