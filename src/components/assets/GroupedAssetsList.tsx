@@ -52,8 +52,7 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
     }));
   };
 
-  const handleAssetClick = (asset: Asset, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleAssetClick = (asset: Asset) => {
     if (asset.type === 'real-estate') {
       setSelectedAsset(asset);
       setDetailsDialogOpen(true);
@@ -141,7 +140,7 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
                         <div 
                           key={asset.id} 
                           className="p-3 rounded-lg border border-border hover:border-wealth-primary/20 transition-all hover:shadow-sm cursor-pointer"
-                          onClick={(e) => handleAssetClick(asset, e)}
+                          onClick={() => handleAssetClick(asset)}
                         >
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-3">

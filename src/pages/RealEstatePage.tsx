@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight, Pencil, Trash2, Wallet, Percent, Coins, Shield, TrendingUp, Home } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import RealEstateDetailsDialog from '@/components/assets/RealEstateDetailsDialog';
 
 interface RealEstatePageProps {
   assets: Asset[];
@@ -32,6 +32,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [propertyFilter, setPropertyFilter] = useState<PropertyFilter>('all');
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   
   // Properties are real estate assets
   const properties = assets.filter(asset => asset.type === 'real-estate');
@@ -44,7 +45,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
   const rentalProperties = properties.filter(property => 
     property.usageType === 'rental'
   );
-
+  
   // Get filtered properties based on the selected filter
   const filteredProperties = useMemo(() => {
     switch (propertyFilter) {
@@ -309,6 +310,11 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
     setDeleteDialogOpen(true);
   };
 
+  const openDetailsDialog = (property: Asset) => {
+    setSelectedAsset(property);
+    setDetailsDialogOpen(true);
+  };
+
   // Debug to check if values are present
   console.log("Properties:", properties);
   console.log("Metrics:", realEstateMetrics);
@@ -500,7 +506,11 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
             </TableHeader>
             <TableBody>
               {residentialProperties.map((property) => (
-                <TableRow key={property.id}>
+                <TableRow 
+                  key={property.id} 
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => openDetailsDialog(property)}
+                >
                   <TableCell className="font-medium">{property.name}</TableCell>
                   <TableCell>{property.description}</TableCell>
                   <TableCell>{formatCurrency(property.value)}</TableCell>
@@ -517,14 +527,20 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <button
-                        onClick={() => openEditDialog(property)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditDialog(property);
+                        }}
                         className="p-2 rounded-full hover:bg-muted transition-colors text-blue-600"
                         title="Modifier"
                       >
                         <Pencil size={16} />
                       </button>
                       <button
-                        onClick={() => openDeleteDialog(property)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDeleteDialog(property);
+                        }}
                         className="p-2 rounded-full hover:bg-muted transition-colors text-red-600"
                         title="Supprimer"
                       >
@@ -572,7 +588,11 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
                 const netYield = property.value > 0 ? (netIncome / property.value) * 100 : 0;
                 
                 return (
-                  <TableRow key={property.id}>
+                  <TableRow 
+                    key={property.id} 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => openDetailsDialog(property)}
+                  >
                     <TableCell className="font-medium">{property.name}</TableCell>
                     <TableCell>{property.description}</TableCell>
                     <TableCell>{formatCurrency(property.value)}</TableCell>
@@ -594,14 +614,20 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <button
-                          onClick={() => openEditDialog(property)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditDialog(property);
+                          }}
                           className="p-2 rounded-full hover:bg-muted transition-colors text-blue-600"
                           title="Modifier"
                         >
                           <Pencil size={16} />
                         </button>
                         <button
-                          onClick={() => openDeleteDialog(property)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDeleteDialog(property);
+                          }}
                           className="p-2 rounded-full hover:bg-muted transition-colors text-red-600"
                           title="Supprimer"
                         >
@@ -666,6 +692,13 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialogue de détails du bien */}
+      <RealEstateDetailsDialog
+        isOpen={detailsDialogOpen}
+        onClose={() => setDetailsDialogOpen(false)}
+        property={selectedAsset}
+      />
     </div>
   );
 };
