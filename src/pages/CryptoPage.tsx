@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Bitcoin, TrendingUp, TrendingDown, Wallet, Plus, Filter } from 'lucide-react';
+import { Bitcoin, TrendingUp, TrendingDown, Wallet, Plus, Filter, MoreVertical } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
-import { Asset, AssetType } from '@/types/assets';
+import { Asset, AssetType, Transaction } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LineChartComponent from '@/components/charts/LineChart';
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
 import { Button } from '@/components/ui/button';
+import StockTransactionsList from '@/components/assets/StockTransactionsList';
 
 interface CryptoPageProps {
   assets: Asset[];
@@ -28,8 +29,10 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [transactionDialogOpen, setTransactionDialogOpen] = useState(false);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [selectedCrypto, setSelectedCrypto] = useState<Asset | null>(null);
   
   const cryptoAccounts = assets.filter(asset => asset.type === 'crypto-account');
   const cryptoAssets = assets.filter(asset => asset.type === 'crypto');
@@ -249,10 +252,11 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
     }
   };
 
-  const firstValue = chartData.datasets[0].data[0] || 0;
-  const lastValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1] || 0;
-  const absoluteGrowth = lastValue - firstValue;
-  
+  const handleAssetClick = (asset: Asset) => {
+    setSelectedCrypto(asset);
+    setTransactionDialogOpen(true);
+  };
+
   const getTimePeriodText = () => {
     switch (timeFrame) {
       case '1M': return 'sur le dernier mois';
@@ -290,6 +294,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
               showTypeSelector={false}
               cryptoAccounts={cryptoAccounts}
               onAddAccount={handleAddCrypto}
+              existingCryptos={cryptoAssets}
             />
           </DialogContent>
         </Dialog>
@@ -311,7 +316,55 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
                 isEditing={true}
                 showTypeSelector={false}
                 cryptoAccounts={cryptoAccounts}
+                existingCryptos={cryptoAssets}
               />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={transactionDialogOpen} onOpenChange={setTransactionDialogOpen}>
+          <DialogContent className="sm:max-w-[800px]">
+            <DialogHeader>
+              <DialogTitle>Détails de la cryptomonnaie</DialogTitle>
+            </DialogHeader>
+            {selectedCrypto && (
+              <div className="py-4">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold">{selectedCrypto.name}</h3>
+                    <p className="text-muted-foreground">
+                      {selectedCrypto.quantity} unités • {formatCurrency(selectedCrypto.value)}
+                    </p>
+                  </div>
+                  <div className={cn(
+                    "text-md font-bold",
+                    (selectedCrypto.performance || 0) >= 0 ? "text-green-600" : "text-red-600"
+                  )}>
+                    {(selectedCrypto.performance || 0) >= 0 ? '+' : ''}{selectedCrypto.performance}%
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground">Prix d'achat</p>
+                    <p className="text-lg font-bold">{formatCurrency(selectedCrypto.purchasePrice || 0)}</p>
+                  </div>
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground">Valeur actuelle</p>
+                    <p className="text-lg font-bold">{formatCurrency(selectedCrypto.value)}</p>
+                  </div>
+                </div>
+
+                {selectedCrypto.transactions && selectedCrypto.transactions.length > 0 ? (
+                  <StockTransactionsList transactions={selectedCrypto.transactions} />
+                ) : (
+                  <div className="text-center py-6 bg-muted rounded-lg">
+                    <p className="text-muted-foreground">
+                      Aucune transaction pour cette cryptomonnaie
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
           </DialogContent>
         </Dialog>
@@ -425,6 +478,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
                   title="" 
                   onEdit={handleEditAsset}
                   onDelete={handleDeleteAsset}
+                  onAssetClick={handleAssetClick}
                 />
               ) : (
                 <div className="text-center py-6 bg-muted rounded-lg">

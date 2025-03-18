@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Asset, AssetType } from '@/types/assets';
 import { X, Banknote, Wallet, BookText, Home } from 'lucide-react';
@@ -11,7 +12,6 @@ import SavingsAccountFormFields from './form/SavingsAccountFormFields';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { CryptoInfo } from '@/services/cryptoService';
 
 interface AssetFormProps {
   onSubmit: (asset: Omit<Asset, 'id'>) => void;
@@ -23,6 +23,8 @@ interface AssetFormProps {
   investmentAccounts?: Asset[];
   cryptoAccounts?: Asset[];
   onAddAccount?: (account: Omit<Asset, 'id'>) => Asset | null | undefined;
+  existingStocks?: Asset[];
+  existingCryptos?: Asset[];
 }
 
 const AssetForm: React.FC<AssetFormProps> = ({ 
