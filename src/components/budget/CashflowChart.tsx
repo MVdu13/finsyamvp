@@ -38,6 +38,7 @@ interface LabelContentProps {
     name?: string;
     [key: string]: any;
   };
+  value?: string;
 }
 
 const CashflowChart: React.FC<CashflowChartProps> = ({
@@ -142,6 +143,7 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
         return `#e879f9${opacity}`; // Pink
       case 'nourriture':
       case 'courses':
+      case 'alimentation':
         return `#c4b5fd${opacity}`; // Purple
       case 'transport':
         return `#a5f3fc${opacity}`; // Cyan
@@ -193,16 +195,13 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
     }
   };
 
-  // Label content component with proper type definitions
-  const LabelContent = (props: LabelContentProps) => {
-    const { x, y, width, height, payload } = props;
-    
+  // Custom label component that correctly renders the labels
+  const CustomizedLabelComponent = (props: LabelContentProps) => {
+    const { x = 0, y = 0, width = 0, height = 0, payload } = props;
     if (!payload || !payload.name) return null;
-    const value = payload.name;
     
-    // Ensure all values are numbers before arithmetic operations
-    const xPos = (typeof x === 'number' ? x : 0) + (typeof width === 'number' ? width : 0) + 6;
-    const yPos = (typeof y === 'number' ? y : 0) + (typeof height === 'number' ? height : 0) / 2;
+    const xPos = x + width + 6;
+    const yPos = y + height / 2;
     
     return (
       <g>
@@ -214,9 +213,26 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
           dominantBaseline="middle"
           className="text-xs font-medium"
         >
-          {value}
+          {payload.name}
         </text>
       </g>
+    );
+  };
+
+  // Custom node component that uses the fill property from the node data
+  const CustomizedNodeComponent = (props: any) => {
+    const { x, y, width, height, index, payload } = props;
+    const fill = payload.fill || '#d1d5db';
+    
+    return (
+      <Rectangle
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill={fill}
+        radius={[4, 4, 4, 4]}
+      />
     );
   };
 
@@ -236,7 +252,7 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
             <span className="text-xs">Budget</span>
           </div>
           {uniqueCategories.map((category, index) => (
-            <div key={`category-${index}`} className="flex items-center space-x-2">
+            <div key={`legend-${index}`} className="flex items-center space-x-2">
               <div 
                 className="w-3 h-3 rounded-full" 
                 style={{ backgroundColor: getCategoryColor(category) }}
@@ -254,13 +270,12 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
               nodePadding={20}
               nodeWidth={15}
               link={{ stroke: '#d1d5db' }}
-              node={<Rectangle fill="#d1d5db" radius={[4, 4, 4, 4]} />}
+              node={CustomizedNodeComponent}
               margin={{ top: 20, right: 200, bottom: 20, left: 200 }}
             >
               <Label
                 position="right"
-                offset={10}
-                content={LabelContent}
+                content={CustomizedLabelComponent}
               />
               <Tooltip
                 content={
