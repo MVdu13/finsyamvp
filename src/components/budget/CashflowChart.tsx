@@ -27,6 +27,19 @@ interface SankeyLink {
   fill?: string;
 }
 
+// Define a type for the Label content props to properly handle the payload
+interface LabelContentProps {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  index?: number;
+  payload?: {
+    name?: string;
+    [key: string]: any;
+  };
+}
+
 const CashflowChart: React.FC<CashflowChartProps> = ({
   incomes,
   expenses,
@@ -180,6 +193,33 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
     }
   };
 
+  // Label content component with proper type definitions
+  const LabelContent = (props: LabelContentProps) => {
+    const { x, y, width, height, payload } = props;
+    
+    if (!payload || !payload.name) return null;
+    const value = payload.name;
+    
+    // Ensure all values are numbers before arithmetic operations
+    const xPos = (typeof x === 'number' ? x : 0) + (typeof width === 'number' ? width : 0) + 6;
+    const yPos = (typeof y === 'number' ? y : 0) + (typeof height === 'number' ? height : 0) / 2;
+    
+    return (
+      <g>
+        <text 
+          x={xPos} 
+          y={yPos} 
+          fill="#333" 
+          textAnchor="start" 
+          dominantBaseline="middle"
+          className="text-xs font-medium"
+        >
+          {value}
+        </text>
+      </g>
+    );
+  };
+
   return (
     <Card className="w-full mb-6">
       <CardHeader>
@@ -220,27 +260,7 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
               <Label
                 position="right"
                 offset={10}
-                content={({ x, y, width, height, index, payload }) => {
-                  if (!payload || !payload.name) return null;
-                  const value = payload.name || '';
-                  const xPos = (x || 0) + (width || 0) + 6;
-                  const yPos = (y || 0) + (height || 0) / 2;
-                  
-                  return (
-                    <g>
-                      <text 
-                        x={xPos} 
-                        y={yPos} 
-                        fill="#333" 
-                        textAnchor="start" 
-                        dominantBaseline="middle"
-                        className="text-xs font-medium"
-                      >
-                        {value}
-                      </text>
-                    </g>
-                  );
-                }}
+                content={LabelContent}
               />
               <Tooltip
                 content={
