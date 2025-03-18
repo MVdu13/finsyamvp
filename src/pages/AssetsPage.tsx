@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from "sonner";
 import DeleteConfirmationDialog from '@/components/assets/DeleteConfirmationDialog';
+import { formatCurrency } from '@/lib/formatters';
 
 interface AssetsPageProps {
   assets: Asset[];
@@ -240,7 +241,11 @@ const AssetsPage: React.FC<AssetsPageProps> = ({
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="font-medium">{asset.name}</h3>
-                          <p className="text-sm text-muted-foreground">{asset.description}</p>
+                          {asset.type === 'crypto' && asset.quantity ? (
+                            <p className="text-sm text-muted-foreground">{asset.quantity} {asset.symbol || ''}</p>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">{asset.description}</p>
+                          )}
                         </div>
                         <span className={`text-sm px-2 py-1 rounded-full ${
                           asset.performance >= 0 
@@ -251,12 +256,7 @@ const AssetsPage: React.FC<AssetsPageProps> = ({
                         </span>
                       </div>
                       <div className="mt-4 pt-4 border-t border-border flex justify-between items-center">
-                        <span className="text-lg font-semibold">{new Intl.NumberFormat('fr-FR', {
-                          style: 'currency',
-                          currency: 'EUR',
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        }).format(asset.value)}</span>
+                        <span className="text-lg font-semibold">{formatCurrency(asset.value)}</span>
                         <div className="flex items-center gap-2">
                           <button 
                             onClick={() => handleEditAsset(asset)}
