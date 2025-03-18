@@ -1,11 +1,9 @@
 
 import React from 'react';
 import DonutChart from '../charts/DonutChart';
-import { Info, Settings } from 'lucide-react';
 import { AssetAllocation as AssetAllocationType } from '@/types/assets';
 import { formatCurrency } from '@/lib/formatters';
 import { AssetCategoryFilter } from './NetWorthChart';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface AssetAllocationProps {
   allocation: AssetAllocationType;
@@ -63,30 +61,9 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({
 
   return (
     <div className="wealth-card h-full flex flex-col">
-      <div className="flex justify-between items-center mb-5">
-        <div>
-          <h3 className="text-lg font-medium">{title}</h3>
-          <p className="text-sm text-muted-foreground">Valeur totale: {formatCurrency(totalValue)}</p>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="p-2 rounded-md hover:bg-muted transition-colors">
-                  <Info size={18} />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Visualisation de la répartition de vos actifs par catégorie</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          
-          <button className="p-2 rounded-md hover:bg-muted transition-colors">
-            <Settings size={18} />
-          </button>
-        </div>
+      <div className="mb-5">
+        <h3 className="text-lg font-medium">{title}</h3>
+        <p className="text-sm text-muted-foreground">Valeur totale: {formatCurrency(totalValue)}</p>
       </div>
       
       <div className="flex-grow">

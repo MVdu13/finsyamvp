@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FinancialGoal, ProjectPlan } from '@/types/goals';
 import { mockBudget, mockAssets, mockGoals } from '@/lib/mockData';
-import { Download, Plus, ShieldCheck, Wallet } from 'lucide-react';
+import { Plus, ShieldCheck, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ProjectForm from '@/components/projects/ProjectForm';
 import { toast } from '@/hooks/use-toast';
@@ -169,11 +169,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
           <p className="text-muted-foreground">Planifiez et suivez vos projets et objectifs financiers</p>
         </div>
         
-        <div className="flex gap-3">
-          <Button variant="outline" className="gap-2">
-            <Download size={18} />
-            <span>Exporter</span>
-          </Button>
+        <div>
           <Button onClick={handleAddProject} className="gap-2">
             <Plus size={18} />
             <span>Nouveau projet</span>
@@ -181,7 +177,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
         </div>
       </div>
       
-      {/* Projects Overview blocks moved to the top */}
       <ProjectsOverview 
         projects={projects}
         projectsInProgress={projectsInProgress}
