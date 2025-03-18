@@ -3,8 +3,9 @@ import React from 'react';
 import { Income, Expense } from '@/types/budget';
 import { formatCurrency } from '@/lib/formatters';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sankey, Tooltip, Rectangle, ResponsiveContainer } from 'recharts';
+import { Sankey, Tooltip, Rectangle } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CashflowChartProps {
   incomes: Income[];
@@ -171,14 +172,16 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
       <CardHeader>
         <CardTitle className="text-lg font-medium">Flux de trésorerie</CardTitle>
       </CardHeader>
-      <CardContent className="p-2">
-        <div className="h-[350px] w-full overflow-hidden">
-          <ChartContainer config={chartConfig}>
-            <ResponsiveContainer width="100%" height={320}>
+      <CardContent className="px-0 py-1">
+        <ScrollArea className="h-[450px] w-full">
+          <div className="min-w-[800px] px-6">
+            <ChartContainer config={chartConfig}>
               <Sankey
+                width={1000}
+                height={400}
                 data={{ nodes, links }}
-                nodePadding={6}
-                nodeWidth={8}
+                nodePadding={10}
+                nodeWidth={10}
                 link={{ stroke: '#d1d5db' }}
                 node={
                   <Rectangle 
@@ -186,7 +189,7 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
                     radius={[2, 2, 2, 2]}
                   />
                 }
-                margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
+                margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
               >
                 <Tooltip
                   content={
@@ -196,9 +199,9 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
                   }
                 />
               </Sankey>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </div>
+            </ChartContainer>
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
