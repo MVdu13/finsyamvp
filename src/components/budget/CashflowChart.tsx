@@ -254,7 +254,7 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
               nodePadding={20}
               nodeWidth={15}
               link={{ stroke: '#d1d5db' }}
-              node={<Rectangle fill={(nodeData: any) => nodeData.fill || '#d1d5db'} radius={[4, 4, 4, 4]} />}
+              node={<Rectangle fill="#d1d5db" radius={[4, 4, 4, 4]} />}
               margin={{ top: 20, right: 200, bottom: 20, left: 200 }}
             >
               <Label
