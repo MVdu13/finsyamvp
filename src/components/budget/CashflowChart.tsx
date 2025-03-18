@@ -54,13 +54,13 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
     // Income node
     nodes.push({ 
       name: `Revenus: ${formatCurrency(totalIncome)}`, 
-      fill: '#1c524a' // Dark teal for income
+      fill: '#9b87f5' // Primary purple for income
     });
 
     // Budget node
     nodes.push({ 
-      name: `Virements: ${formatCurrency(totalIncome)}`,
-      fill: '#3c6e64' // Medium teal for budget/transfers
+      name: `Budget: ${formatCurrency(totalIncome)}`,
+      fill: '#D3E4FD' // Soft blue for budget
     });
 
     links.push({
@@ -68,7 +68,7 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
       target: 1,
       value: totalIncome,
       name: 'Revenu Total',
-      fill: '#1c524a', // Matching the income node color
+      fill: '#9b87f580', // Semi-transparent purple
     });
 
     const fixedExpenses = expenses.filter(expense => expense.type === 'fixed');
@@ -111,6 +111,23 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
           fill: getCategoryColorTransparent(category)
         });
         
+        categoryExpenses.forEach(expense => {
+          nodes.push({
+            name: `${expense.name}: ${formatCurrency(expense.amount)}`,
+            fill: getCategoryColor(category, true)
+          });
+          
+          links.push({
+            source: nodeIndex,
+            target: nodeIndex + 1,
+            value: expense.amount,
+            name: expense.name,
+            fill: getCategoryColorTransparent(category, true)
+          });
+          
+          nodeIndex++;
+        });
+        
         nodeIndex++;
       }
     });
@@ -119,45 +136,41 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
   };
 
   const getCategoryColor = (category: string, isExpense = false) => {
+    const opacity = isExpense ? '80' : '';
+    
     switch (category.toLowerCase()) {
       case 'logement':
-        return '#644E5B'; // Brown/burgundy
+        return `#e879f9${opacity}`; // Pink
       case 'nourriture':
       case 'courses':
       case 'alimentation':
-      case 'alimentation et boissons':
-        return '#796465'; // Light brownish
+        return `#c4b5fd${opacity}`; // Purple
       case 'transport':
-      case 'transports':
-      case 'auto et transports':
-        return '#5D5766'; // Purplish gray
+        return `#a5f3fc${opacity}`; // Cyan
       case 'loisirs':
       case 'sport':
-      case 'loisirs et divertissements':
-        return '#423E4F'; // Dark purple
+        return `#86efac${opacity}`; // Green
       case 'santé':
       case 'assurance':
       case 'assurance vie':
-        return '#686577'; // Medium purple/gray
+        return `#fda4af${opacity}`; // Red
       case 'investissement':
       case 'investissements':
       case 'épargne':
-      case 'besoins essentiels':
-        return '#403E43'; // Charcoal gray
+        return `#fcd34d${opacity}`; // Yellow
       case 'abonnements':
       case 'internet':
       case 'téléphone':
-        return '#534B62'; // Medium purple
+        return `#93c5fd${opacity}`; // Blue
       case 'vie quotidienne':
-      case 'frais':
-        return '#2D2A32'; // Very dark gray/purple
+        return `#fdba74${opacity}`; // Orange
       default:
-        return '#555555'; // Default gray
+        return `#d1d5db${opacity}`; // Gray
     }
   };
 
   const getCategoryColorTransparent = (category: string, isExpense = false) => {
-    return getCategoryColor(category, isExpense); // Using same colors for links
+    return getCategoryColor(category, isExpense) + '80'; // 50% opacity
   };
 
   const { nodes, links } = prepareData();
@@ -169,23 +182,23 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
 
   const chartConfig = {
     income: {
-      color: '#1c524a', // Dark teal for income
+      color: '#9b87f5', // Primary purple for income
     },
     expense: {
-      color: '#555555', // Gray for expenses
+      color: '#F97316', // Bright orange for expenses
     },
     category: {
-      color: '#3c6e64', // Medium teal for categories
+      color: '#D3E4FD', // Soft blue for categories
     },
     savings: {
-      color: '#3c6e64', // Medium teal for savings
+      color: '#F2FCE2', // Soft green for savings
     }
   };
 
   // Custom node component that uses the fill property from the node data
   const CustomizedNodeComponent = (props: any) => {
     const { x, y, width, height, index, payload } = props;
-    const fill = payload.fill || '#555555';
+    const fill = payload.fill || '#d1d5db';
     
     return (
       <Rectangle
@@ -194,7 +207,7 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
         width={width}
         height={height}
         fill={fill}
-        radius={[2, 2, 2, 2]}
+        radius={[4, 4, 4, 4]}
       />
     );
   };
@@ -207,16 +220,14 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
         content={(props: any) => {
           const { x, y, width, payload } = props;
           const nodeName = payload.name || '';
-          const labelX = index === 0 ? x - 5 : x + width + 10;
-          const textAnchor = index === 0 ? "end" : "start";
           
           return (
             <g>
               <text
-                x={labelX}
+                x={x + width + 10}
                 y={y + 15}
-                fill="#e5e5e5"
-                textAnchor={textAnchor}
+                fill="#333"
+                textAnchor="start"
                 dominantBaseline="middle"
                 className="text-xs font-medium"
               >
@@ -230,22 +241,41 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
   };
 
   return (
-    <Card className="w-full mb-6 bg-[#121212] border-0 text-white">
+    <Card className="w-full mb-6">
       <CardHeader>
-        <CardTitle className="text-lg font-medium text-white">Flux de trésorerie</CardTitle>
+        <CardTitle className="text-lg font-medium">Flux de trésorerie</CardTitle>
       </CardHeader>
       <CardContent className="p-2">
-        <div className="w-full overflow-x-auto" style={{ height: '500px' }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 px-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-[#9b87f5]"></div>
+            <span className="text-xs">Revenus</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-[#D3E4FD]"></div>
+            <span className="text-xs">Budget</span>
+          </div>
+          {uniqueCategories.map((category, index) => (
+            <div key={`legend-${index}`} className="flex items-center space-x-2">
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: getCategoryColor(category) }}
+              ></div>
+              <span className="text-xs truncate">{category}</span>
+            </div>
+          ))}
+        </div>
+        <div className="w-full overflow-x-auto" style={{ height: '800px' }}>
           <ChartContainer config={chartConfig}>
             <Sankey
-              width={1200} 
-              height={400}
+              width={900} 
+              height={700}
               data={{ nodes, links }}
               nodePadding={40}
               nodeWidth={15}
-              link={{ stroke: '#333' }}
+              link={{ stroke: '#d1d5db' }}
               node={CustomizedNodeComponent}
-              margin={{ top: 20, right: 150, bottom: 20, left: 150 }}
+              margin={{ top: 20, right: 250, bottom: 20, left: 20 }}
             >
               {renderSankeyLabels()}
               <Tooltip
