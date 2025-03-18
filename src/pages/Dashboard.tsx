@@ -224,13 +224,6 @@ const Dashboard: React.FC<DashboardProps> = ({
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div>
-          <FinancialGoals 
-            goals={mockGoals} 
-            onAddGoal={handleNavigateToProjects} 
-          />
-        </div>
-        
         <div className="lg:col-span-2">
           <GroupedAssetsList 
             groupedAssets={groupedAssets}
@@ -241,6 +234,13 @@ const Dashboard: React.FC<DashboardProps> = ({
             } : undefined}
             onDelete={onDeleteAsset}
             hideInvestmentAccounts={true}
+          />
+        </div>
+        
+        <div>
+          <FinancialGoals 
+            goals={mockGoals} 
+            onAddGoal={handleNavigateToProjects} 
           />
         </div>
       </div>
