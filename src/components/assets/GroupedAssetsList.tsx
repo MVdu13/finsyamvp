@@ -59,7 +59,8 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
   };
 
   const handleAssetClick = (asset: Asset) => {
-    setSelectedAsset(asset);
+    const refreshedAsset = { ...asset };
+    setSelectedAsset(refreshedAsset);
     
     switch (asset.type) {
       case 'real-estate':

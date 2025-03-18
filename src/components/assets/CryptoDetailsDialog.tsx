@@ -61,7 +61,7 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
                 <div>
                   <h4 className="font-medium">{crypto.name}</h4>
                   <p className="text-sm text-muted-foreground">
-                    {crypto.symbol || 'Crypto'}
+                    {crypto.quantity !== undefined ? `${crypto.quantity} unités` : crypto.symbol || 'Crypto'}
                   </p>
                 </div>
               </div>
