@@ -162,16 +162,16 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
 
   const chartConfig = {
     income: {
-      color: '#9b87f5',
+      color: '#9b87f5', // Primary purple for income
     },
     expense: {
-      color: '#F97316',
+      color: '#F97316', // Bright orange for expenses
     },
     category: {
-      color: '#D3E4FD',
+      color: '#D3E4FD', // Soft blue for categories
     },
     savings: {
-      color: '#F2FCE2',
+      color: '#F2FCE2', // Soft green for savings
     }
   };
 
@@ -204,26 +204,24 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
               nodePadding={20}
               nodeWidth={15}
               link={{ stroke: '#d1d5db' }}
-              node={<Rectangle 
-                fill="#a5b4fc"
-                radius={4}
-              />}
+              node={
+                <Rectangle 
+                  fill={({ payload }) => payload.fill || '#a5b4fc'}
+                  radius={[4, 4, 4, 4]}
+                />
+              }
               margin={{ top: 20, right: 160, bottom: 20, left: 160 }}
             >
               <Label
                 position="right"
                 offset={5}
-                content={(props: any) => {
-                  if (!props || !props.payload) return null;
-                  const { x, y, width, height, payload } = props;
-                  const value = payload.name || '';
-                  const xPos = Number(x || 0) + Number(width || 0) + 6;
-                  const yPos = Number(y || 0) + Number(height || 0) / 2;
+                content={({ x, y, width, height, index, payload }) => {
+                  const value = payload?.name || '';
                   return (
                     <g>
                       <text 
-                        x={xPos}
-                        y={yPos}
+                        x={x + width + 6} 
+                        y={y + height / 2} 
                         fill="#888" 
                         textAnchor="start" 
                         dominantBaseline="middle"
