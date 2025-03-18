@@ -1,5 +1,6 @@
+
 import React, { useState, useMemo } from 'react';
-import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight, Pencil, Trash2, Wallet, Percent, Coins, Shield, TrendingUp } from 'lucide-react';
+import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight, Pencil, Trash2, Wallet, Percent, Coins, Shield, TrendingUp, Home } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from '@/lib/formatters';
 import { Asset, AssetType } from '@/types/assets';
@@ -11,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface RealEstatePageProps {
   assets: Asset[];
@@ -19,6 +21,9 @@ interface RealEstatePageProps {
   onDeleteAsset: (assetId: string) => void;
 }
 
+// Define the property filter types
+type PropertyFilter = 'all' | 'residential' | 'rental';
+
 const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onUpdateAsset, onDeleteAsset }) => {
   const { toast } = useToast();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -26,6 +31,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
+  const [propertyFilter, setPropertyFilter] = useState<PropertyFilter>('all');
   
   // Properties are real estate assets
   const properties = assets.filter(asset => asset.type === 'real-estate');
@@ -39,17 +45,30 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
     property.usageType === 'rental'
   );
 
-  // Calculate financials
+  // Get filtered properties based on the selected filter
+  const filteredProperties = useMemo(() => {
+    switch (propertyFilter) {
+      case 'residential':
+        return residentialProperties;
+      case 'rental':
+        return rentalProperties;
+      case 'all':
+      default:
+        return properties;
+    }
+  }, [properties, residentialProperties, rentalProperties, propertyFilter]);
+
+  // Calculate financials based on filtered properties
   const realEstateMetrics = useMemo(() => {
-    const totalValue = properties.reduce((sum, property) => sum + property.value, 0);
+    const totalValue = filteredProperties.reduce((sum, property) => sum + property.value, 0);
     
     // Calculate annual income (rent)
-    const annualIncome = properties.reduce((sum, property) => {
+    const annualIncome = filteredProperties.reduce((sum, property) => {
       return sum + (property.annualRent || 0);
     }, 0);
     
     // Calculate annual costs (property tax, annual fees, annual charges)
-    const annualCosts = properties.reduce((sum, property) => {
+    const annualCosts = filteredProperties.reduce((sum, property) => {
       return sum + (property.propertyTax || 0) + (property.annualFees || 0) + (property.annualCharges || 0) + (property.housingTax || 0);
     }, 0);
     
@@ -68,11 +87,37 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
       grossYield,
       netYield,
     };
-  }, [properties]);
+  }, [filteredProperties]);
 
-  const avgPerformance = properties.length > 0 
-    ? properties.reduce((sum, property) => sum + (property.performance || 0), 0) / properties.length
+  const avgPerformance = filteredProperties.length > 0 
+    ? filteredProperties.reduce((sum, property) => sum + (property.performance || 0), 0) / filteredProperties.length
     : 0;
+
+  // Get filter label for the UI
+  const getFilterLabel = () => {
+    switch (propertyFilter) {
+      case 'residential':
+        return 'Résidences principales et secondaires';
+      case 'rental':
+        return 'Biens locatifs';
+      case 'all':
+      default:
+        return 'Ensemble du patrimoine immobilier';
+    }
+  };
+
+  // Get filter icon for the UI
+  const getFilterIcon = () => {
+    switch (propertyFilter) {
+      case 'residential':
+        return <Home className="h-4 w-4 mr-2" />;
+      case 'rental':
+        return <Building2 className="h-4 w-4 mr-2" />;
+      case 'all':
+      default:
+        return <Wallet className="h-4 w-4 mr-2" />;
+    }
+  };
 
   // Générer un historique cohérent basé sur la valeur totale actuelle et la timeframe
   const generateChartData = () => {
@@ -150,7 +195,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         labels,
         datasets: [
           {
-            label: 'Valeur immobilière',
+            label: getFilterLabel(),
             data: Array(labels.length).fill(0),
             color: '#FA5003',
             fill: true,
@@ -193,7 +238,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
       labels,
       datasets: [
         {
-          label: 'Valeur immobilière',
+          label: getFilterLabel(),
           data: values,
           color: '#FA5003',
           fill: true,
@@ -388,10 +433,46 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
                'Historique complet'}
             </CardDescription>
           </div>
-          <TimeFrameSelector 
-            selectedTimeFrame={timeFrame} 
-            onTimeFrameChange={setTimeFrame} 
-          />
+          <div className="flex items-center gap-2">
+            <Select 
+              value={propertyFilter} 
+              onValueChange={(value: PropertyFilter) => setPropertyFilter(value)}
+            >
+              <SelectTrigger className="w-[260px]">
+                <SelectValue placeholder="Type de bien">
+                  <div className="flex items-center">
+                    {getFilterIcon()}
+                    {getFilterLabel()}
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  <div className="flex items-center">
+                    <Wallet className="h-4 w-4 mr-2" />
+                    Ensemble du patrimoine immobilier
+                  </div>
+                </SelectItem>
+                <SelectItem value="residential">
+                  <div className="flex items-center">
+                    <Home className="h-4 w-4 mr-2" />
+                    Résidences principales et secondaires
+                  </div>
+                </SelectItem>
+                <SelectItem value="rental">
+                  <div className="flex items-center">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Biens locatifs
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <TimeFrameSelector 
+              selectedTimeFrame={timeFrame} 
+              onTimeFrameChange={setTimeFrame} 
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
