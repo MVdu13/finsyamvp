@@ -19,6 +19,7 @@ interface CryptoFormFieldsProps {
   setCryptoAccountId: (value: string) => void;
   cryptoAccounts: Asset[];
   onAddAccount?: (account: Omit<Asset, 'id'>) => Asset | null | undefined;
+  existingCryptos?: Asset[];
 }
 
 const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
@@ -31,13 +32,15 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
   setPurchasePrice,
   setCryptoAccountId,
   cryptoAccounts,
-  onAddAccount
+  onAddAccount,
+  existingCryptos = []
 }) => {
   const { toast } = useToast();
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [newAccountName, setNewAccountName] = useState('');
   const [newCryptoPlatform, setNewCryptoPlatform] = useState<'Binance' | 'Bitget' | 'Kucoin' | 'Coinbase' | 'Metamask' | 'Phantom' | 'Ledger' | 'Autre'>('Binance');
   const [lastAddedAccountId, setLastAddedAccountId] = useState<string | null>(null);
+  const [matchingCryptos, setMatchingCryptos] = useState<Asset[]>([]);
 
   const handleAddAccount = () => {
     if (onAddAccount && newAccountName.trim()) {
@@ -78,6 +81,27 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
       }
     }
   }, [cryptoAccounts, lastAddedAccountId, setCryptoAccountId]);
+
+  // Vérifier si la crypto existe déjà dans le compte sélectionné
+  useEffect(() => {
+    if (cryptoName && cryptoAccountId && existingCryptos && existingCryptos.length > 0) {
+      const matching = existingCryptos.filter(
+        crypto => crypto.name.toLowerCase() === cryptoName.toLowerCase() && 
+                 crypto.cryptoAccountId === cryptoAccountId
+      );
+      
+      setMatchingCryptos(matching);
+      
+      if (matching.length > 0) {
+        toast({
+          title: "Crypto déjà existante",
+          description: `${cryptoName} existe déjà dans ce compte. Les cryptos seront empilées.`,
+        });
+      }
+    } else {
+      setMatchingCryptos([]);
+    }
+  }, [cryptoName, cryptoAccountId, existingCryptos, toast]);
 
   return (
     <>
@@ -159,6 +183,11 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
           placeholder="Ex: Bitcoin"
           required
         />
+        {matchingCryptos.length > 0 && (
+          <p className="text-xs text-wealth-primary mt-1">
+            Vous possédez déjà {matchingCryptos.reduce((sum, crypto) => sum + (crypto.quantity || 0), 0)} {cryptoName}
+          </p>
+        )}
       </div>
       <div>
         <Label htmlFor="cryptoQty" className="block text-sm font-medium mb-1">

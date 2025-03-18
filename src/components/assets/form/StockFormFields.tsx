@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Asset } from '@/types/assets';
 import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import InvestmentAccountFormFields from './InvestmentAccountFormFields';
+import { useToast } from '@/hooks/use-toast';
 
 interface StockFormFieldsProps {
   ticker: string;
@@ -18,6 +19,7 @@ interface StockFormFieldsProps {
   setInvestmentAccountId: (value: string) => void;
   investmentAccounts: Asset[];
   onAddAccount?: (account: Omit<Asset, 'id'>) => Asset | null | undefined;
+  existingStocks?: Asset[];
 }
 
 const StockFormFields: React.FC<StockFormFieldsProps> = ({ 
@@ -30,12 +32,15 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
   setPurchasePrice,
   setInvestmentAccountId,
   investmentAccounts,
-  onAddAccount
+  onAddAccount,
+  existingStocks = []
 }) => {
+  const { toast } = useToast();
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [newAccountName, setNewAccountName] = useState('');
   const [newAccountType, setNewAccountType] = useState<'PEA' | 'CTO' | 'Assurance Vie' | 'PER' | 'Autre'>('PEA');
   const [lastAddedAccountId, setLastAddedAccountId] = useState<string | null>(null);
+  const [matchingStocks, setMatchingStocks] = useState<Asset[]>([]);
 
   const handleAddAccount = () => {
     if (onAddAccount && newAccountName.trim()) {
@@ -65,7 +70,7 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
   };
 
   // Effet pour sélectionner automatiquement le compte nouvellement ajouté
-  React.useEffect(() => {
+  useEffect(() => {
     if (lastAddedAccountId === 'pending' && investmentAccounts.length > 0) {
       // On cherche le compte le plus récemment ajouté (qui aura l'ID le plus récent)
       const mostRecentAccount = investmentAccounts[investmentAccounts.length - 1];
@@ -76,6 +81,27 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
       }
     }
   }, [investmentAccounts, lastAddedAccountId, setInvestmentAccountId]);
+
+  // Vérifier si l'action existe déjà dans le compte sélectionné
+  useEffect(() => {
+    if (ticker && investmentAccountId && existingStocks.length > 0) {
+      const matching = existingStocks.filter(
+        stock => stock.name.toLowerCase() === ticker.toLowerCase() && 
+                 stock.investmentAccountId === investmentAccountId
+      );
+      
+      setMatchingStocks(matching);
+      
+      if (matching.length > 0) {
+        toast({
+          title: "Action déjà existante",
+          description: `${ticker} existe déjà dans ce compte. Les actions seront empilées.`,
+        });
+      }
+    } else {
+      setMatchingStocks([]);
+    }
+  }, [ticker, investmentAccountId, existingStocks, toast]);
 
   return (
     <>
@@ -157,6 +183,11 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
           placeholder="Ex: AAPL"
           required
         />
+        {matchingStocks.length > 0 && (
+          <p className="text-xs text-wealth-primary mt-1">
+            Vous possédez déjà {matchingStocks.reduce((sum, stock) => sum + (stock.quantity || 0), 0)} actions de {ticker}
+          </p>
+        )}
       </div>
       <div>
         <Label htmlFor="shares" className="block text-sm font-medium mb-1">

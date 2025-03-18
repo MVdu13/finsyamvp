@@ -51,7 +51,7 @@ const Index = () => {
     if (newAsset.type === 'stock' && newAsset.name && newAsset.investmentAccountId) {
       const existingStock = assets.find(asset => 
         asset.type === 'stock' && 
-        asset.name === newAsset.name && 
+        asset.name.toLowerCase() === newAsset.name.toLowerCase() && 
         asset.investmentAccountId === newAsset.investmentAccountId
       );
 
@@ -67,6 +67,7 @@ const Index = () => {
 
         const newQuantity = (existingStock.quantity || 0) + (newAsset.quantity || 0);
         const newValue = (existingStock.value || 0) + transaction.total;
+        
         const newWeightedPrice = newValue / newQuantity;
         
         const updatedAsset: Asset = {
@@ -96,13 +97,23 @@ const Index = () => {
     if (newAsset.type === 'crypto' && newAsset.name && newAsset.cryptoAccountId) {
       const existingCrypto = assets.find(asset => 
         asset.type === 'crypto' && 
-        asset.name === newAsset.name && 
+        asset.name.toLowerCase() === newAsset.name.toLowerCase() && 
         asset.cryptoAccountId === newAsset.cryptoAccountId
       );
 
       if (existingCrypto) {
+        const transaction: Transaction = {
+          id: Date.now().toString(),
+          date: new Date().toISOString(),
+          quantity: newAsset.quantity || 0,
+          price: newAsset.purchasePrice || 0,
+          total: (newAsset.quantity || 0) * (newAsset.purchasePrice || 0),
+          type: 'buy'
+        };
+
         const newQuantity = (existingCrypto.quantity || 0) + (newAsset.quantity || 0);
         const newValue = (existingCrypto.value || 0) + ((newAsset.quantity || 0) * (newAsset.purchasePrice || 0));
+        
         const newWeightedPrice = newValue / newQuantity;
         
         const updatedAsset: Asset = {
@@ -110,6 +121,7 @@ const Index = () => {
           quantity: newQuantity,
           value: newValue,
           purchasePrice: newWeightedPrice,
+          transactions: [...(existingCrypto.transactions || []), transaction],
           updatedAt: new Date().toISOString()
         };
         
@@ -135,6 +147,19 @@ const Index = () => {
     };
     
     if (asset.type === 'stock' && asset.quantity && asset.purchasePrice) {
+      const transaction: Transaction = {
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        quantity: asset.quantity,
+        price: asset.purchasePrice,
+        total: asset.quantity * asset.purchasePrice,
+        type: 'buy'
+      };
+      
+      asset.transactions = [transaction];
+    }
+    
+    if (asset.type === 'crypto' && asset.quantity && asset.purchasePrice) {
       const transaction: Transaction = {
         id: Date.now().toString(),
         date: new Date().toISOString(),

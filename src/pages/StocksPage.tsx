@@ -409,6 +409,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
               showTypeSelector={false}
               investmentAccounts={investmentAccounts}
               onAddAccount={handleAddAccount}
+              existingStocks={stocks}
             />
           </DialogContent>
         </Dialog>
@@ -431,6 +432,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
                 showTypeSelector={false}
                 investmentAccounts={investmentAccounts}
                 onAddAccount={handleAddAccount}
+                existingStocks={stocks}
               />
             )}
           </DialogContent>
@@ -772,8 +774,38 @@ const StocksPage: React.FC<StocksPageProps> = ({
                 </Table>
               </div>
               
+              <h4 className="font-semibold mt-4">Transactions</h4>
               {selectedStock.transactions && selectedStock.transactions.length > 0 ? (
-                <StockTransactionsList transactions={selectedStock.transactions} />
+                <div className="border rounded-md overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Quantité</TableHead>
+                        <TableHead>Prix unitaire</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedStock.transactions.map((transaction) => (
+                        <TableRow key={transaction.id}>
+                          <TableCell>
+                            {new Date(transaction.date).toLocaleDateString('fr-FR')}
+                          </TableCell>
+                          <TableCell>
+                            <span className={transaction.type === 'buy' ? 'text-green-600' : 'text-red-600'}>
+                              {transaction.type === 'buy' ? 'Achat' : 'Vente'}
+                            </span>
+                          </TableCell>
+                          <TableCell>{transaction.quantity}</TableCell>
+                          <TableCell>{formatCurrency(transaction.price)}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(transaction.total)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               ) : (
                 <div className="text-center py-4 bg-muted/30 rounded">
                   <p className="text-muted-foreground">Aucune transaction enregistrée</p>
