@@ -5,6 +5,8 @@ import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import RealEstateDetailsDialog from './RealEstateDetailsDialog';
+import StockDetailsDialog from './StockDetailsDialog';
+import CryptoDetailsDialog from './CryptoDetailsDialog';
 
 interface GroupedAssetsListProps {
   groupedAssets: Record<AssetType, Asset[]>;
@@ -31,6 +33,8 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
   });
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [stockDialogOpen, setStockDialogOpen] = useState(false);
+  const [cryptoDialogOpen, setCryptoDialogOpen] = useState(false);
 
   const handleDeleteClick = (asset: Asset) => {
     setAssetToDelete(asset);
@@ -55,9 +59,20 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
   };
 
   const handleAssetClick = (asset: Asset) => {
-    if (asset.type === 'real-estate') {
-      setSelectedAsset(asset);
-      setDetailsDialogOpen(true);
+    setSelectedAsset(asset);
+    
+    switch (asset.type) {
+      case 'real-estate':
+        setDetailsDialogOpen(true);
+        break;
+      case 'stock':
+        setStockDialogOpen(true);
+        break;
+      case 'crypto':
+        setCryptoDialogOpen(true);
+        break;
+      default:
+        break;
     }
   };
 
@@ -274,6 +289,18 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
         isOpen={detailsDialogOpen}
         onClose={() => setDetailsDialogOpen(false)}
         property={selectedAsset}
+      />
+
+      <StockDetailsDialog
+        isOpen={stockDialogOpen}
+        onClose={() => setStockDialogOpen(false)}
+        stock={selectedAsset}
+      />
+
+      <CryptoDetailsDialog
+        isOpen={cryptoDialogOpen}
+        onClose={() => setCryptoDialogOpen(false)}
+        crypto={selectedAsset}
       />
     </div>
   );
