@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Building2, Plus, Map, LineChart, ArrowUpRight, ArrowDownRight, Pencil, Trash2, Wallet, Percent, Coins, Shield, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +30,15 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
   // Properties are real estate assets
   const properties = assets.filter(asset => asset.type === 'real-estate');
 
+  // Separate properties by usage type
+  const residentialProperties = properties.filter(property => 
+    property.usageType === 'main' || property.usageType === 'secondary'
+  );
+
+  const rentalProperties = properties.filter(property => 
+    property.usageType === 'rental'
+  );
+
   // Calculate financials
   const realEstateMetrics = useMemo(() => {
     const totalValue = properties.reduce((sum, property) => sum + property.value, 0);
@@ -48,7 +56,7 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
     // Calculate gross yield
     const grossYield = totalValue > 0 ? (annualIncome / totalValue) * 100 : 0;
     
-    // Calculate net yield
+    // Calculate net income
     const netIncome = annualIncome - annualCosts;
     const netYield = totalValue > 0 ? (netIncome / totalValue) * 100 : 0;
     
@@ -392,8 +400,73 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
         </CardContent>
       </Card>
 
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Vos Biens Immobiliers</h2>
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold mb-4">Vos Résidences Principales et Secondaires</h2>
+        
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nom</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Valeur</TableHead>
+                <TableHead>Type d'usage</TableHead>
+                <TableHead>Taxe foncière</TableHead>
+                <TableHead>Taxe d'habitation</TableHead>
+                <TableHead>Date d'acquisition</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {residentialProperties.map((property) => (
+                <TableRow key={property.id}>
+                  <TableCell className="font-medium">{property.name}</TableCell>
+                  <TableCell>{property.description}</TableCell>
+                  <TableCell>{formatCurrency(property.value)}</TableCell>
+                  <TableCell>
+                    {property.usageType === 'main' ? 'Résidence principale' : 'Résidence secondaire'}
+                  </TableCell>
+                  <TableCell>{formatCurrency(property.propertyTax || 0)}</TableCell>
+                  <TableCell>{formatCurrency(property.housingTax || 0)}</TableCell>
+                  <TableCell>
+                    {property.createdAt 
+                      ? new Date(property.createdAt).toLocaleDateString() 
+                      : 'Non spécifiée'}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => openEditDialog(property)}
+                        className="p-2 rounded-full hover:bg-muted transition-colors text-blue-600"
+                        title="Modifier"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => openDeleteDialog(property)}
+                        className="p-2 rounded-full hover:bg-muted transition-colors text-red-600"
+                        title="Supprimer"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {residentialProperties.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
+                    Aucune résidence principale ou secondaire enregistrée
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold mb-4">Vos Biens Locatifs</h2>
         
         <div className="rounded-md border">
           <Table>
@@ -410,10 +483,10 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
               </TableRow>
             </TableHeader>
             <TableBody>
-              {properties.map((property) => {
+              {rentalProperties.map((property) => {
                 // Calculate individual property metrics
                 const annualIncome = property.annualRent || 0;
-                const annualCosts = (property.propertyTax || 0) + (property.annualFees || 0) + (property.annualCharges || 0) + (property.housingTax || 0);
+                const annualCosts = (property.propertyTax || 0) + (property.annualFees || 0) + (property.annualCharges || 0);
                 const netIncome = annualIncome - annualCosts;
                 const netYield = property.value > 0 ? (netIncome / property.value) * 100 : 0;
                 
@@ -458,10 +531,10 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
                   </TableRow>
                 );
               })}
-              {properties.length === 0 && (
+              {rentalProperties.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
-                    Aucun bien immobilier enregistré
+                    Aucun bien locatif enregistré
                   </TableCell>
                 </TableRow>
               )}
