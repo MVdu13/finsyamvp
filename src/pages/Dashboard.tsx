@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import GroupedAssetsList from '@/components/assets/GroupedAssetsList';
 import CryptoDetailsDialog from '@/components/assets/CryptoDetailsDialog';
+import StockDetailsDialog from '@/components/assets/StockDetailsDialog';
 
 interface DashboardProps {
   assets: Asset[];
@@ -34,6 +35,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [selectedCrypto, setSelectedCrypto] = useState<Asset | null>(null);
   const [cryptoDialogOpen, setCryptoDialogOpen] = useState(false);
+  const [selectedStock, setSelectedStock] = useState<Asset | null>(null);
+  const [stockDialogOpen, setStockDialogOpen] = useState(false);
 
   const filteredAssets = assets.filter(asset => {
     if (assetCategoryFilter === 'all') return true;
@@ -116,6 +119,9 @@ const Dashboard: React.FC<DashboardProps> = ({
     if (asset.type === 'crypto') {
       setSelectedCrypto(asset);
       setCryptoDialogOpen(true);
+    } else if (asset.type === 'stock') {
+      setSelectedStock(asset);
+      setStockDialogOpen(true);
     }
   };
 
@@ -265,6 +271,12 @@ const Dashboard: React.FC<DashboardProps> = ({
         isOpen={cryptoDialogOpen}
         onClose={() => setCryptoDialogOpen(false)}
         crypto={selectedCrypto}
+      />
+
+      <StockDetailsDialog
+        isOpen={stockDialogOpen}
+        onClose={() => setStockDialogOpen(false)}
+        stock={selectedStock}
       />
     </div>
   );

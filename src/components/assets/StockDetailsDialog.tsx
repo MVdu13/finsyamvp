@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Asset, Transaction } from '@/types/assets';
+import { Asset } from '@/types/assets';
 import { formatCurrency, formatPercentage } from '@/lib/formatters';
 import { TrendingUp, TrendingDown, Calendar } from 'lucide-react';
 import {
@@ -11,6 +11,12 @@ import {
 } from '@/components/ui/dialog';
 import StockTransactionsList from './StockTransactionsList';
 import { cn } from '@/lib/utils';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from "@/components/ui/table";
 
 interface StockDetailsDialogProps {
   isOpen: boolean;
@@ -74,32 +80,56 @@ const StockDetailsDialog: React.FC<StockDetailsDialogProps> = ({
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              <div className="text-sm">
-                <p className="text-muted-foreground">Quantité</p>
-                <p className="font-medium">{stock.quantity || 'N/A'}</p>
-              </div>
-              <div className="text-sm">
-                <p className="text-muted-foreground">Prix d'achat</p>
-                <p className="font-medium">{stock.purchasePrice ? formatCurrency(stock.purchasePrice) : 'N/A'}</p>
-              </div>
-              <div className="text-sm">
-                <p className="text-muted-foreground">Date d'achat</p>
-                <p className="font-medium flex items-center gap-1">
-                  <Calendar size={14} />
-                  {purchaseDate}
-                </p>
-              </div>
-              <div className="text-sm">
-                <p className="text-muted-foreground">Compte</p>
-                <p className="font-medium">{stock.investmentAccountId ? 'Compte titre' : 'Direct'}</p>
-              </div>
+            <div className="mt-4">
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">Quantité totale</TableCell>
+                    <TableCell className="text-right">{stock.quantity || '0'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Prix moyen d'achat</TableCell>
+                    <TableCell className="text-right">{formatCurrency(stock.purchasePrice || 0)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Valeur totale</TableCell>
+                    <TableCell className="text-right">{formatCurrency(stock.value)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Performance</TableCell>
+                    <TableCell className={cn(
+                      "text-right",
+                      (stock.performance || 0) >= 0 ? "text-green-600" : "text-red-600"
+                    )}>
+                      {(stock.performance || 0) > 0 ? "+" : ""}{(stock.performance || 0).toFixed(1)}%
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Date d'achat</TableCell>
+                    <TableCell className="text-right flex items-center justify-end gap-1">
+                      <Calendar size={14} />
+                      {purchaseDate}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Compte</TableCell>
+                    <TableCell className="text-right">{stock.investmentAccountId ? 'Compte titre' : 'Direct'}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
           </div>
           
           {/* Transactions */}
-          {stock.transactions && stock.transactions.length > 0 && (
-            <StockTransactionsList transactions={stock.transactions} />
+          {stock.transactions && stock.transactions.length > 0 ? (
+            <div>
+              <h4 className="font-semibold mb-2">Transactions</h4>
+              <StockTransactionsList transactions={stock.transactions} />
+            </div>
+          ) : (
+            <div className="text-center py-4 bg-muted/30 rounded">
+              <p className="text-muted-foreground">Aucune transaction enregistrée</p>
+            </div>
           )}
         </div>
       </DialogContent>
