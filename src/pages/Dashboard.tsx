@@ -116,7 +116,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     profileImage: undefined,
   };
 
-  // Grouped assets for display - exclude investment accounts in the main dashboard
   const groupedAssets = assets.reduce((groups, asset) => {
     const type = asset.type;
     if (!groups[type]) {
@@ -126,7 +125,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     return groups;
   }, {} as Record<AssetType, Asset[]>);
 
-  // Sort each group by value
   Object.keys(groupedAssets).forEach(type => {
     groupedAssets[type as AssetType].sort((a, b) => b.value - a.value);
   });
@@ -203,13 +201,6 @@ const Dashboard: React.FC<DashboardProps> = ({
       />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <FinancialGoals 
-            goals={mockGoals} 
-            onAddGoal={handleNavigateToProjects} 
-          />
-        </div>
-        
         <div>
           <GroupedAssetsList 
             groupedAssets={groupedAssets}
@@ -220,6 +211,13 @@ const Dashboard: React.FC<DashboardProps> = ({
             } : undefined}
             onDelete={onDeleteAsset}
             hideInvestmentAccounts={true}
+          />
+        </div>
+        
+        <div className="lg:col-span-2">
+          <FinancialGoals 
+            goals={mockGoals} 
+            onAddGoal={handleNavigateToProjects} 
           />
         </div>
       </div>
