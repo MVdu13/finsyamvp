@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, CircleDollarSign, PiggyBank, Building2, Briefcase, Bitcoin, CreditCard, BarChart4, Settings, ChevronLeft, LogOut, ChevronDown, ChevronRight, Wallet, ScrollText, Menu, Calculator, TrendingUp, ArrowRightLeft } from 'lucide-react';
+import { LayoutDashboard, CircleDollarSign, PiggyBank, Building2, Briefcase, Bitcoin, CreditCard, BarChart4, Settings, ChevronLeft, LogOut, ChevronDown, ChevronRight, Wallet, ScrollText, Menu, Calculator, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
@@ -237,13 +237,6 @@ const AppSidebar = ({
                     <Calculator size={18} />
                     <span>Simulateur de Crédit</span>
                   </button>
-                  <button 
-                    onClick={() => setActiveItem('portfolio-rebalancing')} 
-                    className={cn("sidebar-subitem", activeItem === 'portfolio-rebalancing' ? "active" : "")}
-                  >
-                    <ArrowRightLeft size={18} />
-                    <span>Rééquilibrage</span>
-                  </button>
                 </CollapsibleContent>
               </Collapsible>
             ) : (
@@ -259,12 +252,6 @@ const AppSidebar = ({
                   className={cn("sidebar-item", activeItem === 'credit-simulator' ? "active" : "", "justify-center")}
                 >
                   <Calculator size={22} />
-                </button>
-                <button 
-                  onClick={() => setActiveItem('portfolio-rebalancing')} 
-                  className={cn("sidebar-item", activeItem === 'portfolio-rebalancing' ? "active" : "", "justify-center")}
-                >
-                  <ArrowRightLeft size={22} />
                 </button>
               </>
             )}
