@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { BarChart3, ArrowUpRight, ArrowDownRight, ExternalLink, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Asset, AssetType } from '@/types/assets';
@@ -206,22 +207,21 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
                                 "bg-orange-100"
                               )}>
                                 <span className="font-medium text-sm">
-                                  {asset.name.substring(0, 2).toUpperCase()}
+                                  {asset.type === 'crypto' && asset.symbol ? 
+                                    asset.symbol.substring(0, 2).toUpperCase() : 
+                                    asset.name.substring(0, 2).toUpperCase()}
                                 </span>
                               </div>
                               <div>
                                 <h4 className="font-medium">{asset.name}</h4>
-                                <p className="text-xs text-muted-foreground">
-                                  {asset.description}
-                                </p>
+                                {asset.type === 'crypto' && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {asset.quantity ? `${asset.quantity} ${asset.symbol || ''}` : ''}
+                                  </p>
+                                )}
                                 {asset.type === 'stock' && asset.quantity && asset.purchasePrice && (
                                   <p className="text-xs text-muted-foreground mt-1">
                                     {asset.quantity} × {formatCurrency(asset.purchasePrice)}
-                                  </p>
-                                )}
-                                {asset.type === 'crypto' && asset.quantity && (
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {asset.quantity} {asset.symbol || ''} {asset.purchasePrice ? `× ${formatCurrency(asset.purchasePrice)}` : ''}
                                   </p>
                                 )}
                               </div>
