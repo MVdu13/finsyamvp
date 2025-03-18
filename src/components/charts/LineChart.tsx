@@ -40,18 +40,18 @@ const LineChart: React.FC<LineChartProps> = ({ data, title, height = 300 }) => {
             datasets: data.datasets.map(dataset => ({
               label: dataset.label,
               data: dataset.data,
-              borderColor: dataset.color,
+              borderColor: dataset.color || '#FA5003', // Default to primary orange color
               backgroundColor: dataset.fill 
-                ? `${dataset.color}20` // 20 is hex for 12% opacity
+                ? `${dataset.color || '#FA5003'}20` // 20 is hex for 12% opacity
                 : 'transparent',
               fill: dataset.fill || false,
               tension: 0.4,
               borderWidth: 2.5,
               pointRadius: 3,
               pointBackgroundColor: 'white',
-              pointBorderColor: dataset.color,
+              pointBorderColor: dataset.color || '#FA5003',
               pointHoverRadius: 5,
-              pointHoverBackgroundColor: dataset.color,
+              pointHoverBackgroundColor: dataset.color || '#FA5003',
               pointHoverBorderColor: 'white',
               pointHoverBorderWidth: 2,
             })),
