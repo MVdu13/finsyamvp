@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,14 +22,12 @@ const CreditSimulatorPage = () => {
   }, [loanAmount, interestRate, loanTermYears]);
 
   const calculateLoan = () => {
-    // Calculate monthly payment
     const monthlyRate = interestRate / 100 / 12;
     const numberOfPayments = loanTermYears * 12;
     const monthlyPmt = loanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments) / (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
     
     setMonthlyPayment(monthlyPmt);
     
-    // Calculate amortization table
     let balance = loanAmount;
     let totalInterestPaid = 0;
     const amortizationData = [];
@@ -42,7 +39,6 @@ const CreditSimulatorPage = () => {
       balance -= principalPayment;
       totalInterestPaid += interestPayment;
       
-      // Store monthly data
       amortizationData.push({
         payment,
         principalPayment,
@@ -52,7 +48,6 @@ const CreditSimulatorPage = () => {
         totalInterest: totalInterestPaid
       });
       
-      // Aggregate yearly data
       if (payment % 12 === 0 || payment === numberOfPayments) {
         const year = Math.ceil(payment / 12);
         yearData.push({
@@ -242,8 +237,8 @@ const CreditSimulatorPage = () => {
                           dataKey="interestPaid" 
                           name="Intérêts payés" 
                           stackId="2" 
-                          stroke="#dc2626" 
-                          fill="#fca5a5" 
+                          stroke="#FA5003" 
+                          fill="#FEC6A1" 
                         />
                       </AreaChart>
                     </ResponsiveContainer>
