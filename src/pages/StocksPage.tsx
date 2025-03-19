@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, Plus, ChevronDown, ChevronUp, Trash2, List, Info } from 'lucide-react';
@@ -22,6 +21,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import DeleteConfirmationDialog from '@/components/assets/DeleteConfirmationDialog';
 import AssetForm from '@/components/assets/AssetForm';
 import StockTransactionsList from '@/components/assets/StockTransactionsList';
+import StockDeleteConfirmationDialog from '@/components/assets/StockDeleteConfirmationDialog';
+import StockDetailsDialog from '@/components/assets/StockDetailsDialog';
 
 interface StocksPageProps {
   assets: Asset[];
@@ -90,6 +91,9 @@ const StocksPage: React.FC<StocksPageProps> = ({
   const estimatedAnnualFeePercentage = 0.5; // 0.5% annual fee estimation
   const estimatedAnnualFees = totalValue * (estimatedAnnualFeePercentage / 100);
   
+  const [stockToDelete, setStockToDelete] = useState<Asset | null>(null);
+  const [deleteStockConfirmOpen, setDeleteStockConfirmOpen] = useState(false);
+
   useEffect(() => {
     console.info('StocksPage - Investment Accounts:', investmentAccounts);
   }, [investmentAccounts]);
@@ -279,8 +283,8 @@ const StocksPage: React.FC<StocksPageProps> = ({
     return addedAccount;
   };
 
-  const handleDeleteAccount = (account: Asset) => {
-    setAccountToDelete(account);
+  const handleDeleteClick = (asset: Asset) => {
+    setAccountToDelete(asset);
     setDeleteConfirmOpen(true);
   };
   
@@ -370,6 +374,19 @@ const StocksPage: React.FC<StocksPageProps> = ({
           description: "L'action a été supprimée de votre portefeuille",
         });
       }
+    }
+  };
+  
+  const handleStockDeleteClick = (stock: Asset) => {
+    setStockToDelete(stock);
+    setDeleteStockConfirmOpen(true);
+  };
+  
+  const confirmDeleteStock = () => {
+    if (stockToDelete) {
+      handleDeleteAsset(stockToDelete.id);
+      setDeleteStockConfirmOpen(false);
+      setStockToDelete(null);
     }
   };
   
@@ -575,7 +592,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleDeleteAccount(account);
+                                    handleDeleteClick(account);
                                   }}
                                   className="p-2 mr-2 text-red-500 hover:bg-red-50 rounded-full"
                                 >
@@ -632,7 +649,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleDeleteAsset(stock.id);
+                                      handleStockDeleteClick(stock);
                                     }}
                                     className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
                                   >
@@ -712,7 +729,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDeleteAsset(stock.id);
+                          handleStockDeleteClick(stock);
                         }}
                         className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
                       >
@@ -734,99 +751,12 @@ const StocksPage: React.FC<StocksPageProps> = ({
           </DialogHeader>
           {selectedStock && (
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold">{selectedStock.name}</h3>
-              
-              <div className="bg-muted/30 p-4 rounded-lg">
-                <Table>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className="font-medium">Quantité totale</TableCell>
-                      <TableCell className="text-right">{selectedStock.quantity || '0'}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">Prix moyen d'achat</TableCell>
-                      <TableCell className="text-right">{formatCurrency(selectedStock.purchasePrice || 0)}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">Valeur totale</TableCell>
-                      <TableCell className="text-right">{formatCurrency(selectedStock.value)}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">Performance</TableCell>
-                      <TableCell className={cn(
-                        "text-right",
-                        (selectedStock.performance || 0) >= 0 ? "text-green-600" : "text-red-600"
-                      )}>
-                        {(selectedStock.performance || 0) > 0 ? "+" : ""}{(selectedStock.performance || 0).toFixed(1)}%
-                      </TableCell>
-                    </TableRow>
-                    {selectedStock.investmentAccountId && (
-                      <TableRow>
-                        <TableCell className="font-medium">Compte</TableCell>
-                        <TableCell className="text-right">
-                          {investmentAccounts.find(acc => acc.id === selectedStock.investmentAccountId)?.name || ""}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-              
-              <h4 className="font-semibold mt-4">Transactions</h4>
-              {selectedStock.transactions && selectedStock.transactions.length > 0 ? (
-                <div className="border rounded-md overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Quantité</TableHead>
-                        <TableHead>Prix unitaire</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {selectedStock.transactions.map((transaction) => (
-                        <TableRow key={transaction.id}>
-                          <TableCell>
-                            {new Date(transaction.date).toLocaleDateString('fr-FR')}
-                          </TableCell>
-                          <TableCell>
-                            <span className={transaction.type === 'buy' ? 'text-green-600' : 'text-red-600'}>
-                              {transaction.type === 'buy' ? 'Achat' : 'Vente'}
-                            </span>
-                          </TableCell>
-                          <TableCell>{transaction.quantity}</TableCell>
-                          <TableCell>{formatCurrency(transaction.price)}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(transaction.total)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="text-center py-4 bg-muted/30 rounded">
-                  <p className="text-muted-foreground">Aucune transaction enregistrée</p>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2 mt-4">
-                <button 
-                  className="wealth-btn" 
-                  onClick={() => setStockDetailsOpen(false)}
-                >
-                  Fermer
-                </button>
-                <button 
-                  className="wealth-btn wealth-btn-primary" 
-                  onClick={() => {
-                    setStockDetailsOpen(false);
-                    handleEditAsset(selectedStock);
-                  }}
-                >
-                  Ajouter une transaction
-                </button>
-              </div>
+              <StockDetailsDialog 
+                isOpen={true}
+                onClose={() => setStockDetailsOpen(false)}
+                stock={selectedStock}
+                onDeleteStock={handleDeleteAsset}
+              />
             </div>
           )}
         </DialogContent>
@@ -840,6 +770,13 @@ const StocksPage: React.FC<StocksPageProps> = ({
         message={`Supprimer ce compte supprimera également toutes les actions qu'il contient (${
           accountToDelete ? stocks.filter(s => s.investmentAccountId === accountToDelete.id).length : 0
         } actions).`}
+      />
+      
+      <StockDeleteConfirmationDialog
+        isOpen={deleteStockConfirmOpen}
+        onClose={() => setDeleteStockConfirmOpen(false)}
+        onConfirm={confirmDeleteStock}
+        stockName={stockToDelete?.name}
       />
     </div>
   );
