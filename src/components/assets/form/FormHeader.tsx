@@ -25,7 +25,7 @@ const FormHeader: React.FC<FormHeaderProps> = ({ title, type, emoji }) => {
   return (
     <div className="flex items-center gap-2 mb-6">
       {emoji ? (
-        <span className="text-xl">{emoji}</span>
+        <span className="text-xl text-[#FA5003]">{emoji}</span>
       ) : (
         getFormIcon()
       )}

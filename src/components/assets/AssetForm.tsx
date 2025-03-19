@@ -179,7 +179,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
 
   return (
     <div>
-      {/* Only show FormHeader if not crypto type */}
+      {/* Don't show the header for crypto type since it's in CryptoFormFields */}
       {type !== 'crypto' && (
         <FormHeader 
           title={getFormTitle()} 
