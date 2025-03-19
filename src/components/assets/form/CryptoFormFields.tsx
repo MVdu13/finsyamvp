@@ -3,7 +3,6 @@ import React from 'react';
 import { Asset } from '@/types/assets';
 import InvestmentFieldsBase from './InvestmentFieldsBase';
 import CryptoAccountFormFields from './CryptoAccountFormFields';
-import FormHeader from './FormHeader';
 
 interface CryptoFormFieldsProps {
   cryptoName: string;
@@ -34,11 +33,6 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
 }) => {
   return (
     <>
-      <FormHeader 
-        title="Ajouter une cryptomonnaie" 
-        type="crypto" 
-        emoji="₿"
-      />
       <InvestmentFieldsBase
         assetName={cryptoName}
         assetQty={cryptoQty}
