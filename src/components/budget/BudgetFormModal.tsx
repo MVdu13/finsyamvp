@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ interface BudgetFormModalProps {
   onSave: (item: Income | Expense) => void;
   type: BudgetItemType;
   editItem?: Income | Expense;
-  expenseType?: 'fixed' | 'variable'; // Add this prop to the interface
+  expenseType?: 'fixed' | 'variable';
 }
 
 const BudgetFormModal: React.FC<BudgetFormModalProps> = ({
@@ -27,24 +27,42 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({
   onSave,
   type,
   editItem,
-  expenseType: initialExpenseType // Rename to avoid conflict with state
+  expenseType: initialExpenseType
 }) => {
-  const [name, setName] = useState(editItem ? editItem.name : '');
-  const [amount, setAmount] = useState(editItem ? editItem.amount.toString() : '');
-  const [frequency, setFrequency] = useState<'monthly' | 'yearly' | 'weekly' | 'daily'>(
-    editItem ? editItem.frequency : 'monthly'
-  );
-  
-  // For expenses only
-  const [category, setCategory] = useState(
-    type === 'expense' && editItem ? (editItem as Expense).category : 'Autres'
-  );
-  const [essential, setEssential] = useState(
-    type === 'expense' && editItem ? (editItem as Expense).essential : false
-  );
-  const [expenseType, setExpenseType] = useState<'fixed' | 'variable'>(
-    initialExpenseType || (type === 'expense' && editItem ? (editItem as Expense).type : 'fixed')
-  );
+  // State for form fields
+  const [name, setName] = useState('');
+  const [amount, setAmount] = useState('');
+  const [frequency, setFrequency] = useState<'monthly' | 'yearly' | 'weekly' | 'daily'>('monthly');
+  const [category, setCategory] = useState('Autres');
+  const [essential, setEssential] = useState(false);
+  const [expenseType, setExpenseType] = useState<'fixed' | 'variable'>('fixed');
+
+  // Reset form when closed or when switching between add/edit
+  useEffect(() => {
+    if (isOpen) {
+      if (editItem) {
+        // Pre-fill the form when editing
+        setName(editItem.name);
+        setAmount(editItem.amount.toString());
+        setFrequency(editItem.frequency);
+        
+        if (type === 'expense') {
+          const expenseItem = editItem as Expense;
+          setCategory(expenseItem.category);
+          setEssential(expenseItem.essential);
+          setExpenseType(expenseItem.type);
+        }
+      } else {
+        // Clear form when adding new
+        setName('');
+        setAmount('');
+        setFrequency('monthly');
+        setCategory('Autres');
+        setEssential(false);
+        setExpenseType(initialExpenseType || 'fixed');
+      }
+    }
+  }, [isOpen, editItem, type, initialExpenseType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +105,7 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({
           category,
           frequency,
           essential,
-          type: expenseType  // Ajout du type qui manquait
+          type: expenseType
         };
         onSave(expenseItem);
       }
