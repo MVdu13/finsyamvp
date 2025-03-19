@@ -21,7 +21,7 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
 }) => {
   const [bankName, setBankName] = useState(initialValues?.bankName || '');
   const [accountName, setAccountName] = useState(initialValues?.accountName || '');
-  const [description, setDescription] = useState(initialValues?.description || 'Compte pour dépenses quotidiennes');
+  const [description, setDescription] = useState(initialValues?.description || '');
   const [value, setValue] = useState(initialValues?.value ? initialValues.value.toString() : '');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -52,19 +52,43 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
   return (
     <div className="p-4 bg-white rounded-xl w-full">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <BankAccountFormFields
-          bankName={bankName}
-          accountName={accountName}
-          setBankName={setBankName}
-          setAccountName={setAccountName}
-        />
+        <div>
+          <Label htmlFor="bankName" className="block text-sm font-medium mb-1">
+            Nom de la banque
+          </Label>
+          <Input
+            id="bankName"
+            type="text"
+            value={bankName}
+            onChange={(e) => setBankName(e.target.value)}
+            className="wealth-input w-full"
+            placeholder="Ex: BNP Paribas, Crédit Agricole..."
+            required
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="accountName" className="block text-sm font-medium mb-1">
+            Type de compte
+          </Label>
+          <Input
+            id="accountName"
+            type="text"
+            value={accountName}
+            onChange={(e) => setAccountName(e.target.value)}
+            className="wealth-input w-full"
+            placeholder="Ex: Compte courant, Compte joint..."
+            required
+          />
+        </div>
         
         <div>
           <Label htmlFor="description" className="block text-sm font-medium mb-1">
             Décrivez l'utilisation de ce compte
           </Label>
-          <Textarea
+          <Input
             id="description"
+            type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="wealth-input w-full"
