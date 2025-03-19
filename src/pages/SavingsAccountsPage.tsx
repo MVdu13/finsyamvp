@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { ScrollText, TrendingUp, Plus, Percent } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import { Asset, AssetType } from '@/types/assets';
@@ -42,136 +43,173 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
     return sum + annualInterest;
   }, 0);
   
-  const generateChartData = () => {
-    const baseValue = totalValue > 0 ? totalValue : 0;
-    
-    let numDataPoints;
-    let labels;
-    
-    const currentDate = new Date();
-    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-    
-    switch (timeFrame) {
-      case '1M':
-        numDataPoints = 30;
-        labels = Array.from({ length: numDataPoints }, (_, i) => {
-          const date = new Date();
-          date.setDate(currentDate.getDate() - (numDataPoints - i - 1));
-          return `${date.getDate()} ${months[date.getMonth()]}`;
-        });
-        break;
-      case '3M':
-        numDataPoints = 12;
-        labels = Array.from({ length: numDataPoints }, (_, i) => {
-          const date = new Date();
-          date.setDate(currentDate.getDate() - (numDataPoints - i - 1) * 7);
-          return `${date.getDate()} ${months[date.getMonth()]}`;
-        });
-        break;
-      case '6M':
-        numDataPoints = 12;
-        labels = Array.from({ length: numDataPoints }, (_, i) => {
-          const date = new Date();
-          date.setDate(currentDate.getDate() - (numDataPoints - i - 1) * 14);
-          return `${date.getDate()} ${months[date.getMonth()]}`;
-        });
-        break;
-      case '5Y':
-        numDataPoints = 60;
-        labels = Array.from({ length: Math.min(numDataPoints, 24) }, (_, i) => {
-          const date = new Date();
-          date.setMonth(currentDate.getMonth() - (Math.min(numDataPoints, 24) - i - 1));
-          return `${months[date.getMonth()]} ${date.getFullYear()}`;
-        });
-        break;
-      case 'ALL':
-        numDataPoints = 5;
-        labels = Array.from({ length: numDataPoints }, (_, i) => {
-          const date = new Date();
-          date.setFullYear(currentDate.getFullYear() - (numDataPoints - i - 1));
-          return date.getFullYear().toString();
-        });
-        break;
-      case '1Y':
-      default:
-        numDataPoints = 12;
-        labels = Array.from({ length: numDataPoints }, (_, i) => {
-          const date = new Date();
-          date.setMonth(currentDate.getMonth() - (numDataPoints - i - 1));
-          return months[date.getMonth()];
-        });
-        break;
-    }
-    
-    if (baseValue === 0) {
+  // Using useMemo to prevent recalculation when dialog state changes
+  const chartData = useMemo(() => {
+    const generateChartData = () => {
+      const baseValue = totalValue > 0 ? totalValue : 0;
+      
+      let numDataPoints;
+      let labels;
+      
+      const currentDate = new Date();
+      const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+      
+      switch (timeFrame) {
+        case '1M':
+          numDataPoints = 30;
+          labels = Array.from({ length: numDataPoints }, (_, i) => {
+            const date = new Date();
+            date.setDate(currentDate.getDate() - (numDataPoints - i - 1));
+            return `${date.getDate()} ${months[date.getMonth()]}`;
+          });
+          break;
+        case '3M':
+          numDataPoints = 12;
+          labels = Array.from({ length: numDataPoints }, (_, i) => {
+            const date = new Date();
+            date.setDate(currentDate.getDate() - (numDataPoints - i - 1) * 7);
+            return `${date.getDate()} ${months[date.getMonth()]}`;
+          });
+          break;
+        case '6M':
+          numDataPoints = 12;
+          labels = Array.from({ length: numDataPoints }, (_, i) => {
+            const date = new Date();
+            date.setDate(currentDate.getDate() - (numDataPoints - i - 1) * 14);
+            return `${date.getDate()} ${months[date.getMonth()]}`;
+          });
+          break;
+        case '5Y':
+          numDataPoints = 60;
+          labels = Array.from({ length: Math.min(numDataPoints, 24) }, (_, i) => {
+            const date = new Date();
+            date.setMonth(currentDate.getMonth() - (Math.min(numDataPoints, 24) - i - 1));
+            return `${months[date.getMonth()]} ${date.getFullYear()}`;
+          });
+          break;
+        case 'ALL':
+          numDataPoints = 5;
+          labels = Array.from({ length: numDataPoints }, (_, i) => {
+            const date = new Date();
+            date.setFullYear(currentDate.getFullYear() - (numDataPoints - i - 1));
+            return date.getFullYear().toString();
+          });
+          break;
+        case '1Y':
+        default:
+          numDataPoints = 12;
+          labels = Array.from({ length: numDataPoints }, (_, i) => {
+            const date = new Date();
+            date.setMonth(currentDate.getMonth() - (numDataPoints - i - 1));
+            return months[date.getMonth()];
+          });
+          break;
+      }
+      
+      if (baseValue === 0) {
+        return {
+          labels,
+          datasets: [
+            {
+              label: 'Solde livrets',
+              data: Array(labels.length).fill(0),
+              color: '#FA5003',
+              fill: true,
+            }
+          ]
+        };
+      }
+      
+      const generateSteadyIncrease = (steps: number, finalValue: number, avgPerformance: number) => {
+        let initialValue;
+        let growthFactor;
+        
+        switch (timeFrame) {
+          case '1M':
+            growthFactor = Math.pow(1 + avgPerformance/100, 1/12);
+            break;
+          case '3M':
+            growthFactor = Math.pow(1 + avgPerformance/100, 1/4);
+            break;
+          case '6M':
+            growthFactor = Math.pow(1 + avgPerformance/100, 1/2);
+            break;
+          case '5Y':
+            growthFactor = Math.pow(1 + avgPerformance/100, 5);
+            break;
+          case 'ALL':
+            growthFactor = Math.pow(1 + avgPerformance/100, 5);
+            break;
+          case '1Y':
+          default:
+            growthFactor = 1 + avgPerformance/100;
+            break;
+        }
+        
+        initialValue = finalValue / growthFactor;
+        
+        const values = [];
+        for (let i = 0; i < steps; i++) {
+          const progress = i / (steps - 1);
+          const randomNoise = 1 + (Math.random() * 0.005 - 0.0025);
+          values.push(initialValue + (finalValue - initialValue) * progress * randomNoise);
+        }
+        
+        return values.map(val => Math.round(val));
+      };
+      
+      const values = generateSteadyIncrease(labels.length, baseValue, avgPerformance);
+      
       return {
         labels,
         datasets: [
           {
             label: 'Solde livrets',
-            data: Array(labels.length).fill(0),
+            data: values,
             color: '#FA5003',
             fill: true,
           }
         ]
       };
-    }
-    
-    const generateSteadyIncrease = (steps: number, finalValue: number, avgPerformance: number) => {
-      let initialValue;
-      let growthFactor;
-      
-      switch (timeFrame) {
-        case '1M':
-          growthFactor = Math.pow(1 + avgPerformance/100, 1/12);
-          break;
-        case '3M':
-          growthFactor = Math.pow(1 + avgPerformance/100, 1/4);
-          break;
-        case '6M':
-          growthFactor = Math.pow(1 + avgPerformance/100, 1/2);
-          break;
-        case '5Y':
-          growthFactor = Math.pow(1 + avgPerformance/100, 5);
-          break;
-        case 'ALL':
-          growthFactor = Math.pow(1 + avgPerformance/100, 5);
-          break;
-        case '1Y':
-        default:
-          growthFactor = 1 + avgPerformance/100;
-          break;
-      }
-      
-      initialValue = finalValue / growthFactor;
-      
-      const values = [];
-      for (let i = 0; i < steps; i++) {
-        const progress = i / (steps - 1);
-        const randomNoise = 1 + (Math.random() * 0.005 - 0.0025);
-        values.push(initialValue + (finalValue - initialValue) * progress * randomNoise);
-      }
-      
-      return values.map(val => Math.round(val));
     };
-    
-    const values = generateSteadyIncrease(labels.length, baseValue, avgPerformance);
-    
-    return {
-      labels,
-      datasets: [
-        {
-          label: 'Solde livrets',
-          data: values,
-          color: '#FA5003',
-          fill: true,
-        }
-      ]
-    };
-  };
 
-  const chartData = generateChartData();
+    return generateChartData();
+  }, [totalValue, timeFrame, avgPerformance]);
   
+  // Using useMemo to prevent recalculation when dialog state changes
+  const distributionChartData = useMemo(() => {
+    const generateDistributionChartData = () => {
+      if (assets.length === 0) {
+        return {
+          labels: ['Aucun livret'],
+          values: [1],
+          colors: ['#e5e7eb'],
+        };
+      }
+
+      const sortedAssets = [...assets].sort((a, b) => b.value - a.value);
+      
+      const colors = [
+        '#8B5CF6',
+        '#EC4899',
+        '#3B82F6',
+        '#10B981',
+        '#F97316',
+        '#A855F7',
+        '#14B8A6',
+        '#6366F1',
+      ];
+
+      return {
+        labels: sortedAssets.map(asset => asset.name),
+        values: sortedAssets.map(asset => asset.value),
+        colors: sortedAssets.map((_, index) => colors[index % colors.length]),
+      };
+    };
+
+    return generateDistributionChartData();
+  }, [assets]);
+
   const firstValue = chartData.datasets[0].data[0] || 0;
   const lastValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1] || 0;
   const absoluteGrowth = lastValue - firstValue;
@@ -236,37 +274,6 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
     }
   };
 
-  const generateDistributionChartData = () => {
-    if (assets.length === 0) {
-      return {
-        labels: ['Aucun livret'],
-        values: [1],
-        colors: ['#e5e7eb'],
-      };
-    }
-
-    const sortedAssets = [...assets].sort((a, b) => b.value - a.value);
-    
-    const colors = [
-      '#8B5CF6',
-      '#EC4899',
-      '#3B82F6',
-      '#10B981',
-      '#F97316',
-      '#A855F7',
-      '#14B8A6',
-      '#6366F1',
-    ];
-
-    return {
-      labels: sortedAssets.map(asset => asset.name),
-      values: sortedAssets.map(asset => asset.value),
-      colors: sortedAssets.map((_, index) => colors[index % colors.length]),
-    };
-  };
-
-  const distributionChartData = generateDistributionChartData();
-
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -329,9 +336,7 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{assets.length}</div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Livrets d'épargne actifs
-            </div>
+            {/* Removed "Livrets d'épargne actifs" text as requested */}
           </CardContent>
         </Card>
         
