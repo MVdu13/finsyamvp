@@ -40,9 +40,15 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
   
   const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
   
-  const bankAccountRatio = totalWealth > 0 ? (totalValue / totalWealth) * 100 : 0;
+  const savingsAccounts = assets.filter(asset => 
+    asset.type === 'savings-account'
+  );
   
-  const isRatioTooHigh = bankAccountRatio > 30;
+  const totalSavingsValue = savingsAccounts.reduce((sum, asset) => sum + asset.value, 0);
+  
+  const bankToSavingsRatio = totalSavingsValue > 0 ? (totalValue / totalSavingsValue) * 100 : 0;
+  
+  const isRatioTooHigh = bankToSavingsRatio > 30;
   
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
@@ -304,7 +310,7 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-1.5">
-              <span className="text-sm font-medium text-muted-foreground">Ratio Liquidité/Patrimoine</span>
+              <span className="text-sm font-medium text-muted-foreground">Ratio Liquidité/Livrets</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -312,8 +318,8 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs">
                     <p className="text-sm">
-                      Ce ratio indique la proportion de votre patrimoine global qui est disponible en liquidités sur vos comptes bancaires. 
-                      Un ratio trop élevé (&gt;30%) suggère que vous pourriez diversifier ou investir davantage.
+                      Ce ratio indique la proportion entre vos comptes bancaires et vos livrets d'épargne. 
+                      Un ratio trop élevé (&gt;30%) suggère que vous pourriez placer votre argent sur des livrets d'épargne ou l'investir.
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -322,13 +328,13 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${isRatioTooHigh ? 'text-amber-600' : 'text-green-600'}`}>
-              {formatPercentage(bankAccountRatio)}
+              {formatPercentage(bankToSavingsRatio)}
             </div>
             <div className={`text-xs mt-1 ${isRatioTooHigh ? 'text-amber-600' : 'text-green-600'}`}>
               {isRatioTooHigh ? (
                 <span className="flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" />
-                  Trop de liquidités, pensez à investir
+                  Trop de liquidités, pensez à placer sur des livrets
                 </span>
               ) : (
                 "Ratio équilibré"
