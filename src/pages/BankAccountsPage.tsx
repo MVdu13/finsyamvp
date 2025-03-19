@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { Wallet, TrendingUp, TrendingDown, Plus, AlertCircle } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import { Asset, AssetType } from '@/types/assets';
@@ -72,118 +73,155 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
   
   const isRatioTooHigh = bankToSavingsRatio > 30;
   
-  const generateChartData = () => {
-    const baseValue = totalValue > 0 ? totalValue : 0;
-    
-    let numDataPoints;
-    let labels;
-    
-    const currentDate = new Date();
-    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-    
-    switch (timeFrame) {
-      case '1M':
-        numDataPoints = 30;
-        labels = Array.from({ length: numDataPoints }, (_, i) => {
-          const date = new Date();
-          date.setDate(currentDate.getDate() - (numDataPoints - i - 1));
-          return `${date.getDate()} ${months[date.getMonth()]}`;
-        });
-        break;
-      case '3M':
-        numDataPoints = 12;
-        labels = Array.from({ length: numDataPoints }, (_, i) => {
-          const date = new Date();
-          date.setDate(currentDate.getDate() - (numDataPoints - i - 1) * 7);
-          return `${date.getDate()} ${months[date.getMonth()]}`;
-        });
-        break;
-      case '6M':
-        numDataPoints = 12;
-        labels = Array.from({ length: numDataPoints }, (_, i) => {
-          const date = new Date();
-          date.setDate(currentDate.getDate() - (numDataPoints - i - 1) * 14);
-          return `${date.getDate()} ${months[date.getMonth()]}`;
-        });
-        break;
-      case '5Y':
-        numDataPoints = 60;
-        labels = Array.from({ length: Math.min(numDataPoints, 24) }, (_, i) => {
-          const date = new Date();
-          date.setMonth(currentDate.getMonth() - (Math.min(numDataPoints, 24) - i - 1));
-          return `${months[date.getMonth()]} ${date.getFullYear()}`;
-        });
-        break;
-      case 'ALL':
-        numDataPoints = 5;
-        labels = Array.from({ length: numDataPoints }, (_, i) => {
-          const date = new Date();
-          date.setFullYear(currentDate.getFullYear() - (numDataPoints - i - 1));
-          return date.getFullYear().toString();
-        });
-        break;
-      case '1Y':
-      default:
-        numDataPoints = 12;
-        labels = Array.from({ length: numDataPoints }, (_, i) => {
-          const date = new Date();
-          date.setMonth(currentDate.getMonth() - (numDataPoints - i - 1));
-          return months[date.getMonth()];
-        });
-        break;
-    }
-    
-    if (baseValue === 0) {
+  // Using useMemo to prevent recalculation when dialog state changes
+  const chartData = useMemo(() => {
+    const generateChartData = () => {
+      const baseValue = totalValue > 0 ? totalValue : 0;
+      
+      let numDataPoints;
+      let labels;
+      
+      const currentDate = new Date();
+      const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+      
+      switch (timeFrame) {
+        case '1M':
+          numDataPoints = 30;
+          labels = Array.from({ length: numDataPoints }, (_, i) => {
+            const date = new Date();
+            date.setDate(currentDate.getDate() - (numDataPoints - i - 1));
+            return `${date.getDate()} ${months[date.getMonth()]}`;
+          });
+          break;
+        case '3M':
+          numDataPoints = 12;
+          labels = Array.from({ length: numDataPoints }, (_, i) => {
+            const date = new Date();
+            date.setDate(currentDate.getDate() - (numDataPoints - i - 1) * 7);
+            return `${date.getDate()} ${months[date.getMonth()]}`;
+          });
+          break;
+        case '6M':
+          numDataPoints = 12;
+          labels = Array.from({ length: numDataPoints }, (_, i) => {
+            const date = new Date();
+            date.setDate(currentDate.getDate() - (numDataPoints - i - 1) * 14);
+            return `${date.getDate()} ${months[date.getMonth()]}`;
+          });
+          break;
+        case '5Y':
+          numDataPoints = 60;
+          labels = Array.from({ length: Math.min(numDataPoints, 24) }, (_, i) => {
+            const date = new Date();
+            date.setMonth(currentDate.getMonth() - (Math.min(numDataPoints, 24) - i - 1));
+            return `${months[date.getMonth()]} ${date.getFullYear()}`;
+          });
+          break;
+        case 'ALL':
+          numDataPoints = 5;
+          labels = Array.from({ length: numDataPoints }, (_, i) => {
+            const date = new Date();
+            date.setFullYear(currentDate.getFullYear() - (numDataPoints - i - 1));
+            return date.getFullYear().toString();
+          });
+          break;
+        case '1Y':
+        default:
+          numDataPoints = 12;
+          labels = Array.from({ length: numDataPoints }, (_, i) => {
+            const date = new Date();
+            date.setMonth(currentDate.getMonth() - (numDataPoints - i - 1));
+            return months[date.getMonth()];
+          });
+          break;
+      }
+      
+      if (baseValue === 0) {
+        return {
+          labels,
+          datasets: [
+            {
+              label: 'Solde comptes',
+              data: Array(labels.length).fill(0),
+              color: '#FA5003',
+              fill: true,
+            }
+          ]
+        };
+      }
+      
+      const volatilityFactor = timeFrame === '1M' ? 0.02 : 
+                              timeFrame === '3M' ? 0.03 : 
+                              timeFrame === '6M' ? 0.04 : 
+                              timeFrame === '5Y' ? 0.1 : 
+                              timeFrame === 'ALL' ? 0.15 : 0.05;
+      
+      const generateValues = (steps: number, finalValue: number, volatility: number) => {
+        let currentValue = finalValue * (1 - Math.random() * volatility * 0.5);
+        const result = [currentValue];
+        
+        for (let i = 1; i < steps - 1; i++) {
+          const randomChange = (Math.random() * 2 - 1) * volatility * finalValue * 0.1;
+          currentValue = Math.max(0, currentValue + randomChange);
+          result.push(currentValue);
+        }
+        
+        result.push(finalValue);
+        
+        return result.map(val => Math.round(val));
+      };
+      
+      const values = generateValues(labels.length, baseValue, volatilityFactor);
+      
       return {
         labels,
         datasets: [
           {
             label: 'Solde comptes',
-            data: Array(labels.length).fill(0),
+            data: values,
             color: '#FA5003',
             fill: true,
           }
         ]
       };
-    }
-    
-    const volatilityFactor = timeFrame === '1M' ? 0.02 : 
-                             timeFrame === '3M' ? 0.03 : 
-                             timeFrame === '6M' ? 0.04 : 
-                             timeFrame === '5Y' ? 0.1 : 
-                             timeFrame === 'ALL' ? 0.15 : 0.05;
-    
-    const generateValues = (steps: number, finalValue: number, volatility: number) => {
-      let currentValue = finalValue * (1 - Math.random() * volatility * 0.5);
-      const result = [currentValue];
-      
-      for (let i = 1; i < steps - 1; i++) {
-        const randomChange = (Math.random() * 2 - 1) * volatility * finalValue * 0.1;
-        currentValue = Math.max(0, currentValue + randomChange);
-        result.push(currentValue);
-      }
-      
-      result.push(finalValue);
-      
-      return result.map(val => Math.round(val));
     };
-    
-    const values = generateValues(labels.length, baseValue, volatilityFactor);
-    
-    return {
-      labels,
-      datasets: [
-        {
-          label: 'Solde comptes',
-          data: values,
-          color: '#FA5003',
-          fill: true,
-        }
-      ]
-    };
-  };
 
-  const chartData = generateChartData();
+    return generateChartData();
+  }, [totalValue, timeFrame]); // Remove dialogOpen dependency, only recalculate when actual values change
+
+  // Using useMemo to prevent recalculation when dialog state changes
+  const distributionChartData = useMemo(() => {
+    const generateDistributionChartData = () => {
+      if (assets.length === 0) {
+        return {
+          labels: ['Aucun compte'],
+          values: [1],
+          colors: ['#e5e7eb'],
+        };
+      }
+
+      const sortedAssets = [...assets].sort((a, b) => b.value - a.value);
+      
+      const colors = [
+        '#4ade80',
+        '#60a5fa',
+        '#c084fc',
+        '#f97316',
+        '#facc15',
+        '#38bdf8',
+        '#fb7185',
+        '#94a3b8',
+      ];
+
+      return {
+        labels: sortedAssets.map(asset => asset.name),
+        values: sortedAssets.map(asset => asset.value),
+        colors: sortedAssets.map((_, index) => colors[index % colors.length]),
+      };
+    };
+
+    return generateDistributionChartData();
+  }, [assets]); // Remove dialogOpen dependency, only recalculate when assets change
 
   const handleAddAccount = (newAsset: Omit<Asset, 'id'>) => {
     const bankAccount = {
@@ -226,37 +264,6 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
       });
     }
   };
-
-  const generateDistributionChartData = () => {
-    if (assets.length === 0) {
-      return {
-        labels: ['Aucun compte'],
-        values: [1],
-        colors: ['#e5e7eb'],
-      };
-    }
-
-    const sortedAssets = [...assets].sort((a, b) => b.value - a.value);
-    
-    const colors = [
-      '#4ade80',
-      '#60a5fa',
-      '#c084fc',
-      '#f97316',
-      '#facc15',
-      '#38bdf8',
-      '#fb7185',
-      '#94a3b8',
-    ];
-
-    return {
-      labels: sortedAssets.map(asset => asset.name),
-      values: sortedAssets.map(asset => asset.value),
-      colors: sortedAssets.map((_, index) => colors[index % colors.length]),
-    };
-  };
-
-  const distributionChartData = generateDistributionChartData();
 
   return (
     <div className="p-6 space-y-6">
@@ -323,9 +330,7 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{assets.length}</div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Comptes bancaires actifs
-            </div>
+            {/* Removed "Comptes bancaires actifs" text as requested */}
           </CardContent>
         </Card>
         
