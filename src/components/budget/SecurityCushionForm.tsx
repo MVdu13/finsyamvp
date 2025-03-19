@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from "@/hooks/use-toast";
 import { ShieldAlert } from 'lucide-react';
@@ -23,6 +24,7 @@ const SecurityCushionForm: React.FC<SecurityCushionFormProps> = ({
   currentAmount,
   riskProfile
 }) => {
+  const [amount, setAmount] = useState<number>(currentAmount);
   const [risk, setRisk] = useState<'high' | 'medium' | 'low'>(riskProfile);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -30,14 +32,14 @@ const SecurityCushionForm: React.FC<SecurityCushionFormProps> = ({
 
     try {
       onSave({
-        currentAmount: currentAmount, // Pass the current amount unchanged
+        currentAmount: amount,
         riskProfile: risk
       });
 
       onClose();
       toast({
         title: "Modification réussie",
-        description: "Votre profil de risque a été mis à jour avec succès.",
+        description: "Votre matelas de sécurité a été mis à jour avec succès.",
       });
     } catch (error) {
       toast({
@@ -57,7 +59,7 @@ const SecurityCushionForm: React.FC<SecurityCushionFormProps> = ({
             <span>Ajuster votre matelas de sécurité</span>
           </DialogTitle>
           <DialogDescription>
-            Configurez votre profil de risque pour votre matelas de sécurité.
+            Configurez votre matelas de sécurité et votre profil de risque.
           </DialogDescription>
         </DialogHeader>
         
@@ -68,6 +70,22 @@ const SecurityCushionForm: React.FC<SecurityCushionFormProps> = ({
             <p className="text-xs text-muted-foreground mt-2">
               Ce montant est automatiquement calculé à partir de vos livrets d'épargne.
               Pour le modifier, ajoutez ou modifiez vos comptes d'épargne.
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="cushion-amount">Montant du matelas de sécurité</Label>
+            <Input
+              id="cushion-amount"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(Number(e.target.value))}
+              min={0}
+              step={100}
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground">
+              Définissez le montant que vous souhaitez allouer à votre matelas de sécurité
             </p>
           </div>
           

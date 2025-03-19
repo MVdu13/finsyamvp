@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { FinancialGoal, ProjectPlan } from '@/types/goals';
 import { mockBudget, mockAssets, mockGoals } from '@/lib/mockData';
@@ -28,6 +29,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
   const [assets, setAssets] = useState<Asset[]>(mockAssets);
   const [riskProfile, setRiskProfile] = useState<'high' | 'medium' | 'low'>('medium');
   const [cushionFormOpen, setCushionFormOpen] = useState(false);
+  const [securityCushionAmount, setSecurityCushionAmount] = useState<number>(0);
   
   const monthlySavings = mockBudget.totalIncome - mockBudget.totalExpenses;
   
@@ -69,6 +71,14 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
       setRiskProfile(savedRiskProfile as 'high' | 'medium' | 'low');
     }
     
+    const savedCushionAmount = localStorage.getItem('security-cushion-amount');
+    if (savedCushionAmount) {
+      setSecurityCushionAmount(Number(savedCushionAmount));
+    } else {
+      // Initialize with minimum of savings total and target amount
+      setSecurityCushionAmount(Math.min(savingsAccountsTotal, targetAmount));
+    }
+    
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'financial-assets') {
         loadAssetsFromStorage();
@@ -81,6 +91,13 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
+
+  // Update security cushion amount if not set and savings or target changes
+  useEffect(() => {
+    if (securityCushionAmount === 0) {
+      setSecurityCushionAmount(Math.min(savingsAccountsTotal, targetAmount));
+    }
+  }, [savingsAccountsTotal, targetAmount]);
 
   useEffect(() => {
     localStorage.setItem('financial-projects', JSON.stringify(projects));
@@ -146,12 +163,14 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
   
   const handleSaveCushion = (data: {currentAmount: number, riskProfile: 'high' | 'medium' | 'low'}) => {
     setRiskProfile(data.riskProfile);
+    setSecurityCushionAmount(data.currentAmount);
     
     localStorage.setItem('security-cushion-risk-profile', data.riskProfile);
+    localStorage.setItem('security-cushion-amount', data.currentAmount.toString());
     
     toast({
-      title: "Profil de risque mis à jour",
-      description: "Votre profil de risque pour le matelas de sécurité a été mis à jour avec succès.",
+      title: "Matelas de sécurité mis à jour",
+      description: "Votre matelas de sécurité a été mis à jour avec succès.",
     });
   };
   
@@ -197,14 +216,14 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({ onAddAsset }) => {
             <div className="lg:col-span-1">
               <SavingsAllocationChart 
                 savingsTotal={savingsAccountsTotal}
-                securityCushionAmount={Math.min(savingsAccountsTotal, targetAmount)}
+                securityCushionAmount={securityCushionAmount}
                 projects={projects}
               />
             </div>
             
             <div className="lg:col-span-2">
               <SecurityCushion 
-                currentAmount={savingsAccountsTotal}
+                currentAmount={securityCushionAmount}
                 targetAmount={targetAmount}
                 expenseAmount={monthlyExpenses}
                 riskProfile={riskProfile}

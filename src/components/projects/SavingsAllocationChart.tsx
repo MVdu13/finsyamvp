@@ -52,12 +52,9 @@ const SavingsAllocationChart: React.FC<SavingsAllocationChartProps> = ({
     <Card className="h-full relative">
       <CardHeader className="p-4 pb-2">
         <CardTitle className="text-lg">Allocation de l'épargne</CardTitle>
+        <p className="text-sm font-medium text-wealth-primary">Total des livrets: {formatCurrency(savingsTotal)}</p>
       </CardHeader>
       <CardContent className="p-4 pt-0">
-        <div className="absolute top-4 right-4 bg-opacity-80 rounded-md px-2 py-1 bg-muted/30">
-          <span className="text-sm font-medium text-wealth-primary">Total des livrets: {formatCurrency(savingsTotal)}</span>
-        </div>
-        
         <DonutChart data={chartData} height={220} />
         
         <div className="grid grid-cols-2 gap-3 mt-4">
