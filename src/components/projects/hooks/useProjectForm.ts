@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { differenceInMonths } from 'date-fns';
@@ -10,21 +10,29 @@ interface UseProjectFormProps {
   editProject?: FinancialGoal;
 }
 
+const getDefaultValues = (editProject?: FinancialGoal): ProjectFormValues => {
+  return {
+    name: editProject?.name || '',
+    description: editProject?.description || '',
+    type: editProject?.type || 'project',
+    targetAmount: editProject?.targetAmount || 0,
+    currentAmount: editProject?.currentAmount || 0,
+    monthlyContribution: editProject?.monthlyContribution || 0,
+    priority: editProject?.priority || 'medium',
+    startDate: editProject ? new Date(editProject.startDate) : new Date(),
+    targetDate: editProject ? new Date(editProject.targetDate) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+  };
+};
+
 export const useProjectForm = ({ editProject }: UseProjectFormProps) => {
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
-    defaultValues: {
-      name: editProject?.name || '',
-      description: editProject?.description || '',
-      type: editProject?.type || 'project',
-      targetAmount: editProject?.targetAmount || 0,
-      currentAmount: editProject?.currentAmount || 0,
-      monthlyContribution: editProject?.monthlyContribution || 0,
-      priority: editProject?.priority || 'medium',
-      startDate: editProject ? new Date(editProject.startDate) : new Date(),
-      targetDate: editProject ? new Date(editProject.targetDate) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-    }
+    defaultValues: getDefaultValues(editProject)
   });
+
+  const resetForm = useCallback((project?: FinancialGoal) => {
+    form.reset(getDefaultValues(project));
+  }, [form]);
 
   // Calculer la contribution mensuelle suggérée lorsque les montants ou dates changent
   useEffect(() => {
@@ -91,6 +99,7 @@ export const useProjectForm = ({ editProject }: UseProjectFormProps) => {
 
   return {
     form,
-    handleFormSubmit
+    handleFormSubmit,
+    resetForm
   };
 };

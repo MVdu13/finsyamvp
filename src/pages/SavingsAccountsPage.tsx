@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { ScrollText, TrendingUp, Plus, Percent } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -12,6 +11,7 @@ import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
 import { cn } from '@/lib/utils';
 import SavingsAccountForm from '@/components/assets/form/SavingsAccountForm';
+import { Button } from '@/components/ui/button';
 
 interface SavingsAccountsPageProps {
   assets: Asset[];
@@ -43,7 +43,6 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
     return sum + annualInterest;
   }, 0);
   
-  // Using useMemo to prevent recalculation when dialog state changes
   const chartData = useMemo(() => {
     const generateChartData = () => {
       const baseValue = totalValue > 0 ? totalValue : 0;
@@ -176,7 +175,6 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
     return generateChartData();
   }, [totalValue, timeFrame, avgPerformance]);
   
-  // Using useMemo to prevent recalculation when dialog state changes
   const distributionChartData = useMemo(() => {
     const generateDistributionChartData = () => {
       if (assets.length === 0) {
@@ -400,14 +398,33 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
 
       <div>
         {assets.length > 0 ? (
-          <AssetsList 
-            assets={assets} 
-            title="Vos livrets d'épargne" 
-            onEdit={handleEditAsset}
-            onDelete={handleDeleteAsset}
-            hideViewAllButton={true}
-            showActions={false}
-          />
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Vos livrets d'épargne</CardTitle>
+                <CardDescription>Liste de tous vos livrets d'épargne</CardDescription>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setDialogOpen(true)} 
+                className="gap-1"
+              >
+                <Plus size={16} />
+                <span>Ajouter un livret</span>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <AssetsList 
+                assets={assets} 
+                onEdit={handleEditAsset}
+                onDelete={handleDeleteAsset}
+                hideViewAllButton={true}
+                showActions={false}
+                title=""
+              />
+            </CardContent>
+          </Card>
         ) : (
           <div className="text-center py-12 bg-muted rounded-lg">
             <p className="text-lg text-muted-foreground mb-4">

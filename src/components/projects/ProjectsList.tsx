@@ -30,9 +30,15 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
   
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Mes Projets</CardTitle>
-        <CardDescription>Liste de tous vos projets et objectifs financiers</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Mes Projets</CardTitle>
+          <CardDescription>Liste de tous vos projets et objectifs financiers</CardDescription>
+        </div>
+        <Button variant="outline" size="sm" onClick={onAddProject} className="gap-1">
+          <Plus size={16} />
+          <span>Nouveau projet</span>
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

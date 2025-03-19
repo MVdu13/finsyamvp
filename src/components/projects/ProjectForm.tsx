@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -25,7 +25,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   editProject,
   monthlySavings
 }) => {
-  const { form, handleFormSubmit } = useProjectForm({ editProject });
+  const { form, handleFormSubmit, resetForm } = useProjectForm({ editProject });
+
+  // Reset form when dialog opens or when editProject changes
+  useEffect(() => {
+    if (isOpen) {
+      resetForm(editProject);
+    }
+  }, [isOpen, editProject, resetForm]);
 
   const onSubmit = form.handleSubmit((values) => {
     const project = handleFormSubmit(values);
