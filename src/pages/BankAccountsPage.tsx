@@ -187,7 +187,7 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
     };
 
     return generateChartData();
-  }, [totalValue, timeFrame]); // Remove dialogOpen dependency, only recalculate when actual values change
+  }, [totalValue, timeFrame]);
 
   // Using useMemo to prevent recalculation when dialog state changes
   const distributionChartData = useMemo(() => {
@@ -221,7 +221,7 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
     };
 
     return generateDistributionChartData();
-  }, [assets]); // Remove dialogOpen dependency, only recalculate when assets change
+  }, [assets]);
 
   const handleAddAccount = (newAsset: Omit<Asset, 'id'>) => {
     const bankAccount = {
@@ -235,6 +235,7 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
     toast({
       title: "Compte bancaire ajouté",
       description: `${newAsset.name} a été ajouté à vos comptes`,
+      duration: 2000, // Set toast to disappear after 2 seconds
     });
   };
 
@@ -249,6 +250,7 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
       toast({
         title: "Compte bancaire modifié",
         description: `${updatedAsset.name} a été mis à jour`,
+        duration: 2000, // Set toast to disappear after 2 seconds
       });
       setEditDialogOpen(false);
       setEditingAsset(null);
@@ -261,6 +263,7 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
       toast({
         title: "Compte bancaire supprimé",
         description: "Le compte a été supprimé de votre patrimoine",
+        duration: 2000, // Set toast to disappear after 2 seconds
       });
     }
   };
