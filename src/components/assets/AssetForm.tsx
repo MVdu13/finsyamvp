@@ -80,7 +80,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
     onSubmit,
     initialValues,
     isEditing,
-    defaultType // Pass the defaultType to useAssetForm
+    defaultType
   });
 
   const handleAddAccount = (accountData: Omit<Asset, 'id'>) => {
@@ -176,8 +176,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
         return null;
     }
   };
-
-  // Removed the outer container div with border and bg-white classes
 
   return (
     <div className="w-full max-w-md">
