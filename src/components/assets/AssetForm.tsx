@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Asset, AssetType } from '@/types/assets';
 import TypeSelector from './form/TypeSelector';
@@ -161,10 +162,10 @@ const AssetForm: React.FC<AssetFormProps> = ({
         return (
           <SavingsAccountFormFields
             bankName={savingsBankName}
-            accountName={savingsAccountName}
+            accountName={accountName}
             interestRate={interestRate}
             setBankName={setSavingsBankName}
-            setAccountName={setSavingsAccountName}
+            setAccountName={setAccountName}
             setInterestRate={setInterestRate}
           />
         );
