@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,6 @@ import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useInvestmentAccount } from '@/hooks/useInvestmentAccount';
-import BankAccountDialog from './BankAccountDialog';
 
 interface InvestmentFieldsBaseProps {
   assetName: string;
@@ -70,7 +70,6 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
   const [newAccountName, setNewAccountName] = useState('');
   const [otherProps, setOtherProps] = useState<any>({});
   const [matchingAssets, setMatchingAssets] = useState<Asset[]>([]);
-  const [showBankAccountDialog, setShowBankAccountDialog] = useState(false);
 
   const { 
     accountDialogOpen, 
@@ -100,6 +99,7 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
     }
   };
 
+  // Vérifier si l'asset existe déjà dans le compte sélectionné
   useEffect(() => {
     if (assetName && accountId && existingAssets.length > 0) {
       const matching = existingAssets.filter(
@@ -146,65 +146,51 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
               </option>
             ))}
           </select>
-          <button 
-            type="button"
-            className="wealth-btn flex items-center gap-1 px-3"
-            onClick={() => {
-              if (accountTypeKey === 'investment-account') {
-                setShowBankAccountDialog(true);
-              } else {
-                setAccountDialogOpen(true);
-              }
-            }}
-          >
-            <Plus size={16} />
-            <span>Nouveau</span>
-          </button>
+          <Dialog open={accountDialogOpen} onOpenChange={setAccountDialogOpen}>
+            <DialogTrigger asChild>
+              <button 
+                type="button"
+                className="wealth-btn flex items-center gap-1 px-3"
+              >
+                <Plus size={16} />
+                <span>Nouveau</span>
+              </button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{dialogTitle}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                {renderAccountFormFields({
+                  accountName: newAccountName,
+                  setAccountName: setNewAccountName,
+                  otherProps,
+                  setOtherProps
+                })}
+                <div className="flex justify-end gap-3 mt-4">
+                  <button 
+                    type="button" 
+                    className="wealth-btn"
+                    onClick={() => setAccountDialogOpen(false)}
+                  >
+                    Annuler
+                  </button>
+                  <button 
+                    type="button" 
+                    className="wealth-btn wealth-btn-primary"
+                    onClick={handleAddAccountClick}
+                  >
+                    Ajouter le compte
+                  </button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
         {!accountId && (
           <p className="text-red-500 text-xs mt-1">{accountLabel} est requis</p>
         )}
       </div>
-
-      {accountTypeKey === 'investment-account' ? (
-        <BankAccountDialog
-          isOpen={showBankAccountDialog}
-          onClose={() => setShowBankAccountDialog(false)}
-          onAddAccount={onAddAccount || (() => null)}
-        />
-      ) : (
-        <Dialog open={accountDialogOpen} onOpenChange={setAccountDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{dialogTitle}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              {renderAccountFormFields({
-                accountName: newAccountName,
-                setAccountName: setNewAccountName,
-                otherProps,
-                setOtherProps
-              })}
-              <div className="flex justify-end gap-3 mt-4">
-                <button 
-                  type="button" 
-                  className="wealth-btn"
-                  onClick={() => setAccountDialogOpen(false)}
-                >
-                  Annuler
-                </button>
-                <button 
-                  type="button" 
-                  className="wealth-btn wealth-btn-primary"
-                  onClick={handleAddAccountClick}
-                >
-                  Ajouter le compte
-                </button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
 
       <div>
         <Label htmlFor="assetName" className="block text-sm font-medium mb-1">
