@@ -380,14 +380,14 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">Vos Comptes Bancaires</h2>
         {assets.length > 0 ? (
           <AssetsList 
             assets={assets} 
-            title="Comptes bancaires" 
+            title="Vos comptes bancaires" 
             onEdit={handleEditAsset}
             onDelete={handleDeleteAsset}
             hideViewAllButton={true}
+            showActions={false}
           />
         ) : (
           <div className="text-center py-12 bg-muted rounded-lg">
@@ -408,4 +408,3 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
 };
 
 export default BankAccountsPage;
-
