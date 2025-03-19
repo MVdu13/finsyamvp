@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarChart3, ArrowUpRight, ArrowDownRight, ExternalLink, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, ExternalLink, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Asset, AssetType } from '@/types/assets';
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
@@ -161,9 +161,6 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
     <div className="wealth-card h-full flex flex-col">
       <div className="flex justify-between items-center mb-5">
         <h3 className="font-medium text-lg">Actifs principaux</h3>
-        <button className="p-2 rounded-md hover:bg-muted transition-colors">
-          <BarChart3 size={18} />
-        </button>
       </div>
 
       <div className="overflow-y-auto flex-grow">
