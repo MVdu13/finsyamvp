@@ -94,8 +94,13 @@ const BudgetPage = () => {
   const fixedExpenses = budget.expenses.filter(expense => expense.type === 'fixed');
   const variableExpenses = budget.expenses.filter(expense => expense.type === 'variable');
   
-  const totalFixedExpenses = fixedExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-  const totalVariableExpenses = variableExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const totalFixedExpenses = fixedExpenses.reduce((sum, exp) => 
+    sum + (exp.monthlyAmount !== undefined ? exp.monthlyAmount : exp.amount), 0
+  );
+  
+  const totalVariableExpenses = variableExpenses.reduce((sum, exp) => 
+    sum + (exp.monthlyAmount !== undefined ? exp.monthlyAmount : exp.amount), 0
+  );
   
   const monthlyProjectsContribution = projects.reduce(
     (sum, goal) => sum + goal.monthlyContribution, 
@@ -165,7 +170,9 @@ const BudgetPage = () => {
     
     if (itemToDelete.type === 'income') {
       const newIncomes = budget.incomes.filter(item => item.id !== itemToDelete.id);
-      const totalIncome = newIncomes.reduce((sum, inc) => sum + inc.amount, 0);
+      const totalIncome = newIncomes.reduce((sum, inc) => 
+        sum + (inc.monthlyAmount !== undefined ? inc.monthlyAmount : inc.amount), 0
+      );
       
       setBudget({
         ...budget,
@@ -174,7 +181,9 @@ const BudgetPage = () => {
       });
     } else {
       const newExpenses = budget.expenses.filter(item => item.id !== itemToDelete.id);
-      const totalExpenses = newExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      const totalExpenses = newExpenses.reduce((sum, exp) => 
+        sum + (exp.monthlyAmount !== undefined ? exp.monthlyAmount : exp.amount), 0
+      );
       
       setBudget({
         ...budget,
