@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { formatCurrency } from '@/lib/formatters';
 import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelector';
 import { cn } from '@/lib/utils';
+import SavingsAccountForm from '@/components/assets/form/SavingsAccountForm';
 
 interface SavingsAccountsPageProps {
   assets: Asset[];
@@ -110,7 +111,7 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
           {
             label: 'Solde livrets',
             data: Array(labels.length).fill(0),
-            color: '#FA5003', // Changed to primary orange
+            color: '#FA5003',
             fill: true,
           }
         ]
@@ -163,7 +164,7 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
         {
           label: 'Solde livrets',
           data: values,
-          color: '#FA5003', // Changed to primary orange
+          color: '#FA5003',
           fill: true,
         }
       ]
@@ -280,11 +281,9 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
             <DialogHeader>
               <DialogTitle>Ajouter un livret d'épargne</DialogTitle>
             </DialogHeader>
-            <AssetForm 
+            <SavingsAccountForm 
               onSubmit={handleAddSavingsAccount} 
               onCancel={() => setDialogOpen(false)} 
-              defaultType="savings-account" 
-              showTypeSelector={false}
             />
           </DialogContent>
         </Dialog>

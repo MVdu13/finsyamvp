@@ -16,6 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger 
 } from '@/components/ui/tooltip';
+import BankAccountForm from '@/components/assets/form/BankAccountForm';
 
 interface BankAccountsPageProps {
   assets: Asset[];
@@ -249,11 +250,9 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
             <DialogHeader>
               <DialogTitle>Ajouter un compte bancaire</DialogTitle>
             </DialogHeader>
-            <AssetForm 
+            <BankAccountForm 
               onSubmit={handleAddAccount} 
               onCancel={() => setDialogOpen(false)} 
-              defaultType="bank-account" 
-              showTypeSelector={false}
             />
           </DialogContent>
         </Dialog>
