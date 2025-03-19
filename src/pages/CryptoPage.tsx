@@ -13,6 +13,7 @@ import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelec
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import CryptoDetailsDialog from '@/components/assets/CryptoDetailsDialog';
+import DeleteConfirmationDialog from '@/components/assets/DeleteConfirmationDialog';
 
 interface CryptoPageProps {
   assets: Asset[];
@@ -36,6 +37,8 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [selectedCrypto, setSelectedCrypto] = useState<Asset | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState<{ id: string, name: string, hasAssets: boolean }>({ id: '', name: '', hasAssets: false });
 
   const cryptoAccounts = assets.filter(asset => asset.type === 'crypto-account');
   const cryptoAssets = assets.filter(asset => asset.type === 'crypto');
@@ -246,12 +249,29 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   };
 
   const handleDeleteAccount = (accountId: string) => {
-    if (onDeleteAsset) {
-      onDeleteAsset(accountId);
+    const accountToRemove = cryptoAccounts.find(account => account.id === accountId);
+    const accountCryptos = cryptoAssets.filter(crypto => crypto.cryptoAccountId === accountId);
+    
+    if (accountToRemove) {
+      setAccountToDelete({
+        id: accountId,
+        name: accountToRemove.name,
+        hasAssets: accountCryptos.length > 0
+      });
+      setDeleteDialogOpen(true);
+    }
+  };
+
+  const confirmDeleteAccount = () => {
+    if (onDeleteAsset && accountToDelete.id) {
+      onDeleteAsset(accountToDelete.id);
+      
       toast({
         title: "Compte supprimé",
         description: "Le compte a été supprimé avec succès"
       });
+      
+      setDeleteDialogOpen(false);
     }
   };
 
@@ -364,6 +384,16 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         </Dialog>
 
         <CryptoDetailsDialog isOpen={cryptoDetailsDialogOpen} onClose={() => setCryptoDetailsDialogOpen(false)} crypto={selectedCrypto} />
+        
+        <DeleteConfirmationDialog 
+          isOpen={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          onConfirm={confirmDeleteAccount}
+          assetName={accountToDelete.name}
+          message={accountToDelete.hasAssets ? 
+            `Ce compte contient ${cryptoAssets.filter(crypto => crypto.cryptoAccountId === accountToDelete.id).length} cryptomonnaies. Ces cryptomonnaies seront également supprimées.` : 
+            undefined}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
