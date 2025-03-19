@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Wallet, TrendingUp, TrendingDown, Plus, AlertCircle } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import { Asset, AssetType } from '@/types/assets';
@@ -37,14 +37,36 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [allSavingsAccounts, setAllSavingsAccounts] = useState<Asset[]>([]);
   
+  useEffect(() => {
+    const storedAssets = localStorage.getItem('financial-assets');
+    if (storedAssets) {
+      const parsedAssets = JSON.parse(storedAssets);
+      const savingsAccounts = parsedAssets.filter((asset: Asset) => asset.type === 'savings-account');
+      setAllSavingsAccounts(savingsAccounts);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const storedAssets = localStorage.getItem('financial-assets');
+      if (storedAssets) {
+        const parsedAssets = JSON.parse(storedAssets);
+        const savingsAccounts = parsedAssets.filter((asset: Asset) => asset.type === 'savings-account');
+        setAllSavingsAccounts(savingsAccounts);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
   const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
   
-  const savingsAccounts = assets.filter(asset => 
-    asset.type === 'savings-account'
-  );
-  
-  const totalSavingsValue = savingsAccounts.reduce((sum, asset) => sum + asset.value, 0);
+  const totalSavingsValue = allSavingsAccounts.reduce((sum, asset) => sum + asset.value, 0);
   
   const bankToSavingsRatio = totalSavingsValue > 0 ? (totalValue / totalSavingsValue) * 100 : 0;
   
