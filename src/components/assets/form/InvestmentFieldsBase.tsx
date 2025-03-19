@@ -213,7 +213,7 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
               {existingAssetsMessageFn(matchingAssets)}
             </p>
             <p className="text-xs text-yellow-600 mt-1">
-              L'ajout de cette crypto sera fusionné avec l'existante.
+              L'ajout de cette action sera fusionné avec l'existante.
             </p>
           </div>
         </div>
