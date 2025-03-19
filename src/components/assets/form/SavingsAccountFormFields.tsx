@@ -39,7 +39,7 @@ const SavingsAccountFormFields: React.FC<SavingsAccountFormFieldsProps> = ({
       
       <div>
         <Label htmlFor="accountName" className="block text-sm font-medium mb-1">
-          Nom du livret
+          Type de livret
         </Label>
         <Input
           id="accountName"
