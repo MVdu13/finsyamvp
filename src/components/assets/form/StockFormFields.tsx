@@ -16,6 +16,8 @@ interface StockFormFieldsProps {
   investmentAccounts: Asset[];
   onAddAccount?: (account: Omit<Asset, 'id'>) => Asset | null | undefined;
   existingStocks?: Asset[];
+  isEditing?: boolean;
+  editingAssetId?: string;
 }
 
 const StockFormFields: React.FC<StockFormFieldsProps> = ({ 
@@ -29,7 +31,9 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
   setInvestmentAccountId,
   investmentAccounts,
   onAddAccount,
-  existingStocks = []
+  existingStocks = [],
+  isEditing = false,
+  editingAssetId
 }) => {
   return (
     <InvestmentFieldsBase
@@ -54,7 +58,8 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
       pricePlaceholder="Ex: 150"
       dialogTitle="Ajouter un compte d'investissement"
       accountTypeKey="investment-account"
-      accountTypeProp="accountType"
+      isEditing={isEditing}
+      editingAssetId={editingAssetId}
       renderAccountFormFields={({ accountName, setAccountName, otherProps, setOtherProps }) => (
         <InvestmentAccountFormFields
           accountName={accountName}

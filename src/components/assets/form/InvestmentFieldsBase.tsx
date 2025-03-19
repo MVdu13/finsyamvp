@@ -40,6 +40,7 @@ interface InvestmentFieldsBaseProps {
   pricePlaceholder: string;
   dialogTitle: string;
   accountTypeKey: string;
+  accountTypeProp?: string;
   isEditing?: boolean;
   editingAssetId?: string;
   renderAccountFormFields: (props: AccountFormFieldsProps) => React.ReactNode;
