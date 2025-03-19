@@ -67,7 +67,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
     accountName, setAccountName,
     savingsBankName, setSavingsBankName,
     savingsAccountName, setSavingsAccountName,
-    interestRate,
+    interestRate, setInterestRate,
     
     getFormTitle,
     shouldShowPerformanceField,
