@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -101,7 +100,6 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
     }
   };
 
-  // Vérifier si l'asset existe déjà dans le compte sélectionné
   useEffect(() => {
     if (assetName && accountId && existingAssets.length > 0) {
       const matching = existingAssets.filter(
@@ -140,13 +138,7 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
             <option value="">{accountSelectPlaceholder}</option>
             {accounts.map((account) => (
               <option key={account.id} value={account.id}>
-                {account.name} ({
-                  accountTypeProp ? 
-                    account[accountTypeProp] : 
-                    accountTypeKey === 'investment-account' 
-                      ? account.accountType 
-                      : account.cryptoPlatform
-                })
+                {account.name} {account[accountTypeProp || ''] && `(${account[accountTypeProp || '']})`}
               </option>
             ))}
           </select>

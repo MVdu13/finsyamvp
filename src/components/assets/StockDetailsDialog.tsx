@@ -37,9 +37,9 @@ const StockDetailsDialog: React.FC<StockDetailsDialogProps> = ({
 
   // Find the investment account type if it exists
   let accountInfo = "Direct";
-  if (stock.investmentAccountId && stock.investmentAccount) {
-    accountInfo = `${stock.investmentAccount.name} (${stock.investmentAccount.accountType})`;
-  } else if (stock.investmentAccountId) {
+  if (stock.investmentAccountId) {
+    // Since we don't have direct access to the investment account object,
+    // we'll just show the basic info we have
     accountInfo = "Compte titre";
   }
 
