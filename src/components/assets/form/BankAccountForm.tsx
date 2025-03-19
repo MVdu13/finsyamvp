@@ -92,7 +92,7 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="wealth-input w-full"
-            placeholder="Compte pour dépenses quotidiennes"
+            placeholder="Ex: Compte pour dépenses quotidiennes"
           />
         </div>
         
