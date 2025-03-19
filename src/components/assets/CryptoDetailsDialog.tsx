@@ -43,6 +43,19 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
       ? ((currentPrice - crypto.purchasePrice) / crypto.purchasePrice) * 100
       : 0;
 
+  // Get the account name
+  const getAccountName = () => {
+    if (!crypto.cryptoAccountId) return 'Portefeuille personnel';
+    
+    // Find the account in assets array
+    const account = window.assets?.find(asset => 
+      asset.id === crypto.cryptoAccountId && 
+      (asset.type === 'crypto-account' || asset.type === 'investment-account')
+    );
+    
+    return account ? account.name : `Compte ${crypto.cryptoAccountId}`;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto">
@@ -82,7 +95,7 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
                 <TableRow>
                   <TableCell className="font-medium">Compte</TableCell>
                   <TableCell className="text-right">
-                    Compte courant
+                    {getAccountName()}
                   </TableCell>
                 </TableRow>
               </TableBody>
