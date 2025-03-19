@@ -453,7 +453,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       </Card>
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Vos Comptes Crypto</h2>
+        <h2 className="text-xl font-bold">Vos Comptes Crypto</h2>
         
         {cryptoAccounts.length > 0 ? (
           <div className="space-y-4">
@@ -461,7 +461,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
           </div>
         ) : (
           <div className="rounded-lg border p-8 text-center">
-            <h3 className="text-xl text-muted-foreground mb-6">Vous n'avez pas encore de compte crypto</h3>
+            <h3 className="text-lg text-muted-foreground mb-6">Vous n'avez pas encore de compte crypto</h3>
             <Button 
               className="bg-wealth-primary hover:bg-wealth-primary-dark text-white"
               onClick={handleAddAccount}
