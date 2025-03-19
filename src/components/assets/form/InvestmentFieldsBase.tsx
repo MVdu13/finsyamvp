@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Info, Plus } from 'lucide-react';
 import { AlertTriangle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface AccountFormFieldsProps {
   accountName: string;
@@ -75,6 +76,7 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
   renderAccountFormFields,
   existingAssetsMessageFn
 }) => {
+  const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newAccountName, setNewAccountName] = useState('');
   const [otherProps, setOtherProps] = useState<Record<string, any>>({});
@@ -112,6 +114,10 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
       
       if (newAccount) {
         setAccountId(newAccount.id);
+        toast({
+          title: "Compte ajouté",
+          description: `Le compte ${newAccountName} a été créé et sélectionné.`,
+        });
       }
       
       setDialogOpen(false);

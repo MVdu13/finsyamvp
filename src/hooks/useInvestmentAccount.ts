@@ -18,6 +18,7 @@ export const useInvestmentAccount = ({
 }: UseInvestmentAccountProps) => {
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [lastAddedAccountId, setLastAddedAccountId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Effet pour sélectionner automatiquement le compte nouvellement ajouté
   useEffect(() => {
@@ -41,6 +42,11 @@ export const useInvestmentAccount = ({
       if (addedAccount && addedAccount.id) {
         setAccountId(addedAccount.id);
         setAccountDialogOpen(false); // Fermer seulement si on a l'ID
+        
+        toast({
+          title: "Compte ajouté",
+          description: `Le compte ${accountData.name} a été créé et sélectionné.`,
+        });
       } else {
         // Sinon, on utilisera l'effet pour sélectionner le compte quand il sera disponible
         setLastAddedAccountId('pending');
