@@ -95,7 +95,10 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
     
     Object.entries(expenseCategories).forEach(([category, { fixed, variable }]) => {
       const categoryExpenses = [...fixed, ...variable];
-      const categoryTotal = categoryExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      // Use monthlyAmount if available, otherwise fall back to amount
+      const categoryTotal = categoryExpenses.reduce((sum, exp) => 
+        sum + (exp.monthlyAmount !== undefined ? exp.monthlyAmount : exp.amount), 0
+      );
       
       if (categoryTotal > 0) {
         nodes.push({
@@ -112,15 +115,18 @@ const CashflowChart: React.FC<CashflowChartProps> = ({
         });
         
         categoryExpenses.forEach(expense => {
+          // Use monthlyAmount if available, otherwise fall back to amount
+          const expenseAmount = expense.monthlyAmount !== undefined ? expense.monthlyAmount : expense.amount;
+          
           nodes.push({
-            name: `${expense.name}: ${formatCurrency(expense.amount)}`,
+            name: `${expense.name}: ${formatCurrency(expenseAmount)}`,
             fill: getCategoryColor(category, true)
           });
           
           links.push({
             source: nodeIndex,
             target: nodeIndex + 1,
-            value: expense.amount,
+            value: expenseAmount,
             name: expense.name,
             fill: getCategoryColorTransparent(category, true)
           });
