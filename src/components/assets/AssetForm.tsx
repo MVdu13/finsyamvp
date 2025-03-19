@@ -179,10 +179,13 @@ const AssetForm: React.FC<AssetFormProps> = ({
 
   return (
     <div>
-      <FormHeader 
-        title={getFormTitle()} 
-        type={type}
-      />
+      {/* Only show FormHeader if not crypto type */}
+      {type !== 'crypto' && (
+        <FormHeader 
+          title={getFormTitle()} 
+          type={type}
+        />
+      )}
       
       <form onSubmit={handleSubmit} className="space-y-4">
         {showTypeSelector && (
