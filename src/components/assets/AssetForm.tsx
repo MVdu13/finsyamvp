@@ -177,8 +177,10 @@ const AssetForm: React.FC<AssetFormProps> = ({
     }
   };
 
+  // Removed the outer container div with border and bg-white classes
+
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg w-full max-w-md border border-border">
+    <div className="w-full max-w-md">
       <FormHeader 
         title={getFormTitle()} 
         type={type} 
