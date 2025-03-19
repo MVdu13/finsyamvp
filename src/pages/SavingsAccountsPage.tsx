@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ScrollText, TrendingUp, Plus, Percent } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -389,14 +390,14 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">Vos Livrets d'Épargne</h2>
         {assets.length > 0 ? (
           <AssetsList 
             assets={assets} 
-            title="Livrets d'épargne" 
+            title="Vos livrets d'épargne" 
             onEdit={handleEditAsset}
             onDelete={handleDeleteAsset}
             hideViewAllButton={true}
+            showActions={false}
           />
         ) : (
           <div className="text-center py-12 bg-muted rounded-lg">
