@@ -2,7 +2,6 @@
 import React from 'react';
 import { Asset } from '@/types/assets';
 import { formatCurrency, formatPercentage } from '@/lib/formatters';
-import { TrendingUp, TrendingDown } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -83,9 +82,7 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
                 <TableRow>
                   <TableCell className="font-medium">Compte</TableCell>
                   <TableCell className="text-right">
-                    {crypto.cryptoAccountId 
-                      ? `Compte ${crypto.cryptoAccountId}` 
-                      : crypto.cryptoPlatform || 'Portefeuille personnel'}
+                    Compte courant
                   </TableCell>
                 </TableRow>
               </TableBody>
