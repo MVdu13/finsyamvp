@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Asset } from '@/types/assets';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import BankAccountFormFields from './BankAccountFormFields';
 
 interface BankAccountFormProps {
@@ -32,7 +31,8 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
     }
     
     const finalName = `${bankName.trim()} - ${accountName.trim()}`;
-    const finalDescription = description.trim() || 'Compte pour dépenses quotidiennes';
+    // Remove the default description logic - if it's empty, it stays empty
+    const finalDescription = description.trim();
     
     const asset: Omit<Asset, 'id'> = {
       name: finalName,
