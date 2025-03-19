@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, Plus, ChevronDown, ChevronUp, Trash2, List, Info } from 'lucide-react';
@@ -841,11 +840,4 @@ const StocksPage: React.FC<StocksPageProps> = ({
         onConfirm={confirmDeleteAccount}
         assetName={accountToDelete?.name}
         message={`Supprimer ce compte supprimera également toutes les actions qu'il contient (${
-          accountToDelete ? stocks.filter(s => s.investmentAccountId === accountToDelete.id).length : 0
-        } actions).`}
-      />
-    </div>
-  );
-};
-
-export default StocksPage;
+          accountToDelete ?

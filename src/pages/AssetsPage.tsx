@@ -110,9 +110,6 @@ const AssetsPage: React.FC<AssetsPageProps> = ({
             </button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Ajouter un nouvel actif</DialogTitle>
-            </DialogHeader>
             <Tabs defaultValue="stock" value={assetTypeTab} onValueChange={(value) => setAssetTypeTab(value as AssetType)}>
               <TabsList className="grid grid-cols-5">
                 <TabsTrigger value="stock">Actions/ETF</TabsTrigger>
