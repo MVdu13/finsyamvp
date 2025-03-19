@@ -5,8 +5,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
-export type InvestorProfileType = 'conservative' | 'balanced' | 'aggressive';
+export type InvestorProfileType = 'conservative' | 'balanced' | 'aggressive' | 'offensive';
 
 interface QuestionOption {
   label: string;
@@ -16,6 +17,7 @@ interface QuestionOption {
 interface Question {
   text: string;
   options: QuestionOption[];
+  image?: string;
 }
 
 interface InvestorProfileQuestionnaireProps {
@@ -27,56 +29,58 @@ interface InvestorProfileQuestionnaireProps {
 
 const questions: Question[] = [
   {
-    text: "Quelle est votre horizon d'investissement ?",
+    text: "Quelle expérience avez-vous ?",
+    options: [
+      { label: "Je n'ai jamais investi et je n'y connais rien", score: 1 },
+      { label: "Je n'ai jamais investi mais j'ai quelques bases", score: 2 },
+      { label: "J'ai déjà investi mais rarement ou j'ai arrêté", score: 3 },
+      { label: "J'investis depuis des années et je suis expérimenté", score: 4 }
+    ]
+  },
+  {
+    text: "Dans combien d'années aimeriez-vous retirer la majorité de votre investissement ?",
     options: [
       { label: "Moins de 2 ans", score: 1 },
-      { label: "2 à 5 ans", score: 3 },
-      { label: "5 à 10 ans", score: 4 },
-      { label: "Plus de 10 ans", score: 6 }
+      { label: "2 à 5 ans", score: 2 },
+      { label: "6 à 10 ans", score: 3 },
+      { label: "Plus de 10 ans", score: 4 }
     ]
   },
   {
-    text: "Comment réagiriez-vous si vos investissements perdaient 20% de leur valeur en une semaine ?",
+    text: "Vous avez investi 1000€, au bout de 3 ans vous êtes à -30% donc à 700€, votre horizon d'investissement est de 10 ans, qu'auriez vous tendance à faire ?",
     options: [
-      { label: "Je vendrais tout immédiatement pour éviter d'autres pertes", score: 1 },
-      { label: "Je vendrais une partie de mes investissements", score: 2 },
-      { label: "J'attendrais sans rien faire", score: 4 },
-      { label: "J'en profiterais pour investir davantage", score: 6 }
+      { label: "Je vends tout", score: 1 },
+      { label: "Je laisse courir", score: 2 },
+      { label: "Je réinvestis", score: 4 }
     ]
   },
   {
-    text: "Quel est votre objectif principal en matière d'investissement ?",
+    text: "Objectif prioritaire d'investissement",
     options: [
-      { label: "Préserver mon capital, même si les rendements sont faibles", score: 1 },
-      { label: "Un équilibre entre croissance et sécurité", score: 3 },
-      { label: "Maximiser la croissance à long terme, malgré la volatilité", score: 5 },
-      { label: "Rechercher des rendements élevés, même avec des risques importants", score: 6 }
+      { label: "Payer des vacances", score: 1 },
+      { label: "Projet immobilier", score: 2 },
+      { label: "Complément de retraite", score: 4 },
+      { label: "Valoriser mon capital à long terme", score: 4 },
+      { label: "Autonomie financière", score: 5 }
     ]
   },
   {
-    text: "Quelle part de votre patrimoine total êtes-vous prêt à investir sur les marchés financiers ?",
+    text: "Avec quelle fluctuation de portefeuille vous vous sentiriez le plus à l'aise ?",
     options: [
-      { label: "Moins de 10%", score: 1 },
-      { label: "Entre 10% et 25%", score: 2 },
-      { label: "Entre 25% et 50%", score: 4 },
-      { label: "Plus de 50%", score: 6 }
-    ]
-  },
-  {
-    text: "Avez-vous déjà une expérience en matière d'investissement ?",
-    options: [
-      { label: "Aucune expérience", score: 1 },
-      { label: "Quelques connaissances de base", score: 2 },
-      { label: "Une bonne compréhension des marchés financiers", score: 4 },
-      { label: "Une expérience approfondie avec différents types d'investissements", score: 6 }
-    ]
+      { label: "Portefeuille 1", score: 1 },
+      { label: "Portefeuille 2", score: 2 },
+      { label: "Portefeuille 3", score: 3 },
+      { label: "Portefeuille 4", score: 4 }
+    ],
+    image: "/lovable-uploads/3c23bfd9-d2f5-4e2f-895e-f6b7c372e546.png"
   }
 ];
 
 const getProfileFromScore = (score: number): InvestorProfileType => {
-  if (score <= 10) return 'conservative';
-  if (score <= 20) return 'balanced';
-  return 'aggressive';
+  if (score <= 8) return 'conservative';
+  if (score <= 13) return 'balanced';
+  if (score <= 17) return 'aggressive';
+  return 'offensive';
 };
 
 const getProfileLabel = (profile: InvestorProfileType): string => {
@@ -87,6 +91,8 @@ const getProfileLabel = (profile: InvestorProfileType): string => {
       return 'Équilibré';
     case 'aggressive':
       return 'Dynamique';
+    case 'offensive':
+      return 'Offensif';
     default:
       return 'Équilibré';
   }
@@ -178,6 +184,16 @@ const InvestorProfileQuestionnaire: React.FC<InvestorProfileQuestionnaireProps> 
           
           <div className="space-y-4">
             <h3 className="text-lg font-medium">{currentQuestion.text}</h3>
+            
+            {currentQuestion.image && (
+              <div className="my-4 flex justify-center">
+                <img 
+                  src={currentQuestion.image} 
+                  alt="Fluctuations de portefeuille" 
+                  className="max-w-full rounded-md border border-gray-200"
+                />
+              </div>
+            )}
             
             <RadioGroup value={selectedOption.toString()} onValueChange={(value) => setSelectedOption(parseInt(value))}>
               <div className="space-y-3">

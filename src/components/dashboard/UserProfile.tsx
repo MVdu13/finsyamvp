@@ -47,12 +47,21 @@ const getRiskProfile = (riskProfile?: InvestorProfileType) => {
         label: 'Prudent',
         color: 'bg-green-100 text-green-800 hover:bg-green-100',
       };
+    case 'balanced':
+      return {
+        label: 'Équilibré',
+        color: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
+      };
     case 'aggressive':
       return {
         label: 'Dynamique',
         color: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
       };
-    case 'balanced':
+    case 'offensive':
+      return {
+        label: 'Offensif',
+        color: 'bg-red-100 text-red-800 hover:bg-red-100',
+      };
     default:
       return {
         label: 'Équilibré',
