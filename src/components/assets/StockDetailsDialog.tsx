@@ -35,6 +35,14 @@ const StockDetailsDialog: React.FC<StockDetailsDialogProps> = ({
     ? new Date(stock.purchaseDate).toLocaleDateString('fr-FR')
     : 'Non spécifié';
 
+  // Find the investment account type if it exists
+  let accountInfo = "Direct";
+  if (stock.investmentAccountId && stock.investmentAccount) {
+    accountInfo = `${stock.investmentAccount.name} (${stock.investmentAccount.accountType})`;
+  } else if (stock.investmentAccountId) {
+    accountInfo = "Compte titre";
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto">
@@ -113,7 +121,7 @@ const StockDetailsDialog: React.FC<StockDetailsDialogProps> = ({
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">Compte</TableCell>
-                    <TableCell className="text-right">{stock.investmentAccountId ? 'Compte titre' : 'Direct'}</TableCell>
+                    <TableCell className="text-right">{accountInfo}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

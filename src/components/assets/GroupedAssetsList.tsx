@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, ExternalLink, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Asset, AssetType } from '@/types/assets';
@@ -216,7 +217,15 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
                                 </span>
                               </div>
                               <div>
-                                <h4 className="font-medium">{asset.name}</h4>
+                                <h4 className="font-medium">
+                                  {asset.name}
+                                  {asset.type === 'investment-account' && asset.accountType && (
+                                    <span className="text-sm text-muted-foreground ml-1">({asset.accountType})</span>
+                                  )}
+                                  {asset.type === 'crypto-account' && asset.cryptoPlatform && (
+                                    <span className="text-sm text-muted-foreground ml-1">({asset.cryptoPlatform})</span>
+                                  )}
+                                </h4>
                                 {asset.type === 'crypto' && (
                                   <p className="text-xs text-muted-foreground mt-1">
                                     {asset.quantity ? `${asset.quantity} unités à ${asset.purchasePrice ? formatCurrency(asset.purchasePrice) : 'N/A'}` : ''}
