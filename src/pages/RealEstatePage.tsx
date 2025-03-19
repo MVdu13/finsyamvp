@@ -5,7 +5,7 @@ import { formatCurrency } from '@/lib/formatters';
 import { Asset, AssetType } from '@/types/assets';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import LineChartComponent from '@/components/charts/LineChart';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import AssetForm from '@/components/assets/AssetForm';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -304,12 +304,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
             </button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Ajouter un bien immobilier</DialogTitle>
-              <DialogDescription>
-                Renseignez les informations de votre bien immobilier
-              </DialogDescription>
-            </DialogHeader>
             <AssetForm 
               onSubmit={handleAddProperty} 
               onCancel={() => setAddDialogOpen(false)} 
@@ -621,12 +615,6 @@ const RealEstatePage: React.FC<RealEstatePageProps> = ({ assets, onAddAsset, onU
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Modifier un bien immobilier</DialogTitle>
-            <DialogDescription>
-              Modifiez les informations de votre bien immobilier
-            </DialogDescription>
-          </DialogHeader>
           {selectedAsset && (
             <AssetForm 
               onSubmit={handleEditProperty} 
