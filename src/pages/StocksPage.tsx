@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, Plus, ChevronDown, ChevronUp, Trash2, List, Info } from 'lucide-react';
@@ -22,6 +21,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import DeleteConfirmationDialog from '@/components/assets/DeleteConfirmationDialog';
 import AssetForm from '@/components/assets/AssetForm';
 import StockTransactionsList from '@/components/assets/StockTransactionsList';
+import BankAccountDialog from '@/components/assets/form/BankAccountDialog';
 
 interface StocksPageProps {
   assets: Asset[];
@@ -47,6 +47,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
 }) => {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
@@ -274,7 +275,7 @@ const StocksPage: React.FC<StocksPageProps> = ({
       description: `${newAccount.name} a été ajouté`,
     });
     
-    setDialogOpen(false);
+    setAccountDialogOpen(false);
     
     return addedAccount;
   };
@@ -409,11 +410,21 @@ const StocksPage: React.FC<StocksPageProps> = ({
               defaultType="stock" 
               showTypeSelector={false}
               investmentAccounts={investmentAccounts}
-              onAddAccount={handleAddAccount}
+              onAddAccount={() => {
+                setDialogOpen(false);
+                setAccountDialogOpen(true);
+                return null;
+              }}
               existingStocks={stocks}
             />
           </DialogContent>
         </Dialog>
+        
+        <BankAccountDialog 
+          isOpen={accountDialogOpen}
+          onClose={() => setAccountDialogOpen(false)}
+          onAddAccount={handleAddAccount}
+        />
         
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
@@ -432,7 +443,11 @@ const StocksPage: React.FC<StocksPageProps> = ({
                 isEditing={true}
                 showTypeSelector={false}
                 investmentAccounts={investmentAccounts}
-                onAddAccount={handleAddAccount}
+                onAddAccount={() => {
+                  setEditDialogOpen(false);
+                  setAccountDialogOpen(true);
+                  return null;
+                }}
                 existingStocks={stocks}
               />
             )}
@@ -667,10 +682,10 @@ const StocksPage: React.FC<StocksPageProps> = ({
           <Card className="p-6 text-center">
             <p className="text-muted-foreground mb-4">Vous n'avez pas encore de compte d'investissement</p>
             <button
-              onClick={() => setDialogOpen(true)}
+              onClick={() => setAccountDialogOpen(true)}
               className="wealth-btn wealth-btn-primary"
             >
-              Ajouter votre première action
+              Ajouter votre premier compte
             </button>
           </Card>
         )}
@@ -849,3 +864,4 @@ const StocksPage: React.FC<StocksPageProps> = ({
 };
 
 export default StocksPage;
+
