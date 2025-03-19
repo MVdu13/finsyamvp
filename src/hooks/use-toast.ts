@@ -7,14 +7,14 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 2000 // Changed to 2000ms (2 seconds) as default
+const TOAST_REMOVE_DELAY = 2000 // 2 seconds as default
 
 type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
-  duration?: number // Added explicit duration property
+  duration?: number
 }
 
 const actionTypes = {
@@ -56,6 +56,9 @@ interface State {
 }
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+
+// Separate local state to avoid re-rendering components when toasts are removed
+let memoryState: State = { toasts: [] }
 
 const addToRemoveQueue = (toastId: string) => {
   if (toastTimeouts.has(toastId)) {
@@ -128,15 +131,28 @@ export const reducer = (state: State, action: Action): State => {
   }
 }
 
+// Using a stable array for listeners to avoid frequent updates and re-renders
 const listeners: Array<(state: State) => void> = []
-
-let memoryState: State = { toasts: [] }
 
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action)
-  listeners.forEach((listener) => {
-    listener(memoryState)
-  })
+  
+  // Only notify listeners for ADD_TOAST and UPDATE_TOAST actions
+  // This prevents re-renders when toast notifications disappear
+  if (action.type === "ADD_TOAST" || action.type === "UPDATE_TOAST") {
+    listeners.forEach((listener) => {
+      listener(memoryState)
+    })
+  } else {
+    // For DISMISS_TOAST and REMOVE_TOAST, only update the Toaster component
+    // Find the toaster listener (if any) and only update it
+    const toasterListener = listeners.find(
+      (listener) => listener.name === "updateToaster"
+    )
+    if (toasterListener) {
+      toasterListener(memoryState)
+    }
+  }
 }
 
 type Toast = Omit<ToasterToast, "id">
@@ -157,7 +173,7 @@ function toast({ ...props }: Toast) {
       ...props,
       id,
       open: true,
-      duration: props.duration || TOAST_REMOVE_DELAY, // Set default duration if not provided
+      duration: props.duration || TOAST_REMOVE_DELAY,
       onOpenChange: (open) => {
         if (!open) dismiss()
       },
@@ -175,9 +191,11 @@ function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 
   React.useEffect(() => {
-    listeners.push(setState)
+    // Name the setState function for selective updates
+    const namedSetState = Object.assign(setState, { name: "updateToaster" })
+    listeners.push(namedSetState)
     return () => {
-      const index = listeners.indexOf(setState)
+      const index = listeners.indexOf(namedSetState)
       if (index > -1) {
         listeners.splice(index, 1)
       }
