@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -121,6 +122,16 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
     }
   }, [assetName, accountId, existingAssets, toast, accountTypeKey]);
 
+  // Helper function to get the account type display value
+  const getAccountTypeDisplay = (account: Asset) => {
+    if (accountTypeKey === 'investment-account') {
+      return account.accountType || '';
+    } else if (accountTypeKey === 'crypto-account') {
+      return account.cryptoPlatform || '';
+    }
+    return account[accountTypeProp || ''] || '';
+  };
+
   return (
     <>
       <div className="mb-4">
@@ -136,11 +147,14 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
             required
           >
             <option value="">{accountSelectPlaceholder}</option>
-            {accounts.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.name} {account[accountTypeProp || ''] && `(${account[accountTypeProp || '']})`}
-              </option>
-            ))}
+            {accounts.map((account) => {
+              const accountType = getAccountTypeDisplay(account);
+              return (
+                <option key={account.id} value={account.id}>
+                  {account.name} {accountType && `(${accountType})`}
+                </option>
+              );
+            })}
           </select>
           <Dialog open={accountDialogOpen} onOpenChange={setAccountDialogOpen}>
             <DialogTrigger asChild>

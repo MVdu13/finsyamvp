@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, ExternalLink, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Asset, AssetType } from '@/types/assets';
@@ -158,6 +157,23 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
     return (order[a as keyof typeof order] || 12) - (order[b as keyof typeof order] || 12);
   });
 
+  const renderAccountTypeInfo = (account: Asset) => {
+    if (account.type === 'investment-account' && account.accountType) {
+      return (
+        <div className="mt-1 text-xs text-muted-foreground">
+          {account.accountType}
+        </div>
+      );
+    } else if (account.type === 'crypto-account' && account.cryptoPlatform) {
+      return (
+        <div className="mt-1 text-xs text-muted-foreground">
+          {account.cryptoPlatform}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="wealth-card h-full flex flex-col">
       <div className="flex justify-between items-center mb-5">
@@ -219,13 +235,8 @@ const GroupedAssetsList: React.FC<GroupedAssetsListProps> = ({
                               <div>
                                 <h4 className="font-medium">
                                   {asset.name}
-                                  {asset.type === 'investment-account' && asset.accountType && (
-                                    <span className="text-sm text-muted-foreground ml-1">({asset.accountType})</span>
-                                  )}
-                                  {asset.type === 'crypto-account' && asset.cryptoPlatform && (
-                                    <span className="text-sm text-muted-foreground ml-1">({asset.cryptoPlatform})</span>
-                                  )}
                                 </h4>
+                                {renderAccountTypeInfo(asset)}
                                 {asset.type === 'crypto' && (
                                   <p className="text-xs text-muted-foreground mt-1">
                                     {asset.quantity ? `${asset.quantity} unités à ${asset.purchasePrice ? formatCurrency(asset.purchasePrice) : 'N/A'}` : ''}

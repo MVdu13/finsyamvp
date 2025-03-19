@@ -40,7 +40,7 @@ const StockDetailsDialog: React.FC<StockDetailsDialogProps> = ({
   if (stock.investmentAccountId) {
     // Since we don't have direct access to the investment account object,
     // we'll just show the basic info we have
-    accountInfo = "Compte titre";
+    accountInfo = stock.accountType ? `Compte titre (${stock.accountType})` : "Compte titre";
   }
 
   return (

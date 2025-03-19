@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Asset, Transaction } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
@@ -23,7 +22,34 @@ export const useAssetManager = () => {
 
   const totalWealth = assets.reduce((sum, asset) => sum + asset.value, 0);
 
+  const getInvestmentAccountDetails = (accountId: string) => {
+    const account = assets.find(asset => asset.id === accountId);
+    if (account && account.type === 'investment-account') {
+      return {
+        accountType: account.accountType
+      };
+    }
+    return {};
+  };
+
+  const getCryptoAccountDetails = (accountId: string) => {
+    const account = assets.find(asset => asset.id === accountId);
+    if (account && account.type === 'crypto-account') {
+      return {
+        cryptoPlatform: account.cryptoPlatform
+      };
+    }
+    return {};
+  };
+
   const addAsset = (newAsset: Omit<Asset, 'id'>) => {
+    let accountDetails = {};
+    if (newAsset.type === 'stock' && newAsset.investmentAccountId) {
+      accountDetails = getInvestmentAccountDetails(newAsset.investmentAccountId);
+    } else if (newAsset.type === 'crypto' && newAsset.cryptoAccountId) {
+      accountDetails = getCryptoAccountDetails(newAsset.cryptoAccountId);
+    }
+
     if (newAsset.type === 'stock' && newAsset.name && newAsset.investmentAccountId) {
       const existingStock = assets.find(asset => 
         asset.type === 'stock' && 
@@ -118,6 +144,7 @@ export const useAssetManager = () => {
     
     const asset = {
       ...newAsset,
+      ...accountDetails,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
     };
