@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Wallet, TrendingUp, TrendingDown, Plus, AlertCircle } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
-import AssetForm from '@/components/assets/AssetForm';
 import { Asset, AssetType } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -263,16 +262,14 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
               <DialogTitle>Modifier un compte bancaire</DialogTitle>
             </DialogHeader>
             {editingAsset && (
-              <AssetForm 
+              <BankAccountForm 
                 onSubmit={handleUpdateAsset}
                 onCancel={() => {
                   setEditDialogOpen(false);
                   setEditingAsset(null);
                 }}
-                defaultType="bank-account"
                 initialValues={editingAsset}
                 isEditing={true}
-                showTypeSelector={false}
               />
             )}
           </DialogContent>
@@ -411,3 +408,4 @@ const BankAccountsPage: React.FC<BankAccountsPageProps> = ({
 };
 
 export default BankAccountsPage;
+
