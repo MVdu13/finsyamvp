@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import GroupedAssetsList from '@/components/assets/GroupedAssetsList';
 import CryptoDetailsDialog from '@/components/assets/CryptoDetailsDialog';
 import StockDetailsDialog from '@/components/assets/StockDetailsDialog';
+import { InvestorProfileType } from '@/components/dashboard/InvestorProfileQuestionnaire';
 
 interface DashboardProps {
   assets: Asset[];
@@ -37,6 +38,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [cryptoDialogOpen, setCryptoDialogOpen] = useState(false);
   const [selectedStock, setSelectedStock] = useState<Asset | null>(null);
   const [stockDialogOpen, setStockDialogOpen] = useState(false);
+  const [userRiskProfile, setUserRiskProfile] = useState<InvestorProfileType>('balanced');
 
   const filteredAssets = assets.filter(asset => {
     if (assetCategoryFilter === 'all') return true;
@@ -125,10 +127,14 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
   };
 
+  const handleUpdateRiskProfile = (newProfile: InvestorProfileType) => {
+    setUserRiskProfile(newProfile);
+  };
+
   const userProfile = {
     username: 'Jean Dupont',
     netWorth: totalValue,
-    riskProfile: 'balanced' as const,
+    riskProfile: userRiskProfile,
     profileImage: undefined,
   };
 
@@ -222,6 +228,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         profileImage={userProfile.profileImage}
         netWorth={userProfile.netWorth}
         riskProfile={userProfile.riskProfile}
+        onUpdateRiskProfile={handleUpdateRiskProfile}
       />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
