@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Wallet, Plus, ChevronDown, Trash2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Plus, ChevronDown, Trash2, Edit } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
 import AssetForm from '@/components/assets/AssetForm';
 import { Asset, AssetType } from '@/types/assets';
@@ -14,21 +14,22 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import CryptoDetailsDialog from '@/components/assets/CryptoDetailsDialog';
 import StockDeleteConfirmationDialog from '@/components/assets/StockDeleteConfirmationDialog';
+import CryptoAccountForm from '@/components/assets/form/CryptoAccountForm';
+
 interface CryptoPageProps {
   assets: Asset[];
   onAddAsset: (asset: Omit<Asset, 'id'>) => Asset | null | undefined;
   onDeleteAsset?: (id: string) => void;
   onUpdateAsset?: (id: string, asset: Partial<Asset>) => void;
 }
+
 const CryptoPage: React.FC<CryptoPageProps> = ({
   assets,
   onAddAsset,
   onDeleteAsset,
   onUpdateAsset
 }) => {
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [cryptoDetailsDialogOpen, setCryptoDetailsDialogOpen] = useState(false);
@@ -45,6 +46,9 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
     name: '',
     hasAssets: false
   });
+  const [editAccountDialogOpen, setEditAccountDialogOpen] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<Asset | null>(null);
+
   const cryptoAccounts = assets.filter(asset => asset.type === 'crypto-account');
   const cryptoAssets = assets.filter(asset => asset.type === 'crypto');
   const totalValue = cryptoAssets.reduce((sum, asset) => sum + asset.value, 0);
@@ -52,6 +56,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   const absoluteGrowth = useMemo(() => {
     return totalValue * (avgPerformance / 100);
   }, [totalValue, avgPerformance]);
+
   const groupedCryptos = cryptoAccounts.map(account => {
     const accountCryptos = cryptoAssets.filter(crypto => crypto.cryptoAccountId === account.id);
     const accountValue = accountCryptos.reduce((sum, crypto) => sum + crypto.value, 0);
@@ -61,6 +66,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       totalValue: accountValue
     };
   });
+
   const unassignedCryptos = cryptoAssets.filter(crypto => !crypto.cryptoAccountId);
   if (unassignedCryptos.length > 0) {
     const unassignedValue = unassignedCryptos.reduce((sum, crypto) => sum + crypto.value, 0);
@@ -76,7 +82,9 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       totalValue: unassignedValue
     });
   }
+
   groupedCryptos.sort((a, b) => b.totalValue - a.totalValue);
+
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
     let numDataPoints;
@@ -181,7 +189,9 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       }]
     };
   };
+
   const chartData = generateChartData();
+
   const handleAddCrypto = (newCrypto: Omit<Asset, 'id'>) => {
     if (newCrypto.type === 'crypto-account') {
       const cryptoAccount = {
@@ -210,13 +220,16 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       return addedAsset;
     }
   };
+
   const handleAddAccount = () => {
     setDialogOpen(true);
   };
+
   const handleEditAsset = (asset: Asset) => {
     setEditingAsset(asset);
     setEditDialogOpen(true);
   };
+
   const handleUpdateAsset = (updatedAsset: Omit<Asset, 'id'>) => {
     if (editingAsset && onUpdateAsset) {
       onUpdateAsset(editingAsset.id, updatedAsset);
@@ -228,6 +241,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       setEditingAsset(null);
     }
   };
+
   const handleDeleteAsset = (id: string) => {
     if (onDeleteAsset) {
       onDeleteAsset(id);
@@ -237,6 +251,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       });
     }
   };
+
   const handleDeleteAccount = (accountId: string) => {
     const accountToRemove = cryptoAccounts.find(account => account.id === accountId);
     const accountCryptos = cryptoAssets.filter(crypto => crypto.cryptoAccountId === accountId);
@@ -249,6 +264,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       setDeleteDialogOpen(true);
     }
   };
+
   const confirmDeleteAccount = () => {
     if (onDeleteAsset && accountToDelete.id) {
       onDeleteAsset(accountToDelete.id);
@@ -259,10 +275,29 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       setDeleteDialogOpen(false);
     }
   };
+
   const handleAssetClick = (asset: Asset) => {
     setSelectedCrypto(asset);
     setCryptoDetailsDialogOpen(true);
   };
+
+  const handleEditAccount = (account: Asset) => {
+    setEditingAccount(account);
+    setEditAccountDialogOpen(true);
+  };
+
+  const handleUpdateAccount = (updatedAccount: Omit<Asset, 'id'>) => {
+    if (editingAccount && onUpdateAsset) {
+      onUpdateAsset(editingAccount.id, updatedAccount);
+      toast({
+        title: "Compte modifié",
+        description: `${updatedAccount.name} a été mis à jour`
+      });
+      setEditAccountDialogOpen(false);
+      setEditingAccount(null);
+    }
+  };
+
   const getTimePeriodText = () => {
     switch (timeFrame) {
       case '1M':
@@ -280,6 +315,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         return 'sur les 12 derniers mois';
     }
   };
+
   const renderCryptoGroup = (group: {
     account: Asset;
     cryptos: Asset[];
@@ -307,12 +343,30 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
                   <div className="text-right">
                     <div className="font-semibold">{formatCurrency(group.totalValue)}</div>
                   </div>
-                  {group.account.id !== 'unassigned' && <button onClick={e => {
-                  e.stopPropagation();
-                  handleDeleteAccount(group.account.id);
-                }} className="p-1.5 rounded-full hover:bg-muted transition-colors text-red-500" title="Supprimer le compte">
-                      <Trash2 size={16} />
-                    </button>}
+                  {group.account.id !== 'unassigned' && (
+                    <>
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleEditAccount(group.account);
+                        }}
+                        className="p-1.5 rounded-full hover:bg-muted transition-colors text-blue-500"
+                        title="Modifier le compte"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button 
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleDeleteAccount(group.account.id);
+                        }} 
+                        className="p-1.5 rounded-full hover:bg-muted transition-colors text-red-500" 
+                        title="Supprimer le compte"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </>
+                  )}
                   <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform" />
                 </div>
               </div>
@@ -331,6 +385,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         </Collapsible>
       </div>;
   };
+
   return <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -361,6 +416,25 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
             setEditDialogOpen(false);
             setEditingAsset(null);
           }} defaultType="crypto" initialValues={editingAsset} isEditing={true} showTypeSelector={false} cryptoAccounts={cryptoAccounts} existingCryptos={cryptoAssets} />}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={editAccountDialogOpen} onOpenChange={setEditAccountDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Modifier un compte crypto</DialogTitle>
+            </DialogHeader>
+            {editingAccount && (
+              <CryptoAccountForm
+                onSubmit={handleUpdateAccount}
+                onCancel={() => {
+                  setEditAccountDialogOpen(false);
+                  setEditingAccount(null);
+                }}
+                initialValues={editingAccount}
+                isEditing={true}
+              />
+            )}
           </DialogContent>
         </Dialog>
 
@@ -441,4 +515,5 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       </div>
     </div>;
 };
+
 export default CryptoPage;
