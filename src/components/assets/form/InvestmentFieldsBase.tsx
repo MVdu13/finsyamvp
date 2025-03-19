@@ -1,12 +1,21 @@
 
+// Modifications to InvestmentFieldsBase.tsx to support editing without duplicate crypto warnings
 import React, { useState, useEffect } from 'react';
+import { Asset } from '@/types/assets';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Asset } from '@/types/assets';
-import { Plus } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { useInvestmentAccount } from '@/hooks/useInvestmentAccount';
+import { Button } from '@/components/ui/button';
+import { Info, Plus } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+
+interface AccountFormFieldsProps {
+  accountName: string;
+  setAccountName: (name: string) => void;
+  otherProps: Record<string, any>;
+  setOtherProps: (props: Record<string, any>) => void;
+}
 
 interface InvestmentFieldsBaseProps {
   assetName: string;
@@ -26,19 +35,15 @@ interface InvestmentFieldsBaseProps {
   assetNamePlaceholder: string;
   qtyLabel: string;
   qtyPlaceholder: string;
+  qtyStep?: string;
   priceLabel: string;
   pricePlaceholder: string;
-  qtyStep?: string;
   dialogTitle: string;
-  renderAccountFormFields: (props: {
-    accountName: string;
-    setAccountName: (value: string) => void;
-    otherProps: any;
-    setOtherProps: (value: any) => void;
-  }) => React.ReactNode;
   accountTypeKey: string;
-  accountTypeProp?: string;
-  existingAssetsMessageFn?: (matchingAssets: Asset[]) => string;
+  isEditing?: boolean;
+  editingAssetId?: string;
+  renderAccountFormFields: (props: AccountFormFieldsProps) => React.ReactNode;
+  existingAssetsMessageFn?: (assets: Asset[]) => string;
 }
 
 const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
@@ -59,152 +64,134 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
   assetNamePlaceholder,
   qtyLabel,
   qtyPlaceholder,
+  qtyStep = "1",
   priceLabel,
   pricePlaceholder,
-  qtyStep = "0.01",
   dialogTitle,
-  renderAccountFormFields,
   accountTypeKey,
-  accountTypeProp,
+  isEditing = false,
+  editingAssetId,
+  renderAccountFormFields,
   existingAssetsMessageFn
 }) => {
-  const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [newAccountName, setNewAccountName] = useState('');
-  const [otherProps, setOtherProps] = useState<any>({});
+  const [otherProps, setOtherProps] = useState<Record<string, any>>({});
+  const [showExistingWarning, setShowExistingWarning] = useState(false);
   const [matchingAssets, setMatchingAssets] = useState<Asset[]>([]);
 
-  const { 
-    accountDialogOpen, 
-    setAccountDialogOpen, 
-    handleAddAccount 
-  } = useInvestmentAccount({
-    accountId,
-    setAccountId,
-    accounts,
-    onAddAccount
-  });
-
-  const handleAddAccountClick = () => {
-    if (newAccountName.trim()) {
-      const newAccount = {
-        name: newAccountName.trim(),
-        type: accountTypeKey as any,
-        ...otherProps,
-        value: 0,
-        performance: 0,
-      };
-      
-      handleAddAccount(newAccount);
-      
-      // Reset the form but don't close the dialog yet
-      setNewAccountName('');
-    }
-  };
-
   useEffect(() => {
-    if (assetName && accountId && existingAssets.length > 0) {
-      const matching = existingAssets.filter(
-        asset => asset.name.toLowerCase() === assetName.toLowerCase() && 
-                ((accountTypeKey === 'investment-account' && asset.investmentAccountId === accountId) ||
-                 (accountTypeKey === 'crypto-account' && asset.cryptoAccountId === accountId))
+    if (!isEditing && assetName && accountId) {
+      const matches = existingAssets.filter(
+        asset => 
+          asset.name.toLowerCase() === assetName.toLowerCase() && 
+          asset.type === accountTypeKey.replace('-account', '') &&
+          asset[`${accountTypeKey}Id`] === accountId &&
+          (!editingAssetId || asset.id !== editingAssetId)
       );
       
-      setMatchingAssets(matching);
-      
-      if (matching.length > 0) {
-        toast({
-          title: `${assetName} déjà existant`,
-          description: `${assetName} existe déjà dans ce compte. Les ${accountTypeKey === 'investment-account' ? 'actions' : 'cryptos'} seront empilées.`,
-        });
-      }
+      setMatchingAssets(matches);
+      setShowExistingWarning(matches.length > 0);
     } else {
+      setShowExistingWarning(false);
       setMatchingAssets([]);
     }
-  }, [assetName, accountId, existingAssets, toast, accountTypeKey]);
+  }, [assetName, accountId, existingAssets, accountTypeKey, isEditing, editingAssetId]);
 
-  // Helper function to get the account type display value
-  const getAccountTypeDisplay = (account: Asset) => {
-    if (accountTypeKey === 'investment-account') {
-      return account.accountType || '';
-    } else if (accountTypeKey === 'crypto-account') {
-      return account.cryptoPlatform || '';
+  const handleAddAccount = () => {
+    if (onAddAccount && newAccountName) {
+      const accountData: Omit<Asset, 'id'> = {
+        name: newAccountName,
+        type: accountTypeKey as any,
+        value: 0,
+        ...otherProps
+      };
+      
+      const newAccount = onAddAccount(accountData);
+      
+      if (newAccount) {
+        setAccountId(newAccount.id);
+      }
+      
+      setDialogOpen(false);
+      setNewAccountName('');
+      setOtherProps({});
     }
-    return account[accountTypeProp || ''] || '';
   };
 
   return (
     <>
-      <div className="mb-4">
-        <Label htmlFor="accountId" className="block text-sm font-medium mb-1">
-          {accountLabel} <span className="text-red-500">*</span>
+      <div>
+        <Label htmlFor="accountSelect" className="block text-sm font-medium mb-1">
+          {accountLabel}
         </Label>
-        <div className="flex gap-2">
-          <select
-            id="accountId"
-            value={accountId}
-            onChange={(e) => setAccountId(e.target.value)}
-            className={`wealth-input flex-grow ${!accountId ? 'border-red-300 focus:border-red-500' : ''}`}
-            required
-          >
-            <option value="">{accountSelectPlaceholder}</option>
-            {accounts.map((account) => {
-              const accountType = getAccountTypeDisplay(account);
-              return (
-                <option key={account.id} value={account.id}>
-                  {account.name} {accountType && `(${accountType})`}
-                </option>
-              );
-            })}
-          </select>
-          <Dialog open={accountDialogOpen} onOpenChange={setAccountDialogOpen}>
-            <DialogTrigger asChild>
-              <button 
-                type="button"
-                className="wealth-btn flex items-center gap-1 px-3"
-              >
-                <Plus size={16} />
-                <span>Nouveau</span>
-              </button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{dialogTitle}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                {renderAccountFormFields({
-                  accountName: newAccountName,
-                  setAccountName: setNewAccountName,
-                  otherProps,
-                  setOtherProps
-                })}
-                <div className="flex justify-end gap-3 mt-4">
-                  <button 
-                    type="button" 
-                    className="wealth-btn"
-                    onClick={() => setAccountDialogOpen(false)}
-                  >
-                    Annuler
-                  </button>
-                  <button 
-                    type="button" 
-                    className="wealth-btn wealth-btn-primary"
-                    onClick={handleAddAccountClick}
-                  >
-                    Ajouter le compte
-                  </button>
+        <div className="flex items-center space-x-2">
+          <div className="flex-1">
+            <Select
+              value={accountId}
+              onValueChange={setAccountId}
+            >
+              <SelectTrigger id="accountSelect" className="w-full border border-input bg-background">
+                <SelectValue placeholder={accountSelectPlaceholder} />
+              </SelectTrigger>
+              <SelectContent>
+                {accounts.map((account) => (
+                  <SelectItem key={account.id} value={account.id}>
+                    {account.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {onAddAccount && (
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="flex-none"
+                  title={`Ajouter un nouveau ${accountLabel.toLowerCase()}`}
+                >
+                  <Plus size={16} />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{dialogTitle}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  {renderAccountFormFields({
+                    accountName: newAccountName,
+                    setAccountName: setNewAccountName,
+                    otherProps,
+                    setOtherProps,
+                  })}
+                  <div className="flex justify-end space-x-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setDialogOpen(false)}
+                    >
+                      Annuler
+                    </Button>
+                    <Button 
+                      type="button" 
+                      onClick={handleAddAccount}
+                      disabled={!newAccountName}
+                    >
+                      Ajouter
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
-        {!accountId && (
-          <p className="text-red-500 text-xs mt-1">{accountLabel} est requis</p>
-        )}
       </div>
-
+      
       <div>
         <Label htmlFor="assetName" className="block text-sm font-medium mb-1">
-          {assetNameLabel} <span className="text-red-500">*</span>
+          {assetNameLabel}
         </Label>
         <Input
           id="assetName"
@@ -215,15 +202,25 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
           placeholder={assetNamePlaceholder}
           required
         />
-        {matchingAssets.length > 0 && existingAssetsMessageFn && (
-          <p className="text-xs text-wealth-primary mt-1">
-            {existingAssetsMessageFn(matchingAssets)}
-          </p>
-        )}
       </div>
+      
+      {showExistingWarning && existingAssetsMessageFn && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 flex items-start space-x-2">
+          <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
+          <div>
+            <p className="text-sm text-yellow-800">
+              {existingAssetsMessageFn(matchingAssets)}
+            </p>
+            <p className="text-xs text-yellow-600 mt-1">
+              L'ajout de cette crypto sera fusionné avec l'existante.
+            </p>
+          </div>
+        </div>
+      )}
+      
       <div>
         <Label htmlFor="assetQty" className="block text-sm font-medium mb-1">
-          {qtyLabel} <span className="text-red-500">*</span>
+          {qtyLabel}
         </Label>
         <Input
           id="assetQty"
@@ -232,14 +229,15 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
           onChange={(e) => setAssetQty(e.target.value)}
           className="wealth-input w-full"
           placeholder={qtyPlaceholder}
-          min="0"
           step={qtyStep}
+          min="0"
           required
         />
       </div>
+      
       <div>
         <Label htmlFor="purchasePrice" className="block text-sm font-medium mb-1">
-          {priceLabel} <span className="text-red-500">*</span>
+          {priceLabel}
         </Label>
         <Input
           id="purchasePrice"
@@ -248,8 +246,8 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
           onChange={(e) => setPurchasePrice(e.target.value)}
           className="wealth-input w-full"
           placeholder={pricePlaceholder}
-          min="0"
           step="0.01"
+          min="0"
           required
         />
       </div>

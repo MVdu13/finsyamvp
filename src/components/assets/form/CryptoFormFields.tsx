@@ -16,6 +16,8 @@ interface CryptoFormFieldsProps {
   cryptoAccounts: Asset[];
   onAddAccount?: (account: Omit<Asset, 'id'>) => Asset | null | undefined;
   existingCryptos?: Asset[];
+  isEditing?: boolean;
+  editingAssetId?: string;
 }
 
 const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
@@ -29,7 +31,9 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
   setCryptoAccountId,
   cryptoAccounts,
   onAddAccount,
-  existingCryptos = []
+  existingCryptos = [],
+  isEditing = false,
+  editingAssetId
 }) => {
   return (
     <>
@@ -56,6 +60,8 @@ const CryptoFormFields: React.FC<CryptoFormFieldsProps> = ({
         pricePlaceholder="Ex: 25000"
         dialogTitle="Ajouter un compte crypto"
         accountTypeKey="crypto-account"
+        isEditing={isEditing}
+        editingAssetId={editingAssetId}
         renderAccountFormFields={({ accountName, setAccountName, otherProps, setOtherProps }) => (
           <CryptoAccountFormFields
             accountName={accountName}

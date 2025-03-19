@@ -104,6 +104,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
             investmentAccounts={investmentAccounts || []}
             onAddAccount={handleAddAccount}
             existingStocks={existingStocks}
+            isEditing={isEditing}
+            editingAssetId={initialValues?.id}
           />
         );
       case 'crypto':
@@ -123,6 +125,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
             cryptoAccounts={cryptoAccounts || []}
             onAddAccount={handleAddAccount}
             existingCryptos={existingCryptos}
+            isEditing={isEditing}
+            editingAssetId={initialValues?.id}
           />
         );
       case 'real-estate':
