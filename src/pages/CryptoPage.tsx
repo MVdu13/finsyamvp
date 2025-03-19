@@ -13,7 +13,7 @@ import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelec
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import CryptoDetailsDialog from '@/components/assets/CryptoDetailsDialog';
-import DeleteConfirmationDialog from '@/components/assets/DeleteConfirmationDialog';
+import StockDeleteConfirmationDialog from '@/components/assets/StockDeleteConfirmationDialog';
 
 interface CryptoPageProps {
   assets: Asset[];
@@ -385,14 +385,12 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
 
         <CryptoDetailsDialog isOpen={cryptoDetailsDialogOpen} onClose={() => setCryptoDetailsDialogOpen(false)} crypto={selectedCrypto} />
         
-        <DeleteConfirmationDialog 
+        <StockDeleteConfirmationDialog 
           isOpen={deleteDialogOpen}
           onClose={() => setDeleteDialogOpen(false)}
           onConfirm={confirmDeleteAccount}
-          assetName={accountToDelete.name}
-          message={accountToDelete.hasAssets ? 
-            `Ce compte contient ${cryptoAssets.filter(crypto => crypto.cryptoAccountId === accountToDelete.id).length} cryptomonnaies. Ces cryptomonnaies seront également supprimées.` : 
-            undefined}
+          stockName={accountToDelete.name}
+          assetType="crypto"
         />
       </div>
 
@@ -465,7 +463,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
           <div className="rounded-lg border p-8 text-center">
             <h3 className="text-xl text-muted-foreground mb-6">Vous n'avez pas encore de compte crypto</h3>
             <Button 
-              className="bg-orange-500 hover:bg-orange-600 text-white"
+              className="bg-wealth-primary hover:bg-wealth-primary-dark text-white"
               onClick={handleAddAccount}
             >
               Ajouter votre première crypto
