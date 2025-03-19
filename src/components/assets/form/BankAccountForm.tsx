@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Asset } from '@/types/assets';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import BankAccountFormFields from './BankAccountFormFields';
 
 interface BankAccountFormProps {
@@ -20,6 +21,7 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
 }) => {
   const [bankName, setBankName] = useState(initialValues?.bankName || '');
   const [accountName, setAccountName] = useState(initialValues?.accountName || '');
+  const [description, setDescription] = useState(initialValues?.description || 'Compte pour dépenses quotidiennes');
   const [value, setValue] = useState(initialValues?.value ? initialValues.value.toString() : '');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -30,7 +32,7 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
     }
     
     const finalName = `${bankName.trim()} - ${accountName.trim()}`;
-    const finalDescription = `Banque: ${bankName.trim()} - Compte: ${accountName.trim()}`;
+    const finalDescription = description.trim() || 'Compte pour dépenses quotidiennes';
     
     const asset: Omit<Asset, 'id'> = {
       name: finalName,
@@ -56,6 +58,19 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
           setBankName={setBankName}
           setAccountName={setAccountName}
         />
+        
+        <div>
+          <Label htmlFor="description" className="block text-sm font-medium mb-1">
+            Décrivez l'utilisation de ce compte
+          </Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="wealth-input w-full"
+            placeholder="Compte pour dépenses quotidiennes"
+          />
+        </div>
         
         <div>
           <Label htmlFor="value" className="block text-sm font-medium mb-1">
