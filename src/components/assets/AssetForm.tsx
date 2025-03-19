@@ -178,11 +178,10 @@ const AssetForm: React.FC<AssetFormProps> = ({
   };
 
   return (
-    <div className="w-full max-w-md">
+    <div>
       <FormHeader 
         title={getFormTitle()} 
-        type={type} 
-        onCancel={onCancel} 
+        type={type}
       />
       
       <form onSubmit={handleSubmit} className="space-y-4">
