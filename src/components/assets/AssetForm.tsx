@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Asset, AssetType } from '@/types/assets';
 import TypeSelector from './form/TypeSelector';
@@ -40,6 +41,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
   existingCryptos = []
 }) => {
   const {
+    // Form state and setters
     type, setType,
     value, setValue,
     performance, setPerformance,
@@ -69,6 +71,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
     savingsAccountName, setSavingsAccountName,
     interestRate, setInterestRate,
     
+    // Helper functions
     getFormTitle,
     shouldShowPerformanceField,
     handleSubmit,
@@ -179,7 +182,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
       <FormHeader 
         title={getFormTitle()} 
         type={type}
-        showTitle={type !== 'crypto'}
       />
       
       <form onSubmit={handleSubmit} className="space-y-4">
