@@ -38,6 +38,8 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
       type: 'bank-account',
       value: parseFloat(value),
       performance: 0,
+      bankName: bankName.trim(),
+      accountName: accountName.trim(),
       updatedAt: new Date().toISOString(),
       ...(initialValues?.createdAt && { createdAt: initialValues.createdAt }),
     };

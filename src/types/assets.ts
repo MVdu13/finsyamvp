@@ -40,6 +40,15 @@ export interface Asset {
   createdAt?: string;
   updatedAt?: string;
   
+  // Bank account specific
+  bankName?: string;
+  accountName?: string;
+  
+  // Savings account specific
+  savingsBankName?: string;
+  savingsAccountName?: string;
+  interestRate?: number;
+  
   // Investment account specific
   accountType?: 'PEA' | 'CTO' | 'Assurance Vie' | 'PER' | 'Autre';
   
@@ -86,3 +95,4 @@ export interface NetWorthHistory {
   dates: string[];
   values: number[];
 }
+

@@ -39,6 +39,9 @@ const SavingsAccountForm: React.FC<SavingsAccountFormProps> = ({
       type: 'savings-account',
       value: parseFloat(value),
       performance: parseFloat(interestRate),
+      savingsBankName: bankName.trim(),
+      savingsAccountName: accountName.trim(),
+      interestRate: parseFloat(interestRate),
       updatedAt: new Date().toISOString(),
       ...(initialValues?.createdAt && { createdAt: initialValues.createdAt }),
     };
