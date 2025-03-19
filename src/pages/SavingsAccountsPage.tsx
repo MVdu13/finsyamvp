@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ScrollText, TrendingUp, Plus, Percent } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
-import AssetForm from '@/components/assets/AssetForm';
 import { Asset, AssetType } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -300,16 +299,14 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
               <DialogTitle>Modifier un livret d'épargne</DialogTitle>
             </DialogHeader>
             {editingAsset && (
-              <AssetForm 
+              <SavingsAccountForm 
                 onSubmit={handleUpdateAsset}
                 onCancel={() => {
                   setEditDialogOpen(false);
                   setEditingAsset(null);
                 }}
-                defaultType="savings-account"
                 initialValues={editingAsset}
                 isEditing={true}
-                showTypeSelector={false}
               />
             )}
           </DialogContent>
