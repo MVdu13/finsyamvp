@@ -454,16 +454,25 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         </CardContent>
       </Card>
 
-      {groupedCryptos.length > 0 ? <div className="space-y-4">
-          {groupedCryptos.map(renderCryptoGroup)}
-        </div> : <div className="text-center py-12 bg-muted rounded-lg">
-          <p className="text-lg text-muted-foreground mb-4">
-            Aucun compte crypto dans votre portefeuille
-          </p>
-          <button className="wealth-btn wealth-btn-primary" onClick={() => setDialogOpen(true)}>
-            Ajouter votre premier compte crypto
-          </button>
-        </div>}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Vos Comptes Crypto</h2>
+        
+        {cryptoAccounts.length > 0 ? (
+          <div className="space-y-4">
+            {groupedCryptos.map(renderCryptoGroup)}
+          </div>
+        ) : (
+          <div className="rounded-lg border p-8 text-center">
+            <h3 className="text-xl text-muted-foreground mb-6">Vous n'avez pas encore de compte crypto</h3>
+            <Button 
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+              onClick={handleAddAccount}
+            >
+              Ajouter votre première crypto
+            </Button>
+          </div>
+        )}
+      </div>
     </div>;
 };
 

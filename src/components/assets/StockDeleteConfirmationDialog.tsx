@@ -17,14 +17,18 @@ interface StockDeleteConfirmationDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   stockName?: string;
+  assetType?: 'stock' | 'crypto';
 }
 
 const StockDeleteConfirmationDialog: React.FC<StockDeleteConfirmationDialogProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  stockName
+  stockName,
+  assetType = 'stock'
 }) => {
+  const assetLabel = assetType === 'crypto' ? 'cette cryptomonnaie' : 'cette action';
+  
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
@@ -36,7 +40,7 @@ const StockDeleteConfirmationDialog: React.FC<StockDeleteConfirmationDialogProps
           <AlertDialogDescription className="space-y-2">
             {stockName 
               ? <p>Êtes-vous sûr de vouloir supprimer "{stockName}" ?</p>
-              : <p>Êtes-vous sûr de vouloir supprimer cette action ?</p>}
+              : <p>Êtes-vous sûr de vouloir supprimer {assetLabel} ?</p>}
             
             <p className="font-medium text-red-500">Cette action est irréversible.</p>
           </AlertDialogDescription>
