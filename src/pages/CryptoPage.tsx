@@ -433,7 +433,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         {cryptoAccounts.length > 0 ? <div className="space-y-4">
             {groupedCryptos.map(renderCryptoGroup)}
           </div> : <div className="rounded-lg border p-8 text-center">
-            <h3 className="text-lg text-muted-foreground mb-6">Vous n'avez pas encore de compte crypto</h3>
+            <h3 className="text-muted-foreground mb-6 text-base">Vous n'avez pas encore de compte crypto</h3>
             <Button className="bg-wealth-primary hover:bg-wealth-primary-dark text-white" onClick={handleAddAccount}>
               Ajouter votre première crypto
             </Button>
