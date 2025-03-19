@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ScrollText, TrendingUp, Plus, Percent } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -193,7 +192,8 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
   const handleAddSavingsAccount = (newAsset: Omit<Asset, 'id'>) => {
     const savingsAccount = {
       ...newAsset,
-      type: 'savings-account' as AssetType
+      type: 'savings-account' as AssetType,
+      description: `Taux: ${newAsset.interestRate}%`
     };
     
     onAddAsset(savingsAccount);
@@ -212,7 +212,12 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
 
   const handleUpdateAsset = (updatedAsset: Omit<Asset, 'id'>) => {
     if (editingAsset && onUpdateAsset) {
-      onUpdateAsset(editingAsset.id, updatedAsset);
+      const modifiedAsset = {
+        ...updatedAsset,
+        description: `Taux: ${updatedAsset.interestRate}%`
+      };
+      
+      onUpdateAsset(editingAsset.id, modifiedAsset);
       toast({
         title: "Livret modifié",
         description: `${updatedAsset.name} a été mis à jour`,

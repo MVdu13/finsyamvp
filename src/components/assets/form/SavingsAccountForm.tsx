@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Asset } from '@/types/assets';
 import { Label } from '@/components/ui/label';
@@ -31,7 +30,7 @@ const SavingsAccountForm: React.FC<SavingsAccountFormProps> = ({
     }
     
     const finalName = `${bankName.trim()} - ${accountName.trim()}`;
-    const finalDescription = `Banque: ${bankName.trim()} - Livret: ${accountName.trim()} - Taux: ${interestRate}%`;
+    const finalDescription = `Taux: ${interestRate}%`;
     
     const asset: Omit<Asset, 'id'> = {
       name: finalName,
