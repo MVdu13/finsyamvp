@@ -165,7 +165,10 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
           
           {/* Transactions */}
           {crypto.transactions && crypto.transactions.length > 0 && (
-            <CryptoTransactionsList transactions={crypto.transactions} />
+            <CryptoTransactionsList 
+              transactions={crypto.transactions} 
+              currentPrice={currentPrice}
+            />
           )}
           {(!crypto.transactions || crypto.transactions.length === 0) && (
             <div className="text-center py-4 text-muted-foreground border rounded-lg">
