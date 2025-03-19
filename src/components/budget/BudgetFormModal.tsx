@@ -103,14 +103,17 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({
         return;
       }
 
-      // Convert amount to monthly value based on frequency
+      // Calculate monthly amount for total calculations
       const monthlyAmount = convertToMonthlyAmount(numAmount, frequency);
 
       if (type === 'income') {
         const incomeItem: Income = {
           id: editItem ? editItem.id : Date.now().toString(),
           name,
-          amount: monthlyAmount,
+          // Store original amount for display in list
+          amount: numAmount,
+          // Add additional property for monthly calculation
+          monthlyAmount,
           frequency,
           icon: 'default'
         };
@@ -119,7 +122,10 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({
         const expenseItem: Expense = {
           id: editItem ? editItem.id : Date.now().toString(),
           name,
-          amount: monthlyAmount,
+          // Store original amount for display in list
+          amount: numAmount,
+          // Add additional property for monthly calculation
+          monthlyAmount,
           category,
           frequency,
           essential,

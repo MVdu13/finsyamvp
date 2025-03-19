@@ -3,6 +3,7 @@ export interface Income {
   id: string;
   name: string;
   amount: number;
+  monthlyAmount?: number; // For total calculations
   frequency: 'monthly' | 'yearly' | 'weekly' | 'daily';
   icon?: string;
 }
@@ -11,6 +12,7 @@ export interface Expense {
   id: string;
   name: string;
   amount: number;
+  monthlyAmount?: number; // For total calculations
   category: string;
   frequency: 'monthly' | 'yearly' | 'weekly' | 'daily';
   essential: boolean;

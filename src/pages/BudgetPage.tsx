@@ -126,7 +126,9 @@ const BudgetPage = () => {
       newIncomes = [...budget.incomes, income];
     }
     
-    const totalIncome = newIncomes.reduce((sum, inc) => sum + inc.amount, 0);
+    const totalIncome = newIncomes.reduce((sum, inc) => 
+      sum + (inc.monthlyAmount !== undefined ? inc.monthlyAmount : inc.amount), 0
+    );
     
     setBudget({
       ...budget,
@@ -147,7 +149,9 @@ const BudgetPage = () => {
       newExpenses = [...budget.expenses, expense];
     }
     
-    const totalExpenses = newExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const totalExpenses = newExpenses.reduce((sum, exp) => 
+      sum + (exp.monthlyAmount !== undefined ? exp.monthlyAmount : exp.amount), 0
+    );
     
     setBudget({
       ...budget,

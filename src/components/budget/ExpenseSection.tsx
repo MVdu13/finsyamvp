@@ -61,7 +61,11 @@ const ExpenseSection: React.FC<ExpenseSectionProps> = ({
                   </div>
                   <div>
                     <h4 className="font-medium">{expense.name}</h4>
-                    <p className="text-xs text-muted-foreground">{expense.category}</p>
+                    <p className="text-xs text-muted-foreground">{expense.category} ({
+                      expense.frequency === 'monthly' ? 'mensuel' :
+                      expense.frequency === 'yearly' ? 'annuel' :
+                      expense.frequency === 'weekly' ? 'hebdomadaire' : 'quotidien'
+                    })</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -129,7 +133,11 @@ const ExpenseSection: React.FC<ExpenseSectionProps> = ({
                   </div>
                   <div>
                     <h4 className="font-medium">{expense.name}</h4>
-                    <p className="text-xs text-muted-foreground">{expense.category}</p>
+                    <p className="text-xs text-muted-foreground">{expense.category} ({
+                      expense.frequency === 'monthly' ? 'mensuel' :
+                      expense.frequency === 'yearly' ? 'annuel' :
+                      expense.frequency === 'weekly' ? 'hebdomadaire' : 'quotidien'
+                    })</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
