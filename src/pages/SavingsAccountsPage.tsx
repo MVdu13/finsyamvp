@@ -327,6 +327,9 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(totalValue)}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Tous livrets confondus
+            </div>
           </CardContent>
         </Card>
         
@@ -336,7 +339,6 @@ const SavingsAccountsPage: React.FC<SavingsAccountsPageProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{assets.length}</div>
-            {/* Removed "Livrets d'épargne actifs" text as requested */}
           </CardContent>
         </Card>
         
