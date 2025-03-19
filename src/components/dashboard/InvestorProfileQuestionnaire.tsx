@@ -1,11 +1,9 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import Image from 'next/image';
 
 export type InvestorProfileType = 'conservative' | 'balanced' | 'aggressive' | 'offensive';
 
@@ -109,30 +107,24 @@ const InvestorProfileQuestionnaire: React.FC<InvestorProfileQuestionnaireProps> 
   const [selectedOption, setSelectedOption] = useState<number>(-1);
 
   const handleNext = () => {
-    // Save the current answer
     const newAnswers = [...answers];
     newAnswers[currentQuestionIndex] = selectedOption;
     setAnswers(newAnswers);
 
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
-      // Pre-select the previous answer if it exists
       setSelectedOption(newAnswers[currentQuestionIndex + 1]);
     } else {
-      // We're at the last question, calculate the profile
       const totalScore = newAnswers.reduce((sum, score) => sum + (score !== -1 ? questions[newAnswers.indexOf(score)].options[score].score : 0), 0);
       const newProfile = getProfileFromScore(totalScore);
       
-      // Update the profile
       onUpdateProfile(newProfile);
       
-      // Show success message
       toast({
         title: "Profil mis à jour",
         description: `Votre profil investisseur est maintenant: ${getProfileLabel(newProfile)}`,
       });
       
-      // Close the questionnaire
       handleReset();
       onClose();
     }
