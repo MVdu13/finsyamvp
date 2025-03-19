@@ -50,8 +50,8 @@ const CryptoTransactionsList: React.FC<CryptoTransactionsListProps> = ({
             <TableHead>Type</TableHead>
             <TableHead>Quantité</TableHead>
             <TableHead>Prix unitaire</TableHead>
-            <TableHead>Total</TableHead>
             <TableHead className="text-right">Performance</TableHead>
+            <TableHead>Total</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -65,7 +65,6 @@ const CryptoTransactionsList: React.FC<CryptoTransactionsListProps> = ({
               </TableCell>
               <TableCell>{transaction.quantity}</TableCell>
               <TableCell>{formatCurrency(transaction.price)}</TableCell>
-              <TableCell>{formatCurrency(transaction.total)}</TableCell>
               <TableCell className="text-right">
                 {transaction.type === 'buy' && transaction.performance !== undefined ? (
                   <div className={cn("flex items-center justify-end gap-1", 
@@ -80,6 +79,7 @@ const CryptoTransactionsList: React.FC<CryptoTransactionsListProps> = ({
                   <span className="text-muted-foreground">-</span>
                 )}
               </TableCell>
+              <TableCell>{formatCurrency(transaction.total)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
