@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { mockBudget, mockAssets } from '@/lib/mockData';
 import BudgetHeader from '@/components/budget/BudgetHeader';
@@ -8,6 +9,7 @@ import SecurityCushionForm from '@/components/budget/SecurityCushionForm';
 import DeleteConfirmationDialog from '@/components/budget/DeleteConfirmationDialog';
 import KeyMetrics from '@/components/budget/KeyMetrics';
 import CashflowChart from '@/components/budget/CashflowChart';
+import SecurityCushion from '@/components/budget/SecurityCushion';
 import { Budget, Income, Expense } from '@/types/budget';
 import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -239,8 +241,8 @@ const BudgetPage = () => {
         totalExpenses={budget.totalExpenses}
       />
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="p-6 lg:col-span-2">
           <CardHeader className="p-0 pb-6">
             <CardTitle>Revenu mensuel</CardTitle>
           </CardHeader>
@@ -258,7 +260,17 @@ const BudgetPage = () => {
           </CardContent>
         </Card>
         
-        <Card className="p-0">
+        <Card className="lg:row-span-2">
+          <SecurityCushion 
+            currentAmount={savingsAccountsTotal}
+            targetAmount={targetAmount}
+            expenseAmount={monthlyExpenses}
+            riskProfile={riskProfile}
+            onEditClick={() => setCushionFormOpen(true)}
+          />
+        </Card>
+        
+        <Card className="p-0 lg:col-span-2">
           <ExpenseSection 
             fixedExpenses={fixedExpenses}
             variableExpenses={variableExpenses}
