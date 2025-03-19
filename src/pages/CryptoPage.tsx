@@ -13,12 +13,14 @@ import TimeFrameSelector, { TimeFrame } from '@/components/charts/TimeFrameSelec
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import CryptoDetailsDialog from '@/components/assets/CryptoDetailsDialog';
+
 interface CryptoPageProps {
   assets: Asset[];
   onAddAsset: (asset: Omit<Asset, 'id'>) => Asset | null | undefined;
   onDeleteAsset?: (id: string) => void;
   onUpdateAsset?: (id: string, asset: Partial<Asset>) => void;
 }
+
 const CryptoPage: React.FC<CryptoPageProps> = ({
   assets,
   onAddAsset,
@@ -34,6 +36,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [selectedCrypto, setSelectedCrypto] = useState<Asset | null>(null);
+
   const cryptoAccounts = assets.filter(asset => asset.type === 'crypto-account');
   const cryptoAssets = assets.filter(asset => asset.type === 'crypto');
   const totalValue = cryptoAssets.reduce((sum, asset) => sum + asset.value, 0);
@@ -41,6 +44,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
   const absoluteGrowth = useMemo(() => {
     return totalValue * (avgPerformance / 100);
   }, [totalValue, avgPerformance]);
+
   const groupedCryptos = cryptoAccounts.map(account => {
     const accountCryptos = cryptoAssets.filter(crypto => crypto.cryptoAccountId === account.id);
     const accountValue = accountCryptos.reduce((sum, crypto) => sum + crypto.value, 0);
@@ -50,6 +54,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       totalValue: accountValue
     };
   });
+
   const unassignedCryptos = cryptoAssets.filter(crypto => !crypto.cryptoAccountId);
   if (unassignedCryptos.length > 0) {
     const unassignedValue = unassignedCryptos.reduce((sum, crypto) => sum + crypto.value, 0);
@@ -65,13 +70,16 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       totalValue: unassignedValue
     });
   }
+
   groupedCryptos.sort((a, b) => b.totalValue - a.totalValue);
+
   const generateChartData = () => {
     const baseValue = totalValue > 0 ? totalValue : 0;
     let numDataPoints;
     let labels;
     const currentDate = new Date();
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+
     switch (timeFrame) {
       case '1M':
         numDataPoints = 30;
@@ -135,6 +143,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         });
         break;
     }
+
     if (baseValue === 0) {
       return {
         labels,
@@ -142,12 +151,13 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
           label: 'Valeur crypto',
           data: Array(labels.length).fill(0),
           color: '#FA5003',
-          // Changed to primary orange
           fill: true
         }]
       };
     }
+
     const volatilityFactor = timeFrame === '1M' ? 0.15 : timeFrame === '3M' ? 0.25 : timeFrame === '6M' ? 0.4 : timeFrame === '5Y' ? 0.7 : timeFrame === 'ALL' ? 0.9 : 0.5;
+
     const generateRandomWalk = (steps: number, finalValue: number, volatility: number) => {
       let initialValue = finalValue * (1 - Math.random() * volatility);
       const result = [initialValue];
@@ -160,6 +170,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       result.push(finalValue);
       return result.map(val => Math.round(val));
     };
+
     const values = generateRandomWalk(labels.length, baseValue, volatilityFactor);
     return {
       labels,
@@ -167,12 +178,13 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         label: 'Valeur crypto',
         data: values,
         color: '#FA5003',
-        // Changed to primary orange
         fill: true
       }]
     };
   };
+
   const chartData = generateChartData();
+
   const handleAddCrypto = (newCrypto: Omit<Asset, 'id'>) => {
     if (newCrypto.type === 'crypto-account') {
       const cryptoAccount = {
@@ -201,13 +213,16 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       return addedAsset;
     }
   };
+
   const handleAddAccount = () => {
     setDialogOpen(true);
   };
+
   const handleEditAsset = (asset: Asset) => {
     setEditingAsset(asset);
     setEditDialogOpen(true);
   };
+
   const handleUpdateAsset = (updatedAsset: Omit<Asset, 'id'>) => {
     if (editingAsset && onUpdateAsset) {
       onUpdateAsset(editingAsset.id, updatedAsset);
@@ -219,6 +234,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       setEditingAsset(null);
     }
   };
+
   const handleDeleteAsset = (id: string) => {
     if (onDeleteAsset) {
       onDeleteAsset(id);
@@ -228,6 +244,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       });
     }
   };
+
   const handleDeleteAccount = (accountId: string) => {
     if (onDeleteAsset) {
       onDeleteAsset(accountId);
@@ -237,10 +254,12 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
       });
     }
   };
+
   const handleAssetClick = (asset: Asset) => {
     setSelectedCrypto(asset);
     setCryptoDetailsDialogOpen(true);
   };
+
   const getTimePeriodText = () => {
     switch (timeFrame) {
       case '1M':
@@ -258,6 +277,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         return 'sur les 12 derniers mois';
     }
   };
+
   const renderCryptoGroup = (group: {
     account: Asset;
     cryptos: Asset[];
@@ -309,6 +329,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         </Collapsible>
       </div>;
   };
+
   return <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -403,14 +424,6 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Vos comptes crypto</h2>
-        <Button variant="outline" onClick={handleAddAccount} className="flex items-center gap-1">
-          <Plus size={16} />
-          <span>Nouveau compte</span>
-        </Button>
-      </div>
-
       {groupedCryptos.length > 0 ? <div className="space-y-4">
           {groupedCryptos.map(renderCryptoGroup)}
         </div> : <div className="text-center py-12 bg-muted rounded-lg">
@@ -423,4 +436,5 @@ const CryptoPage: React.FC<CryptoPageProps> = ({
         </div>}
     </div>;
 };
+
 export default CryptoPage;
