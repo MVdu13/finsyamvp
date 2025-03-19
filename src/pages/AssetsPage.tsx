@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Filter, Search, Trash2, Pencil } from 'lucide-react';
 import AssetsList from '@/components/assets/AssetsList';
@@ -159,9 +158,6 @@ const AssetsPage: React.FC<AssetsPageProps> = ({
 
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Modifier un actif</DialogTitle>
-            </DialogHeader>
             {editingAsset && (
               <AssetForm 
                 onSubmit={handleUpdateAsset}

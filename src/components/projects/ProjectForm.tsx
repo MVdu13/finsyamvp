@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { FinancialGoal } from '@/types/goals';
@@ -43,10 +43,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>{editProject ? 'Modifier le projet' : 'Ajouter un projet'}</DialogTitle>
-        </DialogHeader>
-        
         <Form {...form}>
           <form onSubmit={onSubmit} className="space-y-4">
             <BasicInfoFields form={form} />

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Wallet, BookText, Home } from 'lucide-react';
+import { Wallet, BookText, Home, Smile } from 'lucide-react';
 import { AssetType } from '@/types/assets';
 
 interface FormHeaderProps {
@@ -14,7 +14,7 @@ const FormHeader: React.FC<FormHeaderProps> = ({ title, type }) => {
       case 'bank-account': return <Wallet size={24} className="text-[#FA5003]" />;
       case 'savings-account': return <BookText size={24} className="text-[#FA5003]" />;
       case 'real-estate': return <Home size={24} className="text-[#FA5003]" />;
-      default: return null;
+      default: return <Smile size={24} className="text-[#FA5003]" />;
     }
   };
 
