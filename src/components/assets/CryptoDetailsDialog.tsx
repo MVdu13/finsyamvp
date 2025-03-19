@@ -2,16 +2,22 @@
 import React from 'react';
 import { Asset } from '@/types/assets';
 import { formatCurrency, formatPercentage } from '@/lib/formatters';
-import { TrendingUp, TrendingDown, Calendar, Wallet } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
 import CryptoTransactionsList from './CryptoTransactionsList';
 import { cn } from '@/lib/utils';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from '@/components/ui/button';
 
 interface CryptoDetailsDialogProps {
   isOpen: boolean;
@@ -26,155 +32,93 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
 }) => {
   if (!crypto) return null;
 
-  const purchaseDate = crypto.purchaseDate 
-    ? new Date(crypto.purchaseDate).toLocaleDateString('fr-FR')
-    : 'Non spécifié';
-
   // Calculate current price if quantity is available
   const currentPrice = crypto.quantity && crypto.quantity > 0 
     ? crypto.value / crypto.quantity 
     : crypto.purchasePrice || 0;
     
-  // Calculate annual performance (simple estimate if not provided)
-  const annualPerformance = crypto.performance 
+  // Calculate performance
+  const performance = crypto.performance 
     ? crypto.performance 
     : crypto.purchasePrice && currentPrice
       ? ((currentPrice - crypto.purchasePrice) / crypto.purchasePrice) * 100
-      : undefined;
+      : 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">{crypto.name}</DialogTitle>
-          <DialogDescription>
-            {crypto.quantity !== undefined ? `${crypto.quantity} unités à ${crypto.purchasePrice ? formatCurrency(crypto.purchasePrice) : 'N/A'}` : ''} - Détails de votre investissement en cryptomonnaie
-          </DialogDescription>
+          <DialogTitle className="text-xl">Détails de la cryptomonnaie</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6 mt-4">
-          {/* Basic information */}
-          <div className="bg-muted/50 p-4 rounded-lg space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className={cn(
-                  "w-10 h-10 rounded-md flex items-center justify-center",
-                  "bg-purple-100"
-                )}>
-                  <span className="font-medium text-sm text-purple-600">
-                    {crypto.symbol || crypto.name.substring(0, 2).toUpperCase()}
-                  </span>
-                </div>
-                <div>
-                  <h4 className="font-medium">{crypto.name}</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {crypto.quantity !== undefined ? `${crypto.quantity} unités à ${crypto.purchasePrice ? formatCurrency(crypto.purchasePrice) : 'N/A'}` : crypto.symbol || 'Crypto'}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-medium">{formatCurrency(crypto.value)}</p>
-                {crypto.performance !== undefined && (
-                  <p className={cn(
-                    "text-sm flex items-center justify-end gap-1",
-                    crypto.performance >= 0 ? "text-green-600" : "text-red-600"
+          {/* Crypto Name */}
+          <h2 className="text-2xl font-bold">{crypto.name}</h2>
+          
+          {/* Basic information in table format */}
+          <div className="bg-white rounded-lg border">
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium">Quantité totale</TableCell>
+                  <TableCell className="text-right">{crypto.quantity || '0'}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Prix moyen d'achat</TableCell>
+                  <TableCell className="text-right">{formatCurrency(crypto.purchasePrice || 0)}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Valeur totale</TableCell>
+                  <TableCell className="text-right">{formatCurrency(crypto.value)}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Performance</TableCell>
+                  <TableCell className={cn(
+                    "text-right",
+                    performance >= 0 ? "text-green-600" : "text-red-600"
                   )}>
-                    {crypto.performance >= 0 ? (
-                      <TrendingUp size={14} />
-                    ) : (
-                      <TrendingDown size={14} />
-                    )}
-                    {formatPercentage(crypto.performance)}
-                  </p>
-                )}
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              <div className="text-sm">
-                <p className="text-muted-foreground">Quantité totale</p>
-                <p className="font-medium">{crypto.quantity || 'N/A'} {crypto.symbol || ''}</p>
-              </div>
-              <div className="text-sm">
-                <p className="text-muted-foreground">Prix actuel</p>
-                <p className="font-medium">{formatCurrency(currentPrice)}</p>
-              </div>
-              <div className="text-sm">
-                <p className="text-muted-foreground">Prix d'achat moyen</p>
-                <p className="font-medium">{crypto.purchasePrice ? formatCurrency(crypto.purchasePrice) : 'N/A'}</p>
-              </div>
-              <div className="text-sm">
-                <p className="text-muted-foreground">Date d'achat</p>
-                <p className="font-medium flex items-center gap-1">
-                  <Calendar size={14} />
-                  {purchaseDate}
-                </p>
-              </div>
-              <div className="text-sm">
-                <p className="text-muted-foreground">Plateforme</p>
-                <p className="font-medium">{crypto.cryptoPlatform || (crypto.cryptoAccountId ? 'Compte crypto' : 'Direct')}</p>
-              </div>
-              <div className="text-sm">
-                <p className="text-muted-foreground">Valeur initiale</p>
-                <p className="font-medium">
-                  {crypto.purchasePrice && crypto.quantity 
-                    ? formatCurrency(crypto.purchasePrice * crypto.quantity) 
-                    : 'N/A'}
-                </p>
-              </div>
-              <div className="text-sm">
-                <p className="text-muted-foreground">Performance annuelle</p>
-                <p className={cn(
-                  "font-medium",
-                  annualPerformance >= 0 ? "text-green-600" : "text-red-600"
-                )}>
-                  {annualPerformance !== undefined 
-                    ? `${annualPerformance > 0 ? "+" : ""}${formatPercentage(annualPerformance)}` 
-                    : 'N/A'}
-                </p>
-              </div>
-              <div className="text-sm">
-                <p className="text-muted-foreground">Compte</p>
-                <p className="font-medium flex items-center gap-1">
-                  <Wallet size={14} />
-                  {crypto.cryptoAccountId 
-                    ? `Compte ${crypto.cryptoAccountId}` 
-                    : crypto.cryptoPlatform || 'Portefeuille personnel'}
-                </p>
-              </div>
-            </div>
+                    {formatPercentage(performance)}
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Compte</TableCell>
+                  <TableCell className="text-right">
+                    {crypto.cryptoAccountId 
+                      ? `Compte ${crypto.cryptoAccountId}` 
+                      : crypto.cryptoPlatform || 'Portefeuille personnel'}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
           
-          {/* Market data if available */}
-          {crypto.change24h !== undefined && (
-            <div className="bg-muted/30 p-4 rounded-lg">
-              <h3 className="font-medium mb-2">Données de marché</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-sm">
-                  <p className="text-muted-foreground">Variation 24h</p>
-                  <p className={cn(
-                    "font-medium",
-                    crypto.change24h >= 0 ? "text-green-600" : "text-red-600"
-                  )}>
-                    {crypto.change24h > 0 ? "+" : ""}{crypto.change24h}%
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          
           {/* Transactions */}
-          {crypto.transactions && crypto.transactions.length > 0 && (
-            <CryptoTransactionsList 
-              transactions={crypto.transactions} 
-              currentPrice={currentPrice}
-            />
-          )}
-          {(!crypto.transactions || crypto.transactions.length === 0) && (
-            <div className="text-center py-4 text-muted-foreground border rounded-lg">
-              Aucune transaction enregistrée pour cette cryptomonnaie
-            </div>
-          )}
+          <div>
+            <h3 className="text-xl font-bold mb-4">Transactions</h3>
+            {crypto.transactions && crypto.transactions.length > 0 ? (
+              <CryptoTransactionsList 
+                transactions={crypto.transactions} 
+                currentPrice={currentPrice}
+              />
+            ) : (
+              <div className="text-center py-4 bg-muted/30 rounded border">
+                <p className="text-muted-foreground">Aucune transaction enregistrée</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Action buttons */}
+          <div className="flex justify-end space-x-4 mt-6">
+            <Button
+              variant="outline"
+              onClick={onClose}
+            >
+              Fermer
+            </Button>
+            <Button className="bg-orange-500 hover:bg-orange-600">
+              Ajouter une transaction
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
