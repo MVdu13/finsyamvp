@@ -54,6 +54,7 @@ const StockFormFields: React.FC<StockFormFieldsProps> = ({
       pricePlaceholder="Ex: 150"
       dialogTitle="Ajouter un compte d'investissement"
       accountTypeKey="investment-account"
+      accountTypeProp="accountType"
       renderAccountFormFields={({ accountName, setAccountName, otherProps, setOtherProps }) => (
         <InvestmentAccountFormFields
           accountName={accountName}

@@ -37,6 +37,7 @@ interface InvestmentFieldsBaseProps {
     setOtherProps: (value: any) => void;
   }) => React.ReactNode;
   accountTypeKey: string;
+  accountTypeProp?: string;
   existingAssetsMessageFn?: (matchingAssets: Asset[]) => string;
 }
 
@@ -64,6 +65,7 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
   dialogTitle,
   renderAccountFormFields,
   accountTypeKey,
+  accountTypeProp,
   existingAssetsMessageFn
 }) => {
   const { toast } = useToast();
@@ -139,9 +141,11 @@ const InvestmentFieldsBase: React.FC<InvestmentFieldsBaseProps> = ({
             {accounts.map((account) => (
               <option key={account.id} value={account.id}>
                 {account.name} ({
-                  accountTypeKey === 'investment-account' 
-                    ? account.accountType 
-                    : account.cryptoPlatform
+                  accountTypeProp ? 
+                    account[accountTypeProp] : 
+                    accountTypeKey === 'investment-account' 
+                      ? account.accountType 
+                      : account.cryptoPlatform
                 })
               </option>
             ))}
