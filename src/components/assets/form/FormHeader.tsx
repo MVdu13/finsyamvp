@@ -25,7 +25,7 @@ const FormHeader: React.FC<FormHeaderProps> = ({ title, type, showTitle = true }
   return (
     <div className="flex items-center gap-2 mb-6">
       {getFormIcon()}
-      {showTitle && <h2 className="text-lg font-medium">{title}</h2>}
+      {type === 'crypto' ? null : (showTitle && <h2 className="text-lg font-medium">{title}</h2>)}
     </div>
   );
 };

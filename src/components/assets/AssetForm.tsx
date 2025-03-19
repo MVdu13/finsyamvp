@@ -66,7 +66,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
     bankName, setBankName,
     accountName, setAccountName,
     savingsBankName, setSavingsBankName,
-    savingsAccountName, setSavingsAccountName,
     interestRate, setInterestRate,
     
     getFormTitle,
@@ -179,7 +178,6 @@ const AssetForm: React.FC<AssetFormProps> = ({
       <FormHeader 
         title={getFormTitle()} 
         type={type}
-        showTitle={type !== 'crypto'}
       />
       
       <form onSubmit={handleSubmit} className="space-y-4">
