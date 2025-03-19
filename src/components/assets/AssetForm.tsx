@@ -41,6 +41,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
   existingCryptos = []
 }) => {
   const {
+    // Form state and setters
     type, setType,
     value, setValue,
     performance, setPerformance,
@@ -67,8 +68,10 @@ const AssetForm: React.FC<AssetFormProps> = ({
     bankName, setBankName,
     accountName, setAccountName,
     savingsBankName, setSavingsBankName,
+    savingsAccountName, setSavingsAccountName,
     interestRate, setInterestRate,
     
+    // Helper functions
     getFormTitle,
     shouldShowPerformanceField,
     handleSubmit,
@@ -162,10 +165,10 @@ const AssetForm: React.FC<AssetFormProps> = ({
         return (
           <SavingsAccountFormFields
             bankName={savingsBankName}
-            accountName={accountName}
+            accountName={savingsAccountName}
             interestRate={interestRate}
             setBankName={setSavingsBankName}
-            setAccountName={setAccountName}
+            setAccountName={setSavingsAccountName}
             setInterestRate={setInterestRate}
           />
         );
