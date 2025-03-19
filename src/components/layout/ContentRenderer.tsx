@@ -12,6 +12,7 @@ import BankAccountsPage from '@/pages/BankAccountsPage';
 import SavingsAccountsPage from '@/pages/SavingsAccountsPage';
 import CompoundInterestPage from '@/pages/CompoundInterestPage';
 import CreditSimulatorPage from '@/pages/CreditSimulatorPage';
+import PortfolioRebalancerPage from '@/pages/PortfolioRebalancerPage';
 
 interface ContentRendererProps {
   activeItem: string;
@@ -97,6 +98,8 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({
       return <CompoundInterestPage />;
     case 'credit-simulator':
       return <CreditSimulatorPage />;
+    case 'portfolio-rebalancer':
+      return <PortfolioRebalancerPage />;
     default:
       return (
         <div className="p-6">

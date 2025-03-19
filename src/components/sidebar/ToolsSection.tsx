@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Calculator, TrendingUp } from 'lucide-react';
+import { Calculator, TrendingUp, RefreshCw } from 'lucide-react';
 import { SidebarSection } from './SidebarSection';
 import { SidebarItem } from './SidebarItem';
 import { SidebarSubItem } from './SidebarSubItem';
@@ -35,6 +35,12 @@ export const ToolsSection = ({
           isCollapsed={isCollapsed}
           onClick={() => setActiveItem('credit-simulator')}
         />
+        <SidebarItem 
+          icon={<RefreshCw size={22} />}
+          isActive={activeItem === 'portfolio-rebalancer'}
+          isCollapsed={isCollapsed}
+          onClick={() => setActiveItem('portfolio-rebalancer')}
+        />
       </>
     );
   }
@@ -58,6 +64,12 @@ export const ToolsSection = ({
         label="Simulateur de Crédit"
         isActive={activeItem === 'credit-simulator'}
         onClick={() => setActiveItem('credit-simulator')}
+      />
+      <SidebarSubItem 
+        icon={<RefreshCw size={18} />}
+        label="Rebalancement"
+        isActive={activeItem === 'portfolio-rebalancer'}
+        onClick={() => setActiveItem('portfolio-rebalancer')}
       />
     </SidebarSection>
   );
