@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Asset, AssetType } from '@/types/assets';
 import { useToast } from '@/hooks/use-toast';
@@ -7,17 +6,19 @@ interface UseAssetFormProps {
   onSubmit: (asset: Omit<Asset, 'id'>) => void;
   initialValues?: Asset;
   isEditing?: boolean;
+  defaultType?: AssetType;
 }
 
 export const useAssetForm = ({ 
   onSubmit, 
   initialValues, 
-  isEditing = false 
+  isEditing = false,
+  defaultType
 }: UseAssetFormProps) => {
   const { toast } = useToast();
   const [name, setName] = useState(initialValues?.name || '');
   const [description, setDescription] = useState(initialValues?.description || '');
-  const [type, setType] = useState<AssetType>(initialValues?.type || 'stock');
+  const [type, setType] = useState<AssetType>(initialValues?.type || defaultType || 'stock');
   const [value, setValue] = useState(initialValues?.value ? initialValues.value.toString() : '');
   const [performance, setPerformance] = useState(initialValues?.performance !== undefined ? initialValues.performance.toString() : '');
   

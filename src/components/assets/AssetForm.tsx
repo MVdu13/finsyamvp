@@ -79,7 +79,8 @@ const AssetForm: React.FC<AssetFormProps> = ({
   } = useAssetForm({
     onSubmit,
     initialValues,
-    isEditing
+    isEditing,
+    defaultType // Pass the defaultType to useAssetForm
   });
 
   const handleAddAccount = (accountData: Omit<Asset, 'id'>) => {
