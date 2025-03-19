@@ -21,6 +21,15 @@ const FormHeader: React.FC<FormHeaderProps> = ({ title, type }) => {
     }
   };
 
+  // Don't display the title for crypto assets
+  if (type === 'crypto') {
+    return (
+      <div className="flex items-center gap-2 mb-6">
+        {getFormIcon()}
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-2 mb-6">
       {getFormIcon()}
