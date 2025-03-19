@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
+import { useAssetManager } from '@/hooks/useAssetManager';
 
 interface CryptoDetailsDialogProps {
   isOpen: boolean;
@@ -29,6 +30,8 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
   onClose,
   crypto
 }) => {
+  const { assets } = useAssetManager();
+  
   if (!crypto) return null;
 
   // Calculate current price if quantity is available
@@ -48,7 +51,7 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
     if (!crypto.cryptoAccountId) return 'Portefeuille personnel';
     
     // Find the account in assets array
-    const account = window.assets?.find(asset => 
+    const account = assets?.find(asset => 
       asset.id === crypto.cryptoAccountId && 
       (asset.type === 'crypto-account' || asset.type === 'investment-account')
     );
@@ -84,7 +87,6 @@ const CryptoDetailsDialog: React.FC<CryptoDetailsDialogProps> = ({
                   <TableCell className="text-right">{formatCurrency(crypto.value)}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell className="font-medium">Performance</TableCell>
                   <TableCell className={cn(
                     "text-right",
                     performance >= 0 ? "text-green-600" : "text-red-600"
