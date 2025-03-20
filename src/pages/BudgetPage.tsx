@@ -42,16 +42,26 @@ const BudgetPage = () => {
       }
     };
     
+    const loadBudgetFromStorage = () => {
+      const storedBudget = localStorage.getItem('financial-budget');
+      if (storedBudget) {
+        setBudget(JSON.parse(storedBudget));
+      }
+    };
+    
     const savedProjects = localStorage.getItem('financial-projects');
     if (savedProjects) {
       setProjects(JSON.parse(savedProjects));
     }
     
     loadAssetsFromStorage();
+    loadBudgetFromStorage();
     
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'financial-assets') {
         loadAssetsFromStorage();
+      } else if (event.key === 'financial-budget') {
+        loadBudgetFromStorage();
       }
     };
     
@@ -66,6 +76,10 @@ const BudgetPage = () => {
       clearInterval(intervalId);
     };
   }, []);
+  
+  useEffect(() => {
+    localStorage.setItem('financial-budget', JSON.stringify(budget));
+  }, [budget]);
   
   const savingsAccountsTotal = calculateSavingsTotal();
   const [riskProfile, setRiskProfile] = useState<'high' | 'medium' | 'low'>('medium');
@@ -140,6 +154,13 @@ const BudgetPage = () => {
       incomes: newIncomes,
       totalIncome
     });
+    
+    toast({
+      title: isEditing ? "Revenu modifié" : "Revenu ajouté",
+      description: isEditing 
+        ? `Le revenu ${income.name} a été modifié avec succès.`
+        : `Le revenu ${income.name} a été ajouté avec succès.`,
+    });
   };
 
   const handleSaveExpense = (expense: Expense) => {
@@ -162,6 +183,13 @@ const BudgetPage = () => {
       ...budget,
       expenses: newExpenses,
       totalExpenses
+    });
+    
+    toast({
+      title: isEditing ? "Dépense modifiée" : "Dépense ajoutée",
+      description: isEditing 
+        ? `La dépense ${expense.name} a été modifiée avec succès.`
+        : `La dépense ${expense.name} a été ajoutée avec succès.`,
     });
   };
 
