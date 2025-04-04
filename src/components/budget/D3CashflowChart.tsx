@@ -42,7 +42,7 @@ const D3CashflowChart: React.FC<D3CashflowChartProps> = ({
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
-  // Prepare data for the sankey diagram
+  // Prepare data for the sankey diagram - simplified version
   const prepareData = () => {
     const nodes: SankeyNode[] = [];
     const links: SankeyLink[] = [];
@@ -53,81 +53,34 @@ const D3CashflowChart: React.FC<D3CashflowChartProps> = ({
       category: 'income'
     });
 
-    // Budget node
-    nodes.push({ 
-      name: `Budget: ${formatCurrency(totalIncome)}`,
-      category: 'budget'
-    });
-
-    links.push({
-      source: 0,
-      target: 1,
-      value: totalIncome,
-      name: 'Revenu Total',
-      color: '#9b87f580', // Semi-transparent purple
-    });
-
-    const expenseCategories: Record<string, { fixed: Expense[], variable: Expense[] }> = {};
+    // Group expenses by category
+    const expenseCategories: Record<string, number> = {};
     
     expenses.forEach(expense => {
       if (!expenseCategories[expense.category]) {
-        expenseCategories[expense.category] = {
-          fixed: [],
-          variable: []
-        };
+        expenseCategories[expense.category] = 0;
       }
       
-      if (expense.type === 'fixed') {
-        expenseCategories[expense.category].fixed.push(expense);
-      } else {
-        expenseCategories[expense.category].variable.push(expense);
-      }
-    });
-
-    let nodeIndex = 2;
-    
-    Object.entries(expenseCategories).forEach(([category, { fixed, variable }]) => {
-      const categoryExpenses = [...fixed, ...variable];
       // Use monthlyAmount if available, otherwise fall back to amount
-      const categoryTotal = categoryExpenses.reduce((sum, exp) => 
-        sum + (exp.monthlyAmount !== undefined ? exp.monthlyAmount : exp.amount), 0
-      );
-      
-      if (categoryTotal > 0) {
+      const expenseAmount = expense.monthlyAmount !== undefined ? expense.monthlyAmount : expense.amount;
+      expenseCategories[expense.category] += expenseAmount;
+    });
+    
+    // Add category nodes and links from income to categories
+    Object.entries(expenseCategories).forEach(([category, amount], index) => {
+      if (amount > 0) {
         nodes.push({
-          name: `${category}: ${formatCurrency(categoryTotal)}`,
-          category: 'category',
+          name: `${category}: ${formatCurrency(amount)}`,
+          category: 'expense'
         });
         
         links.push({
-          source: 1,
-          target: nodeIndex,
-          value: categoryTotal,
+          source: 0,
+          target: index + 1,
+          value: amount,
           name: category,
           color: getCategoryColorTransparent(category)
         });
-        
-        categoryExpenses.forEach(expense => {
-          // Use monthlyAmount if available, otherwise fall back to amount
-          const expenseAmount = expense.monthlyAmount !== undefined ? expense.monthlyAmount : expense.amount;
-          
-          nodes.push({
-            name: `${expense.name}: ${formatCurrency(expenseAmount)}`,
-            category: 'expense',
-          });
-          
-          links.push({
-            source: nodeIndex,
-            target: nodeIndex + 1,
-            value: expenseAmount,
-            name: expense.name,
-            color: getCategoryColorTransparent(category, true)
-          });
-          
-          nodeIndex++;
-        });
-        
-        nodeIndex++;
       }
     });
 
@@ -236,20 +189,9 @@ const D3CashflowChart: React.FC<D3CashflowChartProps> = ({
       .attr("width", d => (d.x1 || 0) - (d.x0 || 0))
       .attr("fill", d => {
         if ((d as SankeyNode).category === 'income') return '#9b87f5';
-        if ((d as SankeyNode).category === 'budget') return '#D3E4FD';
-        if ((d as SankeyNode).category === 'category') {
-          const name = d.name?.split(':')[0].trim() || '';
-          return getCategoryColor(name);
-        }
         if ((d as SankeyNode).category === 'expense') {
           const name = d.name?.split(':')[0].trim() || '';
-          // Try to find the category of the expense based on the name
-          for (const category of Object.keys(getCategoryMap())) {
-            if (name.toLowerCase().includes(category.toLowerCase())) {
-              return getCategoryColor(category, true);
-            }
-          }
-          return '#d1d5db';
+          return getCategoryColor(name);
         }
         return '#d1d5db';
       })
@@ -323,15 +265,14 @@ const D3CashflowChart: React.FC<D3CashflowChartProps> = ({
     };
   };
 
-  // Create a deduplicated legend that shows each category only once
+  // Create a deduplicated legend
   const getLegendItems = () => {
     // Map to track seen categories for deduplication
     const seenCategories = new Set<string>();
     const legendItems = [];
     
-    // First add income and budget which are always shown
+    // First add income which is always shown
     legendItems.push({ name: 'Revenus', color: '#9b87f5' });
-    legendItems.push({ name: 'Budget', color: '#D3E4FD' });
     
     // Then add unique expense categories
     for (const category of uniqueCategories) {
