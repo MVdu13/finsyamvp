@@ -266,7 +266,7 @@ const D3CashflowChart: React.FC<D3CashflowChartProps> = ({
       .attr("y", d => ((d.y1 || 0) - (d.y0 || 0)) / 2)
       .attr("dy", "0.35em")
       .attr("text-anchor", "start")
-      .attr("fill", "white")
+      .attr("fill", "#333333")  // Changed text color to dark for better visibility on white background
       .attr("font-size", "14px")
       .text(d => d.name)
       .call(wrapText, 240);
@@ -323,7 +323,7 @@ const D3CashflowChart: React.FC<D3CashflowChartProps> = ({
   };
 
   return (
-    <Card className="w-full mb-6 bg-gray-900 text-white border-gray-700">
+    <Card className="w-full mb-6">
       <CardHeader>
         <CardTitle className="text-lg font-medium">Flux de trésorerie</CardTitle>
       </CardHeader>
