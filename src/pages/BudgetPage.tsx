@@ -7,7 +7,7 @@ import BudgetFormModal from '@/components/budget/BudgetFormModal';
 import SecurityCushionForm from '@/components/budget/SecurityCushionForm';
 import DeleteConfirmationDialog from '@/components/budget/DeleteConfirmationDialog';
 import KeyMetrics from '@/components/budget/KeyMetrics';
-import CashflowChart from '@/components/budget/CashflowChart';
+import D3CashflowChart from '@/components/budget/D3CashflowChart';
 import { Budget, Income, Expense } from '@/types/budget';
 import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -273,7 +273,7 @@ const BudgetPage = () => {
         monthlyProjectsContribution={monthlyProjectsContribution}
       />
       
-      <CashflowChart 
+      <D3CashflowChart 
         incomes={budget.incomes}
         expenses={budget.expenses}
         totalIncome={budget.totalIncome}
