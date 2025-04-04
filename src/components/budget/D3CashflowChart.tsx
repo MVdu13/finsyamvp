@@ -172,7 +172,7 @@ const D3CashflowChart: React.FC<D3CashflowChartProps> = ({
     return getCategoryColor(category, isExpense) + '80'; // 50% opacity
   };
 
-  // Create legend items from unique categories
+  // Create legend items from unique categories - removing duplicates
   const uniqueCategories = Array.from(
     new Set(expenses.map(expense => expense.category))
   ).filter(Boolean);
@@ -210,7 +210,7 @@ const D3CashflowChart: React.FC<D3CashflowChartProps> = ({
     // Generate the sankey diagram
     const { nodes: sankeyNodes, links: sankeyLinks } = sankeyGenerator(sankeyData);
 
-    // Add links
+    // Add links - straight lines instead of arcs
     svg.append("g")
       .selectAll("path")
       .data(sankeyLinks)
@@ -266,7 +266,7 @@ const D3CashflowChart: React.FC<D3CashflowChartProps> = ({
       .attr("y", d => ((d.y1 || 0) - (d.y0 || 0)) / 2)
       .attr("dy", "0.35em")
       .attr("text-anchor", "start")
-      .attr("fill", "#333333")  // Changed text color to dark for better visibility on white background
+      .attr("fill", "#333333")  // Dark text color for better visibility on white background
       .attr("font-size", "14px")
       .text(d => d.name)
       .call(wrapText, 240);
@@ -301,6 +301,7 @@ const D3CashflowChart: React.FC<D3CashflowChartProps> = ({
 
   // Helper function to get a map of categories with their respective colors
   const getCategoryMap = () => {
+    // Creating a simplified map that avoids duplicates
     return {
       'logement': '#e879f9',
       'nourriture': '#c4b5fd',
@@ -322,6 +323,29 @@ const D3CashflowChart: React.FC<D3CashflowChartProps> = ({
     };
   };
 
+  // Create a deduplicated legend that shows each category only once
+  const getLegendItems = () => {
+    // Map to track seen categories for deduplication
+    const seenCategories = new Set<string>();
+    const legendItems = [];
+    
+    // First add income and budget which are always shown
+    legendItems.push({ name: 'Revenus', color: '#9b87f5' });
+    legendItems.push({ name: 'Budget', color: '#D3E4FD' });
+    
+    // Then add unique expense categories
+    for (const category of uniqueCategories) {
+      if (!seenCategories.has(category.toLowerCase())) {
+        legendItems.push({ name: category, color: getCategoryColor(category) });
+        seenCategories.add(category.toLowerCase());
+      }
+    }
+    
+    return legendItems;
+  };
+
+  const legendItems = getLegendItems();
+
   return (
     <Card className="w-full mb-6">
       <CardHeader>
@@ -329,21 +353,13 @@ const D3CashflowChart: React.FC<D3CashflowChartProps> = ({
       </CardHeader>
       <CardContent className="p-2">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 px-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-[#9b87f5]"></div>
-            <span className="text-xs">Revenus</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-[#D3E4FD]"></div>
-            <span className="text-xs">Budget</span>
-          </div>
-          {uniqueCategories.map((category, index) => (
+          {legendItems.map((item, index) => (
             <div key={`legend-${index}`} className="flex items-center space-x-2">
               <div 
                 className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: getCategoryColor(category) }}
+                style={{ backgroundColor: item.color }}
               ></div>
-              <span className="text-xs truncate">{category}</span>
+              <span className="text-xs truncate">{item.name}</span>
             </div>
           ))}
         </div>
