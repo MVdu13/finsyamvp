@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import LineChart from "@/components/charts/LineChart";
 import { formatCurrency } from '@/lib/formatters';
 
 const CompoundInterestPage = () => {
@@ -51,7 +51,35 @@ const CompoundInterestPage = () => {
     setTotalContributions(totalDeposited);
     setTotalInterest(balance - totalDeposited);
   };
+  
+  // Prepare data for our custom LineChart component
+  const prepareChartData = () => {
+    return {
+      labels: chartData.map(item => `Année ${item.year}`),
+      datasets: [
+        {
+          label: 'Capital total',
+          data: chartData.map(item => item.balance),
+          color: '#1d4ed8',
+          fill: false,
+        },
+        {
+          label: 'Versements cumulés',
+          data: chartData.map(item => item.contributions),
+          color: '#4b5563',
+          fill: false,
+        },
+        {
+          label: 'Intérêts cumulés',
+          data: chartData.map(item => item.interest),
+          color: '#16a34a',
+          fill: false,
+        }
+      ]
+    };
+  };
 
+  // Handlers for input changes
   const handleInitialAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value) || 0;
     setInitialAmount(value);
@@ -181,48 +209,13 @@ const CompoundInterestPage = () => {
                 
                 <TabsContent value="chart" className="space-y-4">
                   <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="year" 
-                          label={{ value: 'Années', position: 'insideBottom', offset: -5 }} 
-                        />
-                        <YAxis 
-                          tickFormatter={(value) => `${(value / 1000).toFixed(0)}k€`}
-                          label={{ value: 'Montant (€)', angle: -90, position: 'insideLeft' }} 
-                        />
-                        <Tooltip 
-                          formatter={(value) => [`${formatCurrency(value as number)}`, ""]}
-                          labelFormatter={(label) => `Année ${label}`}
-                        />
-                        <Legend />
-                        <Line 
-                          type="monotone" 
-                          dataKey="balance" 
-                          name="Capital total" 
-                          stroke="#1d4ed8" 
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="contributions" 
-                          name="Versements cumulés" 
-                          stroke="#4b5563" 
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="interest" 
-                          name="Intérêts cumulés" 
-                          stroke="#16a34a" 
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    {chartData.length > 0 && (
+                      <LineChart 
+                        data={prepareChartData()} 
+                        height={300}
+                        title="Évolution des montants"
+                      />
+                    )}
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
