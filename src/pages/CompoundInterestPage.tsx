@@ -6,7 +6,25 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { 
+  ChartContainer, 
+  ChartTooltip, 
+  ChartTooltipContent, 
+  ChartLegend, 
+  ChartLegendContent 
+} from "@/components/ui/chart";
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer, 
+  Area, 
+  AreaChart 
+} from 'recharts';
 import { formatCurrency } from '@/lib/formatters';
 
 const CompoundInterestPage = () => {
@@ -182,7 +200,7 @@ const CompoundInterestPage = () => {
                 <TabsContent value="chart" className="space-y-4">
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData}>
+                      <AreaChart data={chartData} stackOffset="none">
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
                           dataKey="year" 
@@ -197,31 +215,35 @@ const CompoundInterestPage = () => {
                           labelFormatter={(label) => `Année ${label}`}
                         />
                         <Legend />
-                        <Line 
-                          type="monotone" 
-                          dataKey="balance" 
-                          name="Capital total" 
-                          stroke="#1d4ed8" 
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line 
+                        <defs>
+                          <linearGradient id="colorContributions" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#4b5563" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#4b5563" stopOpacity={0.2}/>
+                          </linearGradient>
+                          <linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#16a34a" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#16a34a" stopOpacity={0.2}/>
+                          </linearGradient>
+                        </defs>
+                        <Area 
                           type="monotone" 
                           dataKey="contributions" 
                           name="Versements cumulés" 
                           stroke="#4b5563" 
+                          fill="url(#colorContributions)"
+                          stackId="1"
                           strokeWidth={2}
-                          dot={false}
                         />
-                        <Line 
+                        <Area 
                           type="monotone" 
                           dataKey="interest" 
                           name="Intérêts cumulés" 
                           stroke="#16a34a" 
+                          fill="url(#colorInterest)"
+                          stackId="1"
                           strokeWidth={2}
-                          dot={false}
                         />
-                      </LineChart>
+                      </AreaChart>
                     </ResponsiveContainer>
                   </div>
                   
